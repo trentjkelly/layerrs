@@ -1,0 +1,5 @@
+# Environment variables
+.env
+
+# A black hole
+web/node_modules
