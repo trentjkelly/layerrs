@@ -3,3 +3,6 @@
 
 # A black hole
 web/node_modules
+
+# Stupid mac metadata
+.DS_Store
