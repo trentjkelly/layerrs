@@ -48,18 +48,10 @@ func (r *TrackStorageRepository) CreateTrack(file multipart.File, filename *stri
 }
 
 // Gets a track from storage (to be streamed)
-func (r *TrackStorageRepository) ReadTrack() error {
-
-}
+// func (r *TrackStorageRepository) ReadTrack() error {}
 
 // Updates the track in storage
-func (r *TrackStorageRepository) UpdateTrack() error {
-
-}
+// func (r *TrackStorageRepository) UpdateTrack() error {}
 
 // Deletes the track from storage
-func (r *TrackStorageRepository) DeleteTrack() error {
-
-}
-
-
+// func (r *TrackStorageRepository) DeleteTrack() error {}

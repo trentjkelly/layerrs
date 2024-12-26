@@ -23,5 +23,5 @@ func (s *TrackService) AddAndUploadTrack(file multipart.File) error {
 	// 3. Hash or hex code the track ID for the track name in R2
 	// 4. Upload song to R2
 
-	s.trackStorageRepo.CreateTrack(file)
+	// s.trackStorageRepo.CreateTrack(file)
 }
