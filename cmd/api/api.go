@@ -1,20 +1,18 @@
 package main
 
 import (
+	// Native packages
 	"log"
 	"net/http"
 	"time"
-	"fmt"
-	"context"
-
+	// Chi router
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	// Local packages
+	"github.com/trentjkelly/layerr/internals/controller"
+	// "github.com/trentjkelly/layerr/internals/service"
+	"github.com/trentjkelly/layerr/internals/repository"
 
-	// AWS SDK for Cloudflare R2 storage
-	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/config"
-	"github.com/aws/aws-sdk-go-v2/credentials"
-	"github.com/aws/aws-sdk-go-v2/service/s3"
 )
 
 type appConfig struct {
@@ -23,29 +21,8 @@ type appConfig struct {
 
 type application struct {
 	config 		appConfig
-	r2Config 	aws.Config
-	r2Client 	*s3.Client
-}
-
-func createR2Config(accessKeyId string, accessKeySecret string) aws.Config {
-	r2Config, err := config.LoadDefaultConfig(context.TODO(),
-		config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(accessKeyId, accessKeySecret, "")),
-		config.WithRegion("auto"),	
-	)
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	return r2Config
-}
-
-func createR2Client(r2Config aws.Config, accountId string) *s3.Client {
-	r2Client := s3.NewFromConfig(r2Config, func(o *s3.Options) {
-		o.BaseEndpoint = aws.String(fmt.Sprintf("https://%s.r2.cloudflarestorage.com", accountId))
-	})
-
-	return r2Client
+	trackStorageRepository	*repository.TrackStorageRepository
+	trackController *controller.TrackController
 }
 
 func (app *application) mount() http.Handler {
@@ -59,9 +36,9 @@ func (app *application) mount() http.Handler {
 
 	r.Use(middleware.Timeout(time.Second * 60))
 
-	r.Get("/track", app.trackHandlerGet)
-	r.Put("/track", app.trackHandlerPut)
-	r.Options("/track", app.trackHandlerOptions)
+	r.Get("/track",  app.trackController.TrackHandlerGet)
+	r.Put("/track", app.trackController.TrackHandlerPut)
+	r.Options("/track", app.trackController.TrackHandlerOptions)
 	return r
 }
 
