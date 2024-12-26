@@ -10,9 +10,6 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	// Local packages
 	"github.com/trentjkelly/layerr/internals/controller"
-	// "github.com/trentjkelly/layerr/internals/service"
-	"github.com/trentjkelly/layerr/internals/repository"
-
 )
 
 type appConfig struct {
@@ -20,9 +17,8 @@ type appConfig struct {
 }
 
 type application struct {
-	config 		appConfig
-	trackStorageRepository	*repository.TrackStorageRepository
-	trackController *controller.TrackController
+	config 			appConfig
+	trackController	*controller.TrackController
 }
 
 func (app *application) mount() http.Handler {

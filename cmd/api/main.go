@@ -3,13 +3,12 @@ package main
 import (
 	// Base imports
 	"log"
-
 	// Loads environment variables from local .env file
 	"github.com/joho/godotenv"
-
 	// Local imports
-	"github.com/trentjkelly/layerr/internals/repository"
-	
+	"github.com/trentjkelly/layerr/internals/controller"
+	"github.com/trentjkelly/layerr/internals/service"
+	"github.com/trentjkelly/layerr/internals/repository"	
 )
 
 func main() {
@@ -23,7 +22,8 @@ func main() {
 
 	// Initialize Layered Architecture
 	trackStorageRepository := repository.NewTrackStorageRepository()
-
+	trackService := service.NewTrackService(trackStorageRepository)
+	trackController := controller.NewTrackController(trackService)
 
 	// Setup configuration and injected dependencies
 	cfg := appConfig{
@@ -32,7 +32,7 @@ func main() {
 
 	app := &application{
 		config		: cfg,
-		trackStorageRepository: trackStorageRepository,
+		trackController: trackController,
 	}
 
 	// Mount and run the application
