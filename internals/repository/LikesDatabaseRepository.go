@@ -2,9 +2,9 @@ package repository
 
 import (
 	"context"
-	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/trentjkelly/layerr/internals/config"
+	"github.com/trentjkelly/layerr/internals/entities"
 )
 
 type LikesDatabaseRepository struct {
@@ -23,15 +23,11 @@ func (r *LikesDatabaseRepository) CloseDB() {
 	r.db.Close()
 }
 
-func (r *LikesDatabaseRepository) CreateLikes(artistId string, trackId string) error {
-	query := `INSERT INTO artist_likes_track (artist_id, track_id) VALUES ('@artistId', '@trackId')`
-
-	args := pgx.NamedArgs{
-		"artistId": artistId,
-		"trackId": trackId,
-	}
-
-	_, err := r.db.Exec(context.Background(), query, args)
+// Creates a like for a Track
+func (r *LikesDatabaseRepository) CreateLike(like *entities.Like) error {
+	query := `INSERT INTO artist_likes_track (artist_id, track_id) VALUES ($1, $2) RETURNING id`
+	row := r.db.QueryRow(context.Background(), query, like.ArtistId, like.TrackId)
+	err := row.Scan(&like.Id)
 
 	if err != nil {
 		return err
@@ -40,8 +36,28 @@ func (r *LikesDatabaseRepository) CreateLikes(artistId string, trackId string) e
 	return nil
 }
 
-// func (r *LikesDatabaseRepository) ReadLikesById() error {}
+// Gets all database information about a like by the like id
+func (r *LikesDatabaseRepository) ReadLikeById(like *entities.Like) error {
+	query := `SELECT * FROM artist_likes_track WHERE id=$1`
+	row := r.db.QueryRow(context.Background(), query, like.Id)
+	err := row.Scan(&like.Id, &like.ArtistId, &like.TrackId, &like.CreatedAt)
 
-// func (r *LikesDatabaseRepository) UpdateLikes() error {}
+	if err != nil {
+		return err
+	}
 
-// func (r *LikesDatabaseRepository) DeleteLikes() error {}
+	return nil
+}
+
+// Deletes a like from the database based on the like's id
+func (r *LikesDatabaseRepository) DeleteLikes(like *entities.Like) error {
+	query := `DELETE FROM artist_likes_track WHERE id=$1 RETURNING id;`
+	row := r.db.QueryRow(context.Background(), query, like.Id)
+	err := row.Scan(&like.Id)
+
+	if err != nil {
+		return err
+	}
+
+	return err
+}

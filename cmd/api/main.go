@@ -3,12 +3,15 @@ package main
 import (
 	// Base imports
 	"log"
+	"fmt"
 	// Loads environment variables from local .env file
 	"github.com/joho/godotenv"
 	// Local imports
 	"github.com/trentjkelly/layerr/internals/controller"
 	"github.com/trentjkelly/layerr/internals/service"
-	"github.com/trentjkelly/layerr/internals/repository"	
+	"github.com/trentjkelly/layerr/internals/repository"
+	
+	"github.com/trentjkelly/layerr/internals/entities"
 )
 
 func main() {
@@ -25,11 +28,19 @@ func main() {
 	trackService := service.NewTrackService(trackStorageRepository)
 	trackController := controller.NewTrackController(trackService)
 
-	artistDatabaseRepository := repository.NewArtistDatabaseRepository()
-	// artistDatabaseRepository.CreateArtist(name, username, email)
+	// artistDatabaseRepository := repository.NewArtistDatabaseRepository()
+	
+	// artist := new(entities.Artist)
+	// artist.Id = 5
+	// artist.Name = "Trent Trent Trent"
+	// artist.Username = "Test_3"
+	// artist.Email = "test4@gmail.com"
 
-
-	artistDatabaseRepository.ReadArtistById(2)
+	// err = artistDatabaseRepository.DeleteArtist(artist)
+	// fmt.Println(artist)
+	
+	// artistDatabaseRepository.CreateArtist(artist)
+	// fmt.Print(artist)
 
 	if err != nil {
 		log.Fatal(err)
