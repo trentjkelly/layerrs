@@ -35,7 +35,7 @@ func (c *TrackController) TrackHandlerPut(w http.ResponseWriter, r *http.Request
 
 	// Getting the file from the frontend
 	r.ParseMultipartForm(32 << 20)
-	file, _, err := r.FormFile("file")	
+	file, _, err := r.FormFile("file")
 	
 	if err != nil {
 		log.Fatal(err)

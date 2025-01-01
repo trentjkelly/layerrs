@@ -25,6 +25,19 @@ func main() {
 	trackService := service.NewTrackService(trackStorageRepository)
 	trackController := controller.NewTrackController(trackService)
 
+	artistDatabaseRepository := repository.NewArtistDatabaseRepository()
+	// artistDatabaseRepository.CreateArtist(name, username, email)
+
+
+	artistDatabaseRepository.ReadArtistById(2)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// trackDatabaseRepository := repository.NewTrackDatabaseRepository()
+	// trackDatabaseRepository.CreateTrack("Type Shit", "")
+
 	// Setup configuration and injected dependencies
 	cfg := appConfig{
 		addr : ":8080",

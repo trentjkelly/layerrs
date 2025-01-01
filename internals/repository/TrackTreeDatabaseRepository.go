@@ -1,8 +1,11 @@
 package repository
 
 import (
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/trentjkelly/layerr/internals/config"
+
+	"context"
 )
 
 type TrackTreeDatabaseRepository struct {
@@ -21,7 +24,23 @@ func (r *TrackTreeDatabaseRepository) CloseDB() {
 	r.db.Close()
 }
 
-// func (r *TrackTreeDatabaseRepository) CreateTrackTree() error {}
+// Adds a child-parent relationship between two tracks to the track_tree sql table
+func (r *TrackTreeDatabaseRepository) CreateTrackTree(rootTrackId string, childTrackId string) error {
+	query := `INSERT INTO track_tree (root_id, child_id) VALUES ('@rootId', '@childId')`
+
+	args := pgx.NamedArgs{
+		"rootId": rootTrackId,
+		"childId": childTrackId,
+	}
+
+	_, err := r.db.Exec(context.Background(), query, args)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
 
 // func (r *TrackTreeDatabaseRepository) ReadTrackTreeById() error {}
 

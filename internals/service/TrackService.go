@@ -24,4 +24,5 @@ func (s *TrackService) AddAndUploadTrack(file multipart.File) error {
 	// 4. Upload song to R2
 
 	// s.trackStorageRepo.CreateTrack(file)
+	return nil
 }
