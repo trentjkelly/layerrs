@@ -25,9 +25,9 @@ func (r *TrackDatabaseRepository) CloseDB() {
 }
 
 // Adds a Track to the database, but only the non-optional fields
-func (r *TrackDatabaseRepository) CreateTrack(track *entities.Track) error {
+func (r *TrackDatabaseRepository) CreateTrack(ctx context.Context, track *entities.Track) error {
 	query := `INSERT INTO track (name, artist_id) VALUES ($1, $2)`
-	row := r.db.QueryRow(context.Background(), query, track.Name, track.ArtistId)
+	row := r.db.QueryRow(ctx, query, track.Name, track.ArtistId)
 	err := row.Scan(&track.Id)
 
 	if err != nil {
@@ -38,9 +38,9 @@ func (r *TrackDatabaseRepository) CreateTrack(track *entities.Track) error {
 }
 
 // Gets a Track from the database based on their id
-func (r *TrackDatabaseRepository) ReadTrackById(track *entities.Track) error {
+func (r *TrackDatabaseRepository) ReadTrackById(ctx context.Context, track *entities.Track) error {
 	query := `SELECT * FROM track WHERE id=$1;`
-	row := r.db.QueryRow(context.Background(), query, track.Id)
+	row := r.db.QueryRow(ctx, query, track.Id)
 	
 	// Potential NULL Values
 	var r2TrackKey sql.NullString
@@ -69,9 +69,9 @@ func (r *TrackDatabaseRepository) ReadTrackById(track *entities.Track) error {
 }
 
 // Increases the number of plays on a Track when a user plays a song
-func (r *TrackDatabaseRepository) IncrementPlays(track *entities.Track) error {
+func (r *TrackDatabaseRepository) IncrementPlays(ctx context.Context, track *entities.Track) error {
 	query := `UPDATE track SET plays = plays + 1 WHERE id=$1 RETURNING plays;`
-	row := r.db.QueryRow(context.Background(), query, track.Id)
+	row := r.db.QueryRow(ctx, query, track.Id)
 	err := row.Scan(&track.Plays)
 	
 	if err != nil {
@@ -82,9 +82,9 @@ func (r *TrackDatabaseRepository) IncrementPlays(track *entities.Track) error {
 }
 
 // Updates the information for a Track in the database
-func (r *TrackDatabaseRepository) UpdateTrack(track *entities.Track) error {
+func (r *TrackDatabaseRepository) UpdateTrack(ctx context.Context, track *entities.Track) error {
 	query := `UPDATE track SET name=$2, r2_track_key=$3, r2_cover_key=$4 WHERE id=$1 RETURNING name;`
-	row := r.db.QueryRow(context.Background(), query, track.Id, track.Name, track.R2TrackKey, track.R2CoverKey)
+	row := r.db.QueryRow(ctx, query, track.Id, track.Name, track.R2TrackKey, track.R2CoverKey)
 	err := row.Scan(&track.Name)
 
 	if err != nil {
@@ -95,9 +95,9 @@ func (r *TrackDatabaseRepository) UpdateTrack(track *entities.Track) error {
 }
 
 // Deletes a Track from the database given the trackId
-func (r *TrackDatabaseRepository) DeleteTrack(track *entities.Track) error {
+func (r *TrackDatabaseRepository) DeleteTrack(ctx context.Context, track *entities.Track) error {
 	query := `DELETE FROM track WHERE id=$1 RETURNING id;`
-	row := r.db.QueryRow(context.Background(), query, track.Id)
+	row := r.db.QueryRow(ctx, query, track.Id)
 	err := row.Scan(&track.Id)
 
 	if err != nil {

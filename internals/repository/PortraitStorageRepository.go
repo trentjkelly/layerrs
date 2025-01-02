@@ -26,7 +26,7 @@ func NewPortraitStorageRepository() *PortraitStorageRepository {
 }
 
 // Uploads a portrait to storage
-func (r *PortraitStorageRepository) CreatePortrait(file multipart.File, filename *string) error {
+func (r *PortraitStorageRepository) CreatePortrait(ctx context.Context, file multipart.File, filename *string) error {
 	
 	input := &s3.PutObjectInput{
 		Bucket:	r.portraitBucketName,
@@ -34,14 +34,14 @@ func (r *PortraitStorageRepository) CreatePortrait(file multipart.File, filename
 		Body:	file,
 	}
 
-	res, err := r.r2Client.PutObject(context.TODO(), input)
+	res, err := r.r2Client.PutObject(ctx, input)
 
 	if err != nil {
 		log.Println(err)
 		return err
 	}
 
-	log.Println("File uploaded!")
+	log.Println("Artist portrait uploaded!")
 	log.Println(res)
 
 	return nil

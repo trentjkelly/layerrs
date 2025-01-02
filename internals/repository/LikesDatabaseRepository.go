@@ -24,9 +24,9 @@ func (r *LikesDatabaseRepository) CloseDB() {
 }
 
 // Creates a like for a Track
-func (r *LikesDatabaseRepository) CreateLike(like *entities.Like) error {
+func (r *LikesDatabaseRepository) CreateLike(ctx context.Context, like *entities.Like) error {
 	query := `INSERT INTO artist_likes_track (artist_id, track_id) VALUES ($1, $2) RETURNING id`
-	row := r.db.QueryRow(context.Background(), query, like.ArtistId, like.TrackId)
+	row := r.db.QueryRow(ctx, query, like.ArtistId, like.TrackId)
 	err := row.Scan(&like.Id)
 
 	if err != nil {
@@ -37,9 +37,9 @@ func (r *LikesDatabaseRepository) CreateLike(like *entities.Like) error {
 }
 
 // Gets all database information about a like by the like id
-func (r *LikesDatabaseRepository) ReadLikeById(like *entities.Like) error {
+func (r *LikesDatabaseRepository) ReadLikeById(ctx context.Context, like *entities.Like) error {
 	query := `SELECT * FROM artist_likes_track WHERE id=$1`
-	row := r.db.QueryRow(context.Background(), query, like.Id)
+	row := r.db.QueryRow(ctx, query, like.Id)
 	err := row.Scan(&like.Id, &like.ArtistId, &like.TrackId, &like.CreatedAt)
 
 	if err != nil {
@@ -50,9 +50,9 @@ func (r *LikesDatabaseRepository) ReadLikeById(like *entities.Like) error {
 }
 
 // Deletes a like from the database based on the like's id
-func (r *LikesDatabaseRepository) DeleteLikes(like *entities.Like) error {
+func (r *LikesDatabaseRepository) DeleteLikes(ctx context.Context, like *entities.Like) error {
 	query := `DELETE FROM artist_likes_track WHERE id=$1 RETURNING id;`
-	row := r.db.QueryRow(context.Background(), query, like.Id)
+	row := r.db.QueryRow(ctx, query, like.Id)
 	err := row.Scan(&like.Id)
 
 	if err != nil {

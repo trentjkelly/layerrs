@@ -2,7 +2,7 @@ package controller
 
 import (
 	"net/http"
-	"log"
+	"strconv"
 	"github.com/trentjkelly/layerr/internals/service"
 )
 
@@ -25,29 +25,59 @@ func (c *TrackController) TrackHandlerOptions(w http.ResponseWriter, r *http.Req
     w.WriteHeader(http.StatusOK)
 }
 
-// Handler for the GET request
-func (c *TrackController) TrackHandlerGet(w http.ResponseWriter, r *http.Request) {
-	// w.Write([]byte("ok"))
-}
-
-// Handler for the PUT request
-func (c *TrackController) TrackHandlerPut(w http.ResponseWriter, r *http.Request) {
-
-	// Getting the file from the frontend
-	r.ParseMultipartForm(32 << 20)
-	file, _, err := r.FormFile("file")
+// POST request -- creating a new track
+func (c *TrackController) TrackHandlerPost(w http.ResponseWriter, r *http.Request) {
 	
+	// Parse form (for trackAudio and coverArt files)
+	err := r.ParseMultipartForm(32 << 20)
 	if err != nil {
-		log.Fatal(err)
+		http.Error(w, "Failed to parse form" + err.Error(), http.StatusBadRequest)
+		return
 	}
-	defer file.Close()
 
-	c.trackService.AddAndUploadTrack(file)
-	
-	// TODO: 
-	// 1. Create sql table for track
-	// 2. Get the unique ID of the track
-	// 3. Hash or hex code the track ID for the track name in R2
-	// 4. Upload song to R2
+	// Getting metadata
+	trackName := r.FormValue("name")
+	artistId := r.FormValue("artistId")
+	parentIdStr := r.FormValue("parentId") // Optional
+	if trackName == "" || artistId == "" {
+		http.Error(w, "Track name and artist are required", http.StatusBadRequest)
+		return
+	}
+	parentIdInt := 0
+	artistIdInt := 0
 
+	// Converting parentId & artistId to integers
+	if parentIdStr != "" {
+		parentIdInt, err = strconv.Atoi(parentIdStr)
+		if err != nil {
+			http.Error(w, "Invalid parent track id", http.StatusBadRequest)
+		}
+	}
+	artistIdInt, err = strconv.Atoi(artistId)
+	if err != nil {
+		http.Error(w, "Invalid artist id", http.StatusBadRequest)
+	}
+
+	// Getting audio file
+	audioFile, audioHeader, err := r.FormFile("audioFile")
+	if err != nil {
+		http.Error(w, "Audio file is required", http.StatusBadRequest)
+		return
+	}
+	defer audioFile.Close()
+
+	// Getting cover art file
+	coverArtFile, coverArtHeader, err := r.FormFile("coverArtFile")
+	if err != nil {
+		http.Error(w, "Cover art file is required", http.StatusBadRequest)
+	}
+	defer coverArtFile.Close()
+
+	// Passing to Service layer
+	err = c.trackService.AddAndUploadTrack(r.Context(), coverArtFile, coverArtHeader, audioFile, audioHeader, trackName, artistIdInt, parentIdInt)
+	if err != nil {
+		http.Error(w, "Failed to create track", http.StatusInternalServerError)
+	}
+
+	w.WriteHeader(http.StatusCreated)
 }

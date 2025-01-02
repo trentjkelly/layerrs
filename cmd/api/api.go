@@ -32,9 +32,22 @@ func (app *application) mount() http.Handler {
 
 	r.Use(middleware.Timeout(time.Second * 60))
 
-	r.Get("/track",  app.trackController.TrackHandlerGet)
-	r.Put("/track", app.trackController.TrackHandlerPut)
-	r.Options("/track", app.trackController.TrackHandlerOptions)
+	// Root route -- everything goes underneath /api
+	r.Route("/api", func(r chi.Router) {
+		// /api/track/
+		r.Route("/track", func(r chi.Router) {
+			r.Post("/", app.trackController.TrackHandlerPost)
+
+			// r.Route("/{id}", func(r chi.Router) {
+			// 	r.Get("/audio", app.trackController)
+			// 	r.Get("/cover", app.trackController)
+			// 	r.Get("/data", app.trackController)
+			// 	r.Put("/", app.trackController)
+			// 	r.Delete("/", app.trackController)
+			// })
+		})
+	})
+
 	return r
 }
 

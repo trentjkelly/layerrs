@@ -26,7 +26,7 @@ func NewTrackStorageRepository() *TrackStorageRepository {
 }
 
 // Uploads a track to storage
-func (r *TrackStorageRepository) CreateTrack(file multipart.File, filename *string) error {
+func (r *TrackStorageRepository) CreateTrack(ctx context.Context, file multipart.File, filename *string) error {
 	
 	input := &s3.PutObjectInput{
 		Bucket:	r.trackBucketName,
@@ -34,14 +34,14 @@ func (r *TrackStorageRepository) CreateTrack(file multipart.File, filename *stri
 		Body:	file,
 	}
 
-	res, err := r.r2Client.PutObject(context.TODO(), input)
+	res, err := r.r2Client.PutObject(ctx, input)
 
 	if err != nil {
 		log.Println(err)
 		return err
 	}
 
-	log.Println("File uploaded!")
+	log.Println("Audio file uploaded!")
 	log.Println(res)
 
 	return nil

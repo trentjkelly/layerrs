@@ -26,7 +26,7 @@ func NewCoverStorageRepository() *CoverStorageRepository {
 }
 
 // Uploads a cover to storage
-func (r *CoverStorageRepository) CreateCover(file multipart.File, filename *string) error {
+func (r *CoverStorageRepository) CreateCover(ctx context.Context, file multipart.File, filename *string) error {
 	
 	input := &s3.PutObjectInput{
 		Bucket:	r.coverBucketName,
@@ -34,14 +34,13 @@ func (r *CoverStorageRepository) CreateCover(file multipart.File, filename *stri
 		Body:	file,
 	}
 
-	res, err := r.r2Client.PutObject(context.TODO(), input)
+	res, err := r.r2Client.PutObject(ctx, input)
 
 	if err != nil {
-		log.Println(err)
 		return err
 	}
 
-	log.Println("File uploaded!")
+	log.Println("Cover art uploaded!")
 	log.Println(res)
 
 	return nil

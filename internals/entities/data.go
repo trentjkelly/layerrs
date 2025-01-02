@@ -15,16 +15,6 @@ type Artist struct {
 	UpdatedAt 	time.Time
 }
 
-type Track struct {
-	Id 			int
-	Name 		string
-	ArtistId 	int
-	R2TrackKey 	string
-	R2CoverKey 	string
-	CreatedAt 	time.Time
-	Plays		int
-}
-
 type Like struct {
 	Id 			int
 	ArtistId	int
