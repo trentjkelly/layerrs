@@ -3,15 +3,12 @@ package main
 import (
 	// Base imports
 	"log"
-	"fmt"
 	// Loads environment variables from local .env file
 	"github.com/joho/godotenv"
 	// Local imports
 	"github.com/trentjkelly/layerr/internals/controller"
 	"github.com/trentjkelly/layerr/internals/service"
 	"github.com/trentjkelly/layerr/internals/repository"
-	
-	"github.com/trentjkelly/layerr/internals/entities"
 )
 
 func main() {
@@ -23,31 +20,29 @@ func main() {
 		log.Fatal(err)
 	}
 
+	// 
 	// Initialize Layered Architecture
-	trackStorageRepository := repository.NewTrackStorageRepository()
-	trackService := service.NewTrackService(trackStorageRepository)
+	// 
+
+	// Repositories
+	// artistDatabaseRepo := repository.NewArtistDatabaseRepository()
+	// likesDatabaseRepo := repository.NewLikesDatabaseRepository()
+	trackDatabaseRepo := repository.NewTrackDatabaseRepository()
+	trackTreeDatabaseRepo := repository.NewTrackTreeDatabaseRepository()
+	coverStorageRepo := repository.NewCoverStorageRepository()
+	// portraitStorageRepo := repository.NewPortraitStorageRepository()
+	trackStorageRepo := repository.NewTrackStorageRepository()
+
+	// Services
+	trackService := service.NewTrackService(trackStorageRepo, coverStorageRepo, trackDatabaseRepo, trackTreeDatabaseRepo)
+	// artistService := service.NewArtistService()
+	// likesService := service.NewLikesService()
+
+	// Controllers
 	trackController := controller.NewTrackController(trackService)
+	// artistController := controller.NewArtistController(artistService)
+	// likesController := controller.NewLikesController(likesService)
 
-	// artistDatabaseRepository := repository.NewArtistDatabaseRepository()
-	
-	// artist := new(entities.Artist)
-	// artist.Id = 5
-	// artist.Name = "Trent Trent Trent"
-	// artist.Username = "Test_3"
-	// artist.Email = "test4@gmail.com"
-
-	// err = artistDatabaseRepository.DeleteArtist(artist)
-	// fmt.Println(artist)
-	
-	// artistDatabaseRepository.CreateArtist(artist)
-	// fmt.Print(artist)
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// trackDatabaseRepository := repository.NewTrackDatabaseRepository()
-	// trackDatabaseRepository.CreateTrack("Type Shit", "")
 
 	// Setup configuration and injected dependencies
 	cfg := appConfig{

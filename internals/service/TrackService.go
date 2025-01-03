@@ -16,12 +16,16 @@ type TrackService struct {
 }
 
 // Constructor for a new TrackService
-func NewTrackService(trackStorageRepo *repository.TrackStorageRepository) *TrackService {
+func NewTrackService(trackStorageRepo *repository.TrackStorageRepository, coverStorageRepo *repository.CoverStorageRepository, trackDatabaseRepo *repository.TrackDatabaseRepository, treeDatabaseRepo *repository.TrackTreeDatabaseRepository) *TrackService {
 	trackService := new(TrackService)
 	trackService.trackStorageRepo = trackStorageRepo
+	trackService.coverStorageRepo = coverStorageRepo
+	trackService.trackDatabaseRepo = trackDatabaseRepo
+	trackService.treeDatabaseRepo = treeDatabaseRepo
 	return trackService
 }
 
+// Adds all files and data for a new track -- called by TrackController for a POST request
 func (s *TrackService) AddAndUploadTrack(ctx context.Context, coverArt multipart.File, coverHeader *multipart.FileHeader, audio multipart.File, audioHeader *multipart.FileHeader, trackName string, artistId int, parentId int) error {
 	
 	// Add track metadata to track table (get back ID)
