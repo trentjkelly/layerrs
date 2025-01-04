@@ -3,7 +3,6 @@ package repository
 import (
 	"github.com/trentjkelly/layerr/internals/config"
 	"context"
-	"log"
 	"mime/multipart"
 	"io"
 
@@ -35,15 +34,11 @@ func (r *TrackStorageRepository) CreateTrack(ctx context.Context, file multipart
 		Body:	file,
 	}
 
-	res, err := r.r2Client.PutObject(ctx, input)
+	_, err := r.r2Client.PutObject(ctx, input)
 
 	if err != nil {
-		log.Println(err)
 		return err
 	}
-
-	log.Println(res)
-	log.Println("Reached trackStorageRepo")
 
 	return nil
 }

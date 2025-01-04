@@ -3,7 +3,6 @@ package repository
 import (
 	"github.com/trentjkelly/layerr/internals/config"
 	"context"
-	"log"
 	"mime/multipart"
 	"io"
 
@@ -35,14 +34,11 @@ func (r *CoverStorageRepository) CreateCover(ctx context.Context, file multipart
 		Body:	file,
 	}
 
-	res, err := r.r2Client.PutObject(ctx, input)
+	_, err := r.r2Client.PutObject(ctx, input)
 
 	if err != nil {
 		return err
 	}
-
-	log.Println("Cover art uploaded!")
-	log.Println(res)
 
 	return nil
 }

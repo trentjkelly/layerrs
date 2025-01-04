@@ -3,7 +3,6 @@ package repository
 import (
 	"github.com/trentjkelly/layerr/internals/config"
 	"context"
-	"log"
 	"mime/multipart"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -34,15 +33,11 @@ func (r *PortraitStorageRepository) CreatePortrait(ctx context.Context, file mul
 		Body:	file,
 	}
 
-	res, err := r.r2Client.PutObject(ctx, input)
+	_, err := r.r2Client.PutObject(ctx, input)
 
 	if err != nil {
-		log.Println(err)
 		return err
 	}
-
-	log.Println("Artist portrait uploaded!")
-	log.Println(res)
 
 	return nil
 }

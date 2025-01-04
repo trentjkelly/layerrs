@@ -6,8 +6,6 @@ import (
 	"mime/multipart"
 	"path/filepath"
 	"strconv"
-	"log"
-
 	"github.com/trentjkelly/layerr/internals/entities"
 	"github.com/trentjkelly/layerr/internals/repository"
 )
@@ -30,8 +28,7 @@ func NewTrackService(trackStorageRepo *repository.TrackStorageRepository, coverS
 
 // Adds all files and data for a new track -- called by TrackController for a POST request
 func (s *TrackService) AddAndUploadTrack(ctx context.Context, coverArt multipart.File, coverHeader *multipart.FileHeader, audio multipart.File, audioHeader *multipart.FileHeader, trackName string, artistId int, parentId int) error {
-	
-	log.Println("Reached the service layer")
+
 	// Add track metadata to track table (get back ID)
 	track := entities.NewTrack(trackName, artistId)
 	err := s.trackDatabaseRepo.CreateTrack(ctx, track)
@@ -80,8 +77,6 @@ func (s *TrackService) AddAndUploadTrack(ctx context.Context, coverArt multipart
 			return err
 		}
 	}
-
-	log.Println("Successful track upload!")
 
 	// Successful upload
 	return nil

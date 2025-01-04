@@ -10,6 +10,7 @@
         <button>Profile</button>
         <button>Search</button>
         <button>Trending</button>
+        <button>Upload</button>
     </nav>
 
     <main class="w-full h-screen flex flex-row justify-center items-center">

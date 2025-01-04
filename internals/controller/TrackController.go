@@ -30,7 +30,6 @@ func (c *TrackController) TrackHandlerOptions(w http.ResponseWriter, r *http.Req
 
 // POST request -- creating a new track (POST /track)
 func (c *TrackController) TrackHandlerPost(w http.ResponseWriter, r *http.Request) {
-	log.Println("Request is being handled")
 
 	// Parse form (for trackAudio and coverArt files)
 	err := r.ParseMultipartForm(32 << 20)
@@ -84,6 +83,7 @@ func (c *TrackController) TrackHandlerPost(w http.ResponseWriter, r *http.Reques
 	err = c.trackService.AddAndUploadTrack(r.Context(), coverArtFile, coverArtHeader, audioFile, audioHeader, trackName, artistIdInt, parentIdInt)
 	if err != nil {
 		http.Error(w, "Failed to create track", http.StatusInternalServerError)
+		log.Println("TrackHandlerPost: ", err)
 		return
 	}
 
