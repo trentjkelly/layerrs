@@ -7,6 +7,7 @@ import (
 	"time"
 	// Chi router
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/cors"
 	"github.com/go-chi/chi/v5/middleware"
 	// Local packages
 	"github.com/trentjkelly/layerr/internals/controller"
@@ -32,19 +33,28 @@ func (app *application) mount() http.Handler {
 
 	r.Use(middleware.Timeout(time.Second * 60))
 
+	r.Use(cors.Handler(cors.Options{
+		AllowedOrigins:   []string{"*"},
+		AllowedMethods:   []string{"GET", "POST", "OPTIONS"},
+		AllowedHeaders:   []string{"Content-Type"},
+		AllowCredentials: false,
+		MaxAge:           300,
+	}))
+
 	// Root route -- everything goes underneath /api
 	r.Route("/api", func(r chi.Router) {
 		// /api/track/
 		r.Route("/track", func(r chi.Router) {
+			r.Options("/", app.trackController.TrackHandlerOptions)
 			r.Post("/", app.trackController.TrackHandlerPost)
 
-			// r.Route("/{id}", func(r chi.Router) {
-			// 	r.Get("/audio", app.trackController)
-			// 	r.Get("/cover", app.trackController)
-			// 	r.Get("/data", app.trackController)
-			// 	r.Put("/", app.trackController)
-			// 	r.Delete("/", app.trackController)
-			// })
+			r.Route("/{id}", func(r chi.Router) {
+				r.Get("/audio", app.trackController.TrackAudioHandlerGet)
+				r.Get("/cover", app.trackController.TrackCoverHandlerGet)
+				// r.Get("/data", app.trackController)
+				// r.Put("/", app.trackController)
+				// r.Delete("/", app.trackController)
+			})
 		})
 	})
 

@@ -5,6 +5,7 @@ import (
 	"context"
 	"log"
 	"mime/multipart"
+	"io"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
@@ -21,7 +22,7 @@ func NewCoverStorageRepository() *CoverStorageRepository {
 	coverStorageRepository := new(CoverStorageRepository)
 	coverStorageRepository.r2Config = config.CreateR2Config()
 	coverStorageRepository.r2Client = config.CreateR2Client(coverStorageRepository.r2Config)
-	coverStorageRepository.coverBucketName = aws.String("cover-art")
+	coverStorageRepository.coverBucketName = aws.String("track-covers")
 	return coverStorageRepository
 }
 
@@ -44,6 +45,22 @@ func (r *CoverStorageRepository) CreateCover(ctx context.Context, file multipart
 	log.Println(res)
 
 	return nil
+}
+
+func (r *CoverStorageRepository) ReadCover(ctx context.Context, r2CoverKey *string) (io.ReadCloser, error) {
+
+	input := &s3.GetObjectInput{
+		Bucket: r.coverBucketName,
+		Key: r2CoverKey,
+	}
+
+	res, err := r.r2Client.GetObject(ctx, input)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return res.Body, nil
 }
 
 // Gets a cover from storage (to be loaded to frontend)

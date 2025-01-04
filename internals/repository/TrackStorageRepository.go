@@ -5,6 +5,7 @@ import (
 	"context"
 	"log"
 	"mime/multipart"
+	"io"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
@@ -41,14 +42,28 @@ func (r *TrackStorageRepository) CreateTrack(ctx context.Context, file multipart
 		return err
 	}
 
-	log.Println("Audio file uploaded!")
 	log.Println(res)
+	log.Println("Reached trackStorageRepo")
 
 	return nil
 }
 
 // Gets a track from storage (to be streamed)
-// func (r *TrackStorageRepository) ReadTrack() error {}
+func (r *TrackStorageRepository) ReadTrack(ctx context.Context, trackName *string) (io.ReadCloser, error) {
+
+	input := &s3.GetObjectInput{
+		Bucket: r.trackBucketName,
+		Key: trackName,
+	}
+
+	res, err := r.r2Client.GetObject(ctx, input)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return res.Body, nil
+}
 
 // Updates the track in storage
 // func (r *TrackStorageRepository) UpdateTrack() error {}

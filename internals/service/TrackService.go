@@ -1,12 +1,15 @@
 package service
 
 import (
-	"github.com/trentjkelly/layerr/internals/repository"
-	"github.com/trentjkelly/layerr/internals/entities"
-	"mime/multipart"
 	"context"
+	"io"
+	"mime/multipart"
 	"path/filepath"
 	"strconv"
+	"log"
+
+	"github.com/trentjkelly/layerr/internals/entities"
+	"github.com/trentjkelly/layerr/internals/repository"
 )
 type TrackService struct {
 	trackStorageRepo 	*repository.TrackStorageRepository
@@ -28,6 +31,7 @@ func NewTrackService(trackStorageRepo *repository.TrackStorageRepository, coverS
 // Adds all files and data for a new track -- called by TrackController for a POST request
 func (s *TrackService) AddAndUploadTrack(ctx context.Context, coverArt multipart.File, coverHeader *multipart.FileHeader, audio multipart.File, audioHeader *multipart.FileHeader, trackName string, artistId int, parentId int) error {
 	
+	log.Println("Reached the service layer")
 	// Add track metadata to track table (get back ID)
 	track := entities.NewTrack(trackName, artistId)
 	err := s.trackDatabaseRepo.CreateTrack(ctx, track)
@@ -77,6 +81,65 @@ func (s *TrackService) AddAndUploadTrack(ctx context.Context, coverArt multipart
 		}
 	}
 
+	log.Println("Successful track upload!")
+
 	// Successful upload
 	return nil
+}
+
+// Gets all of the track's info from the database
+func (s *TrackService) GetTrackInfo(ctx context.Context, track *entities.Track) error {
+	err := s.trackDatabaseRepo.ReadTrackById(ctx, track)
+
+	if err != nil {
+		return err
+	}
+
+	return err
+}
+
+// Streams a track by its track id
+func (s *TrackService) StreamTrack(ctx context.Context, trackId int) (io.ReadCloser, error) {
+
+	// Get the R2 storage Key
+	track := new(entities.Track)
+	track.Id = trackId
+
+	err := s.trackDatabaseRepo.ReadTrackById(ctx, track)
+
+	if err != nil {
+		return nil, err
+	}
+
+	// Stream the track back to the frontend
+	file, err := s.trackStorageRepo.ReadTrack(ctx, &track.R2TrackKey)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return file, nil
+}
+
+// Sends a cover back by trackId
+func (s *TrackService) SendCoverArt(ctx context.Context, trackId int) (io.ReadCloser, error) {
+
+	// Get the R2 storage Key
+	track := new(entities.Track)
+	track.Id = trackId
+
+	err := s.trackDatabaseRepo.ReadTrackById(ctx, track)
+
+	if err != nil {
+		return nil, err
+	}
+
+	// Stream the track back to the frontend
+	file, err := s.coverStorageRepo.ReadCover(ctx, &track.R2CoverKey)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return file, nil
 }

@@ -6,6 +6,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/trentjkelly/layerr/internals/config"
 	"github.com/trentjkelly/layerr/internals/entities"
+	"log"
 )
 
 type TrackDatabaseRepository struct {
@@ -26,19 +27,31 @@ func (r *TrackDatabaseRepository) CloseDB() {
 
 // Adds a Track to the database, but only the non-optional fields
 func (r *TrackDatabaseRepository) CreateTrack(ctx context.Context, track *entities.Track) error {
-	query := `INSERT INTO track (name, artist_id) VALUES ($1, $2)`
+	log.Println("First reached REPO")
+
+	log.Println(track.Name)
+	log.Println(track.ArtistId)
+
+	query := `INSERT INTO track (name, artist_id) VALUES ($1, $2) RETURNING id`
 	row := r.db.QueryRow(ctx, query, track.Name, track.ArtistId)
 	err := row.Scan(&track.Id)
+
+	log.Println(err)
 
 	if err != nil {
 		return err
 	}
+
+	log.Println("Reached trackDatabaseRepo1")
+
 
 	return nil
 }
 
 // Gets a Track from the database based on their id
 func (r *TrackDatabaseRepository) ReadTrackById(ctx context.Context, track *entities.Track) error {
+	log.Println("Reached trackDatabaseRepo")
+
 	query := `SELECT * FROM track WHERE id=$1;`
 	row := r.db.QueryRow(ctx, query, track.Id)
 	
@@ -90,6 +103,8 @@ func (r *TrackDatabaseRepository) UpdateTrack(ctx context.Context, track *entiti
 	if err != nil {
 		return err
 	}
+
+	log.Println("Reached trackDatabaseRepo2")
 
 	return nil
 }

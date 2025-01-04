@@ -43,7 +43,7 @@ func main() {
 	// artistController := controller.NewArtistController(artistService)
 	// likesController := controller.NewLikesController(likesService)
 
-
+	
 	// Setup configuration and injected dependencies
 	cfg := appConfig{
 		addr : ":8080",
