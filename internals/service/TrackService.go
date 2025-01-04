@@ -83,14 +83,19 @@ func (s *TrackService) AddAndUploadTrack(ctx context.Context, coverArt multipart
 }
 
 // Gets all of the track's info from the database
-func (s *TrackService) GetTrackInfo(ctx context.Context, track *entities.Track) error {
-	err := s.trackDatabaseRepo.ReadTrackById(ctx, track)
+func (s *TrackService) GetTrackInfo(ctx context.Context, trackId int) (*entities.Track, error) {
+	
+	// Initialize new track
+	track := new(entities.Track)
+	track.Id = trackId
 
+	// Get the track's info from the database
+	err := s.trackDatabaseRepo.ReadTrackById(ctx, track)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return err
+	return track, nil
 }
 
 // Streams a track by its track id
@@ -101,14 +106,12 @@ func (s *TrackService) StreamTrack(ctx context.Context, trackId int) (io.ReadClo
 	track.Id = trackId
 
 	err := s.trackDatabaseRepo.ReadTrackById(ctx, track)
-
 	if err != nil {
 		return nil, err
 	}
 
 	// Stream the track back to the frontend
 	file, err := s.trackStorageRepo.ReadTrack(ctx, &track.R2TrackKey)
-
 	if err != nil {
 		return nil, err
 	}
@@ -117,7 +120,7 @@ func (s *TrackService) StreamTrack(ctx context.Context, trackId int) (io.ReadClo
 }
 
 // Sends a cover back by trackId
-func (s *TrackService) SendCoverArt(ctx context.Context, trackId int) (io.ReadCloser, error) {
+func (s *TrackService) StreamCoverArt(ctx context.Context, trackId int) (io.ReadCloser, error) {
 
 	// Get the R2 storage Key
 	track := new(entities.Track)

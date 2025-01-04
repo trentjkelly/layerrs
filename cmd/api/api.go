@@ -51,7 +51,7 @@ func (app *application) mount() http.Handler {
 			r.Route("/{id}", func(r chi.Router) {
 				r.Get("/audio", app.trackController.TrackAudioHandlerGet)
 				r.Get("/cover", app.trackController.TrackCoverHandlerGet)
-				// r.Get("/data", app.trackController)
+				r.Get("/data", app.trackController.TrackerDataHandlerGet)
 				// r.Put("/", app.trackController)
 				// r.Delete("/", app.trackController)
 			})

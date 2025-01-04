@@ -1,12 +1,14 @@
 package controller
 
 import (
-	"net/http"
-	"strconv"
-	"github.com/trentjkelly/layerr/internals/service"
-	"github.com/go-chi/chi/v5"
+	"encoding/json"
 	"io"
 	"log"
+	"net/http"
+	"strconv"
+
+	"github.com/go-chi/chi/v5"
+	"github.com/trentjkelly/layerr/internals/service"
 )
 
 type TrackController struct {
@@ -101,7 +103,7 @@ func (c *TrackController) TrackAudioHandlerGet(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	// Stream audio
+	// Get audio from storage
 	file, err := c.trackService.StreamTrack(r.Context(), trackId)
 	if err != nil {
 		http.Error(w, "Failed to stream track", http.StatusInternalServerError)
@@ -109,14 +111,15 @@ func (c *TrackController) TrackAudioHandlerGet(w http.ResponseWriter, r *http.Re
 	}
 	defer file.Close()
 
+	// Send audio to frontend
 	w.Header().Set("Content-Type", "audio/*")
 	w.Header().Set("Content-Disposition", "inline")
-
 	_, err = io.Copy(w, file)
-
 	if err != nil {
 		http.Error(w, "Error while streaming audio", http.StatusInternalServerError)
 	}
+
+	w.WriteHeader(http.StatusOK)
 }
 
 func (c *TrackController) TrackCoverHandlerGet(w http.ResponseWriter, r *http.Request) {
@@ -129,19 +132,45 @@ func (c *TrackController) TrackCoverHandlerGet(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	// Send cover back
-	file, err := c.trackService.SendCoverArt(r.Context(), trackId)
+	// Get cover from storage
+	file, err := c.trackService.StreamCoverArt(r.Context(), trackId)
 	if err != nil {
 		http.Error(w, "Failed to stream track", http.StatusInternalServerError)
 		return
 	}
 	defer file.Close()
 
+	// Send cover to frontend
 	w.Header().Set("Content-Type", "img/*")
-
 	_, err = io.Copy(w, file)
-
 	if err != nil {
 		http.Error(w, "Error while retrieving cover art", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
+func (c *TrackController) TrackerDataHandlerGet(w http.ResponseWriter, r *http.Request) {
+		
+	// Get trackId from request URL
+	trackIdStr := chi.URLParam(r, "id")
+	trackId, err := strconv.Atoi(trackIdStr)
+	if err != nil {
+		http.Error(w, "Invalid track id", http.StatusBadRequest)
+		return
+	}
+
+	// Get track data from database
+	track, err := c.trackService.GetTrackInfo(r.Context(), trackId)
+	if err != nil {
+		http.Error(w, "Error while getting track data", http.StatusInternalServerError)
+		return
+	}
+
+	// Encode track and send json 
+	err = json.NewEncoder(w).Encode(track)
+	if err != nil {
+		http.Error(w, "Failed at encoding json", http.StatusInternalServerError)
 	}
 }

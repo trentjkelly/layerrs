@@ -5,13 +5,13 @@ import (
 )
 
 type Track struct {
-	Id 			int
-	Name 		string
-	ArtistId 	int
-	R2TrackKey 	string
-	R2CoverKey 	string
-	CreatedAt 	time.Time
-	Plays		int
+	Id 			int			`json:"id"`
+	Name 		string		`json:"name"`
+	ArtistId 	int			`json:"artistId"`
+	R2TrackKey 	string		`json:"r2TrackKey"`
+	R2CoverKey 	string		`json:"r2CoverKey"`
+	CreatedAt 	time.Time	`json:"createdAt"`
+	Plays		int			`json:"plays"`
 }
 
 // Constructor for a new track
