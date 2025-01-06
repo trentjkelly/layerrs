@@ -25,7 +25,7 @@ func (r *LikesDatabaseRepository) CloseDB() {
 
 // Creates a like for a Track
 func (r *LikesDatabaseRepository) CreateLike(ctx context.Context, like *entities.Like) error {
-	query := `INSERT INTO artist_likes_track (artist_id, track_id) VALUES ($1, $2) RETURNING id`
+	query := `INSERT INTO artist_likes_track (artist_id, track_id) VALUES ($1, $2) RETURNING id;`
 	row := r.db.QueryRow(ctx, query, like.ArtistId, like.TrackId)
 	err := row.Scan(&like.Id)
 
@@ -36,17 +36,28 @@ func (r *LikesDatabaseRepository) CreateLike(ctx context.Context, like *entities
 	return nil
 }
 
-// Gets all database information about a like by the like id
-func (r *LikesDatabaseRepository) ReadLikeById(ctx context.Context, like *entities.Like) error {
-	query := `SELECT * FROM artist_likes_track WHERE id=$1`
-	row := r.db.QueryRow(ctx, query, like.Id)
-	err := row.Scan(&like.Id, &like.ArtistId, &like.TrackId, &like.CreatedAt)
+// Gets 25 likes sorted most recent to least recent offset by a certain number for a given artist
+func (r *LikesDatabaseRepository) ReadLikesByArtistId(ctx context.Context, artistId int, offset int) ([25]*entities.Like, error) {
+	query := `SELECT * FROM artist_likes_track WHERE artist_id=$1 ORDER BY created_at DESC LIMIT 25 OFFSET $2;`
+	rows, err := r.db.Query(ctx, query, artistId, offset)
 
 	if err != nil {
-		return err
+		return [25]*entities.Like{}, err
 	}
+	defer rows.Close()
 
-	return nil
+	// Construct likes array for user
+	var likesArray [25]*entities.Like
+	i := 0
+
+	for rows.Next() {
+		like := new(entities.Like)
+		rows.Scan(&like.Id, &like.ArtistId, &like.TrackId, &like.CreatedAt)
+		likesArray[i] = like
+		i++
+	}
+		
+	return likesArray, nil
 }
 
 // Deletes a like from the database based on the like's id
@@ -59,5 +70,5 @@ func (r *LikesDatabaseRepository) DeleteLikes(ctx context.Context, like *entitie
 		return err
 	}
 
-	return err
+	return nil
 }

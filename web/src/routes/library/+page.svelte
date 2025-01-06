@@ -1,7 +1,7 @@
 <script>
-    import TopHeader from "../components/TopHeader.svelte";
-    import TrackCard from "../components/TrackCard.svelte";
-    import { isSidebarOpen } from "../stores/player";
+    import TopHeader from "../../components/TopHeader.svelte";
+    import TrackCard from "../../components/TrackCard.svelte";
+    import { isSidebarOpen } from "../../stores/player";
 
     function toggleSidebar() {
         $isSidebarOpen = !$isSidebarOpen;
@@ -10,12 +10,9 @@
 
 <main class={`transition-all duration-300 h-full w-full p-8 ${$isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
 
-    <TopHeader pageName="Home"></TopHeader>
+    <TopHeader pageName="Library"></TopHeader>
 
-    <!-- Where the songs go -->
     <section>
         <TrackCard trackId={15}></TrackCard>  
     </section>
 </main>
-
-

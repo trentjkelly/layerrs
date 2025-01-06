@@ -56,6 +56,11 @@ func (app *application) mount() http.Handler {
 				// r.Delete("/", app.trackController)
 			})
 		})
+		r.Route("/likes", func(r chi.Router) {
+			r.Post("/", app.LikesController.LikesHandlerPost)
+			r.Get("/", app.LikesController.LikesHandlerGet)
+			r.Delete("/{id}", app.LikesController.LikesHandlerDelete)
+		})
 	})
 
 	return r

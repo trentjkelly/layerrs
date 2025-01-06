@@ -17,6 +17,7 @@ CREATE TABLE track (
     r2_cover_key VARCHAR(64),
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     plays BIGINT DEFAULT 0,
+    likes BIGINT DEFAULT 0,
     FOREIGN KEY (artist_id) REFERENCES artist(id)
 );
 

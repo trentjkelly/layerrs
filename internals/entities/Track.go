@@ -12,6 +12,7 @@ type Track struct {
 	R2CoverKey 	string		`json:"r2CoverKey"`
 	CreatedAt 	time.Time	`json:"createdAt"`
 	Plays		int			`json:"plays"`
+	Likes		int 		`json:"likes"`
 }
 
 // Constructor for a new track

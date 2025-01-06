@@ -46,7 +46,7 @@ func (r *TrackDatabaseRepository) ReadTrackById(ctx context.Context, track *enti
 	var r2TrackKey sql.NullString
 	var r2CoverKey sql.NullString
 
-	err := row.Scan(&track.Id, &track.Name, &track.ArtistId, &r2TrackKey, &r2CoverKey, &track.CreatedAt, &track.Plays)
+	err := row.Scan(&track.Id, &track.Name, &track.ArtistId, &r2TrackKey, &r2CoverKey, &track.CreatedAt, &track.Plays, &track.Likes)
 
 	if err != nil {
 		return err
@@ -73,6 +73,31 @@ func (r *TrackDatabaseRepository) IncrementPlays(ctx context.Context, track *ent
 	query := `UPDATE track SET plays = plays + 1 WHERE id=$1 RETURNING plays;`
 	row := r.db.QueryRow(ctx, query, track.Id)
 	err := row.Scan(&track.Plays)
+	
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// Increases the number of likes on a Track when a user likes it
+func (r *TrackDatabaseRepository) IncrementLikes(ctx context.Context, track *entities.Track) error {
+	query := `UPDATE track SET likes = likes + 1 WHERE id=$1 RETURNING likes;`
+	row := r.db.QueryRow(ctx, query, track.Id)
+	err := row.Scan(&track.Likes)
+	
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *TrackDatabaseRepository) DecrementLikes(ctx context.Context, track *entities.Track) error {
+	query := `UPDATE track SET likes = likes - 1 WHERE id=$1 RETURNING likes;`
+	row := r.db.QueryRow(ctx, query, track.Id)
+	err := row.Scan(&track.Likes)
 	
 	if err != nil {
 		return err
