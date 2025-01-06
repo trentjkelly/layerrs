@@ -21,12 +21,11 @@
     function navigateSignIn() {
         goto('/signin')
     }
-
 </script>
   
 <div class="flex">
     <div
-      class={`fixed top-0 left-0 h-full bg-slate-700 text-white w-64 transform transition-transform duration-300 ${
+      class={`fixed top-0 left-0 h-full bg-gray-950 text-white w-64 transform transition-transform duration-300 ${
         $isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div class="flex flex-row items-center justify-between">
             <h2 class="text-xl font-bold p-4">Layerr</h2>
