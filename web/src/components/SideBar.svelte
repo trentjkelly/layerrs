@@ -1,9 +1,27 @@
 <script>  
     import { isSidebarOpen } from "../stores/player";
+    import { goto } from "$app/navigation";
 
     function toggleSidebar() {
       $isSidebarOpen = !$isSidebarOpen;
     }
+
+    function navigateHome() {
+        goto('/')
+    }
+
+    function navigateLibrary() {
+        goto('/library')
+    }
+
+    function navigateUpload() {
+        goto('/upload')
+    }
+
+    function navigateSignIn() {
+        goto('/signin')
+    }
+
 </script>
   
 <div class="flex">
@@ -13,17 +31,17 @@
         <div class="flex flex-row items-center justify-between">
             <h2 class="text-xl font-bold p-4">Layerr</h2>
             {#if $isSidebarOpen}
-                <button class="mr-4 h-8 w-12 bg-blue-500 text-white rounded shadow hover:bg-blue-600 transform" on:click={toggleSidebar}>
+                <button class="mr-4 h-8 w-12 bg-blue-500 text-white rounded shadow hover:bg-blue-600 transform" onclick={toggleSidebar}>
                     Close
                 </button>
             {/if}
         </div>
         
         <ul class="space-y-2 px-4">
-            <li class="hover:bg-slate-500 p-2 rounded">Home</li>
-            <li class="hover:bg-gray-500 p-2 rounded">Library</li>
-            <li class="hover:bg-gray-500 p-2 rounded">Upload</li>
-            <li class="hover:bg-gray-500 p-2 rounded border text-indigo-200 border-indigo-200">Sign-in</li>
+            <li class="hover:bg-slate-500 p-2 rounded" onclick={navigateHome}>Home</li>
+            <li class="hover:bg-gray-500 p-2 rounded" onclick={navigateLibrary}>Library</li>
+            <li class="hover:bg-gray-500 p-2 rounded" onclick={navigateUpload}>Upload</li>
+            <li class="hover:bg-gray-500 p-2 rounded border text-indigo-200 border-indigo-200" onclick={navigateSignIn}>Sign-in</li>
         </ul>
   
     </div>
