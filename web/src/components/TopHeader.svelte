@@ -1,18 +1,26 @@
 <script>
     import { isSidebarOpen } from "../stores/player";
 
-    let { pageName } = $props();
+    let { pageName, pageIcon } = $props();
 
     function toggleSidebar() {
         $isSidebarOpen = !$isSidebarOpen;
     }
+
 </script>
 
 <section class="h-24 w-full flex flex-row">
 
     {#if !$isSidebarOpen}
-        <button onclick={toggleSidebar} class="h-8 w-12 bg-blue-500 text-white rounded shadow hover:bg-blue-600">Open</button>    
+        <button onclick={toggleSidebar} class="h-8 w-8 hover:h-9 hover:w-9 text-white rounded rounded-xl shadow hover:bg-gray-800">
+            <img src="right-arrow.png" alt="Open sidebar">
+        </button>    
     {/if}
-    <h1 class="text-3xl font-bold ml-8">{ pageName }</h1>
+    <div class="text-3xl font-bold ml-8 flex flex-row">
+        {#if pageIcon !== ""}
+            <img class="h-8 w-8 mr-4" src={pageIcon} alt="Home Icon">
+        {/if}
+        <h1>{ pageName }</h1>
+    </div>
 
 </section>

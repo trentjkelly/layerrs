@@ -10,7 +10,7 @@
 
 <main class={`transition-all duration-300 h-full w-full p-8 ${$isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
 
-    <TopHeader pageName="Library"></TopHeader>
+    <TopHeader pageName="Your Library" pageIcon="vinyl.png"></TopHeader>
 
     <section>
         <TrackCard trackId={15}></TrackCard>  

@@ -21,26 +21,47 @@
     function navigateSignIn() {
         goto('/signin')
     }
+    
 </script>
   
 <div class="flex">
     <div
-      class={`fixed top-0 left-0 h-full bg-gray-950 text-white w-64 transform transition-transform duration-300 ${
+      class={`fixed top-0 left-0 h-full bg-gradient-to-b from-gray-950 to-gray-900 text-white w-64 transform transition-transform duration-300 ${
         $isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div class="flex flex-row items-center justify-between">
-            <h2 class="text-xl font-bold p-4">Layerr</h2>
+            <button onclick={navigateHome} class="flex flex-row items-center ml-4 p-4">
+                <img class="h-8 w-8" src="vinyls.png" alt="Layerr Logo">
+                <h2 class="text-xl font-bold ml-2">Layerr</h2>
+            </button>
             {#if $isSidebarOpen}
-                <button class="mr-4 h-8 w-12 bg-blue-500 text-white rounded shadow hover:bg-blue-600 transform" onclick={toggleSidebar}>
-                    Close
+                <button class="mr-4 h-8 w-8 hover:h-9 hover:w-9 text-white rounded rounded-xl shadow hover:bg-gray-800 transform flex flex-row items-center justify-center" onclick={toggleSidebar}>
+                    <img src="left-arrow.png" alt="Close sidebar"/>
                 </button>
             {/if}
         </div>
         
         <ul class="space-y-2 px-4">
-            <li class="hover:bg-slate-500 p-2 rounded" onclick={navigateHome}>Home</li>
-            <li class="hover:bg-gray-500 p-2 rounded" onclick={navigateLibrary}>Library</li>
-            <li class="hover:bg-gray-500 p-2 rounded" onclick={navigateUpload}>Upload</li>
-            <li class="hover:bg-gray-500 p-2 rounded border text-indigo-200 border-indigo-200" onclick={navigateSignIn}>Sign-in</li>
+            <li class="hover:bg-slate-500 rounded">
+                <button class="flex flex-row w-full h-full p-2" onclick={navigateHome}>
+                    <img class="h-6 w-6" src="home.png" alt="Home" />
+                    <p class="pl-3 text-lg">Home</p>
+                </button>
+            </li>
+            <li class="hover:bg-slate-500 rounded">
+                <button class="flex flex-row w-full h-full p-2" onclick={navigateLibrary}>
+                    <img class="h-6 w-6" src="vinyl.png" alt="Library" />
+                    <p class="pl-3 text-lg">Library</p>
+                </button>
+            </li>
+            <li class="hover:bg-slate-500 rounded">
+                <button class="flex flex-row w-full h-full p-2" onclick={navigateUpload}>
+                    <img class="h-6 w-6" src="upload.png" alt="Upload" />
+                    <p class="pl-3 text-lg">Upload</p>
+                </button>
+            </li>
+            <li class="hover:bg-gray-500 rounded border text-indigo-200 border-indigo-200">
+                <button class="w-full h-full flex flex-row items-center justify-center p-2 " onclick={navigateSignIn}>Sign-up / Sign-in</button>
+            </li>
         </ul>
   
     </div>
