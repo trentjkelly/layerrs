@@ -1,5 +1,5 @@
 <script>
-    import { currentSong, isPlaying } from "../stores/player";
+    import { currentTrack, isPlaying } from "../stores/player";
 </script>
 
 <div class="w-screen h-20 bg-gray-900 fixed bottom-0 flex flex-row items-center justify-center">

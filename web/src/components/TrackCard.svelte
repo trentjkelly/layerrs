@@ -1,20 +1,16 @@
 <script>
     import { onMount } from 'svelte';
-    import { currentSong, isPlaying } from '../stores/player';
-
-    // TODO: Delete these variables
-    let sampleTrackName = "Whole Lotta Red Whole Lotta Red"
-    let sampleArtistName = "Playboi Carti Playboi Carti Playboi Carti"
-    let samplePreviousSong = "Whole lotta blue"
+    import { audio, currentTrack, currentTrackId, isPlaying } from '../stores/player';
         
     // Inherits the trackId from the page
     let { trackId } = $props();
     let coverURL = $state();
-    let audioURL = $state();
+    let newAudioURL = $state('');
     let trackName = $state();
 
     let isExpanded = $state(false);
-    let isTrackLiked = $state(false)
+    let isTrackLiked = $state(false);
+    let isHovered = $state(false);
 
     // Gets the cover art for the track when the component is loaded
     onMount(async () => {
@@ -22,6 +18,7 @@
         await getCover()
     })
 
+    // Requests the metadata for the track
     async function getTrackData() {
         try {
             const response = await fetch(`http://localhost:8080/api/track/${trackId}/data`, { method: "GET"});
@@ -50,39 +47,14 @@
         }
     }
 
-    // Used when someone hovers over the track image
-    async function hoverTrackImage() {
-        // Add a play button
-        const container = document.getElementById('imageDiv');
-        const overlay = document.createElement('img');
-
-        if ($isPlaying) {
-            overlay.src = '/pause.png'
-        } else {
-            overlay.src = '/play.png'
-        }
-
-        overlay.alt = 'Overlay Image';
-        overlay.id = 'overlay'
-        overlay.style.position = 'absolute';
-        overlay.style.pointerEvents = 'none';
-        overlay.height = 60;
-        overlay.width = 60;
-
-        if (container) {
-            container.append(overlay)
-        }
-        
-        // Get the track audio
-        // await getAudio()
+    // Changes hover property when someone hovers the cover image
+    function hoverTrackImage() {
+        isHovered = true
     }
 
-    async function leaveHoverTrackImage() {
-        // Remove a play button
-        const overlay = document.getElementById('overlay');
-        if (overlay) {
-            overlay.remove()
-        }
+    // Changes hover property when someone unhovers the cover image
+    function leaveHoverTrackImage() {
+        isHovered = false
     }
 
     // Gets the audio for the track when someone hovers over the component
@@ -93,7 +65,7 @@
                 throw new Error("Failed to stream track audio");
             }
             const blob = await response.blob();
-            audioURL = URL.createObjectURL(blob);
+            newAudioURL = URL.createObjectURL(blob);
 
         } catch (error) {
             console.error("Error streaming track audio", error)
@@ -101,8 +73,40 @@
     }
 
     // Plays the audio 
-    function playPauseAudio() {
-        currentSong.set(audioURL)
+    async function playPauseAudio() {
+        if ($audio) {
+            // This Track is the current one (stored in session data)
+            if (trackId === $currentTrackId) {
+                if ($audio.paused) {
+                    isPlaying.set(true)
+                    $audio.play()
+                } else {
+                    isPlaying.set(false)
+                    $audio.pause()
+                }
+            } 
+            // This track is different than the current one (stored in session data)
+            else {
+                // Pause current audio
+                if (!$audio.paused) {
+                    isPlaying.set(false)
+                    $audio.pause()
+                }
+                // Play new audio
+                isPlaying.set(true)
+                await getAudio()
+                currentTrack.set(newAudioURL)
+                currentTrackId.set(trackId)
+                if ($currentTrack) {
+                    $audio.src = $currentTrack
+                }
+                try {
+                    await $audio.play()
+                } catch (error) {
+                    console.error("Failed to play audio", error)
+                }
+            }
+        }
     }
 
     function onLikeAndDownload() {
@@ -123,12 +127,12 @@
     <!-- Picture section -->
     <div class="h-72 w-72 flex flex-row items-center justify-center">
         <div 
-            id="imageDiv"
+            id={trackId}
             onmouseover={hoverTrackImage} 
+            onfocus={hoverTrackImage}
             onmouseleave={leaveHoverTrackImage}
-            onfocus={hoverTrackImage} 
             onclick={playPauseAudio} 
-            onkeydown={(e) => {if (e.key === "ENTER" || e.key === " ") playPauseAudio}} 
+            onkeydown={(e) => {if (e.key === "Enter" || e.key === " ") playPauseAudio}} 
             role="button" 
             tabindex="0" 
             class="h-64 w-64 bg-slate-400 flex flex-row items-center rounded rounded-xl justify-center"
@@ -136,6 +140,24 @@
             {#if coverURL}
                 <img class="h-64 w-64 absolute" src={coverURL} alt="cover art">
             {/if}
+            
+            <!-- Absolutely disgusting conditional for whether to show play or pause button -->
+            {#if isHovered}
+                {#if $isPlaying}
+                    {#if (trackId === $currentTrackId)}
+                        <img class="h-20 w-20 absolute" src="pause.png" alt="Pause button" />
+                    {:else}
+                        <img class="h-20 w-20 absolute" src="play.png" alt="Play button" />
+                    {/if}
+                {:else}
+                    <img class="h-20 w-20 absolute" src="play.png" alt="Play button" />
+                {/if}
+            {:else}
+                {#if ($isPlaying && (trackId === $currentTrackId))}
+                    <img class="h-20 w-20 absolute" src="pause.png" alt="Pause button" />
+                {/if}
+            {/if}
+            
         </div>
     </div>
 

@@ -23,4 +23,3 @@ func NewRecommendation(t1 int, t2 int, t3 int, t4 int, t5 int, t6 int, t7 int, t
 	rec.Track8 = t8
 	return rec
 }
-
