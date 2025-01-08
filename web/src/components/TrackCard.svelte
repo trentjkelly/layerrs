@@ -4,15 +4,16 @@
         
     // Inherits the trackId from the page
     let { trackId } = $props();
-    let coverURL = $state();
+    // State variables for the page
+    let coverURL = $state('');
     let newAudioURL = $state('');
-    let trackName = $state();
-
+    let trackName = $state('');
+    let previousTrackName = $state('');
     let isExpanded = $state(false);
     let isTrackLiked = $state(false);
     let isHovered = $state(false);
 
-    // Gets the cover art for the track when the component is loaded
+    // When the component is loaded -- gets the track data & cover art 
     onMount(async () => {
         await getTrackData()
         await getCover()
@@ -27,12 +28,14 @@
             }
             const trackData = await response.json();
             trackName = trackData.name
+            previousTrackName = "Yessirski"
             // artistName = trackData.
         } catch (error) {
             console.error("Error catching track data", error)
         }
     }
 
+    // Requests the cover art for the track
     async function getCover() {
         try {
             const response = await fetch(`http://localhost:8080/api/track/${trackId}/cover`, { method: "GET"});
@@ -57,7 +60,7 @@
         isHovered = false
     }
 
-    // Gets the audio for the track when someone hovers over the component
+    // Requests the audio for the track
     async function getAudio() {
         try {
             const response = await fetch(`http://localhost:8080/api/track/${trackId}/audio`, { method: "GET"});
@@ -72,7 +75,7 @@
         }
     }
 
-    // Plays the audio 
+    // Plays/pauses the audio
     async function playPauseAudio() {
         if ($audio) {
             // This Track is the current one (stored in session data)
@@ -109,14 +112,17 @@
         }
     }
 
+    // Shows the like and download buttons when hovered over
     function onLikeAndDownload() {
         isExpanded = true
     }
 
+    // Hides the like and download buttons when hover is left
     function offLikeAndDownload() {
         isExpanded = false
     }
 
+    // Changes the like button image
     function toggleLikedTrack() {
         isTrackLiked = !isTrackLiked
     }
@@ -184,10 +190,12 @@
             {/if}
         </div>
         <div>
-            <button class="text-indigo-500 flex flex-row items-center">
-                <img class="w-6 h-6" src="vinyl.png" alt="Song samples" />
-                <p class="ml-2 hover:underline">[SAMPLE] {samplePreviousSong}</p>
-            </button>
+            {#if previousTrackName}
+                <button class="text-indigo-500 flex flex-row items-center">
+                    <img class="w-6 h-6" src="vinyl.png" alt="Song samples" />
+                    <p class="ml-2 hover:underline">[SAMPLE] {previousTrackName}</p>
+                </button>
+            {/if}
         </div>
     </div>
 </div>
