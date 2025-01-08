@@ -7,3 +7,4 @@ export const isPlaying = writable(false);
 // For the sidebar and bottom audio player to be visible
 export const isSidebarOpen = writable(true);
 // export const isSongSelected = writable(true);
+

@@ -35,11 +35,13 @@ func main() {
 
 	// Services
 	trackService := service.NewTrackService(trackStorageRepo, coverStorageRepo, trackDatabaseRepo, trackTreeDatabaseRepo)
+	recService := service.NewRecommendationsService(trackDatabaseRepo)
 	// artistService := service.NewArtistService()
 	// likesService := service.NewLikesService()
 
 	// Controllers
 	trackController := controller.NewTrackController(trackService)
+	recController := controller.NewRecommendationsController(recService)
 	// artistController := controller.NewArtistController(artistService)
 	// likesController := controller.NewLikesController(likesService)
 
@@ -52,6 +54,7 @@ func main() {
 	app := &application{
 		config		: cfg,
 		trackController: trackController,
+		recommendationsController: recController,
 	}
 
 	// Mount and run the application

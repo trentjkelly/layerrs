@@ -18,8 +18,9 @@ type appConfig struct {
 }
 
 type application struct {
-	config 			appConfig
-	trackController	*controller.TrackController
+	config 						appConfig
+	trackController				*controller.TrackController
+	recommendationsController 	*controller.RecommendationsController
 }
 
 func (app *application) mount() http.Handler {
@@ -43,11 +44,10 @@ func (app *application) mount() http.Handler {
 
 	// Root route -- everything goes underneath /api
 	r.Route("/api", func(r chi.Router) {
-		// /api/track/
+
 		r.Route("/track", func(r chi.Router) {
 			r.Options("/", app.trackController.TrackHandlerOptions)
 			r.Post("/", app.trackController.TrackHandlerPost)
-
 			r.Route("/{id}", func(r chi.Router) {
 				r.Get("/audio", app.trackController.TrackAudioHandlerGet)
 				r.Get("/cover", app.trackController.TrackCoverHandlerGet)
@@ -56,11 +56,20 @@ func (app *application) mount() http.Handler {
 				// r.Delete("/", app.trackController)
 			})
 		})
-		r.Route("/likes", func(r chi.Router) {
-			r.Post("/", app.LikesController.LikesHandlerPost)
-			r.Get("/", app.LikesController.LikesHandlerGet)
-			r.Delete("/{id}", app.LikesController.LikesHandlerDelete)
+
+		r.Route("/recommendations", func(r chi.Router) {
+			r.Route("/home", func (r chi.Router){
+				r.Get("/{artistId}", app.recommendationsController.RecommendationsHandlerHomeGet)
+			})
 		})
+
+		// r.Route("/likes", func(r chi.Router) {
+		// 	r.Post("/", app.LikesController.LikesHandlerPost)
+		// 	r.Get("/", app.LikesController.LikesHandlerGet)
+		// 	r.Delete("/{id}", app.LikesController.LikesHandlerDelete)
+		// })
+
+		// r.Route("/artist", func(r chi.Router) {})
 	})
 
 	return r

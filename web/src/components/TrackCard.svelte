@@ -30,6 +30,7 @@
             }
             const trackData = await response.json();
             trackName = trackData.name
+            // artistName = trackData.
         } catch (error) {
             console.error("Error catching track data", error)
         }
@@ -142,8 +143,8 @@
     <div class="w-72 h-24 bg-gray-700 rounded rounded-xl px-4">
         <div class="flex flex-row w-full">
             <div class={`${isExpanded ? 'w-40' : 'w-64'}`}>
-                <p class="hover:underline truncate">{sampleTrackName}</p>
-                <p class="pb-2 truncate">{sampleArtistName}</p>
+                <p class="hover:underline truncate">{trackName}</p>
+                <p class="pb-2 truncate">{trackName}</p>
             </div>
             {#if isExpanded}
                 <div class="w-24 flex flex-row">

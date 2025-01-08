@@ -24,20 +24,20 @@ func (c *LikesController) LikesHandlerPost(w http.ResponseWriter, r *http.Reques
 // Retrieves all liked tracks for a given artist
 func (c *LikesController) LikesHandlerGet(w http.ResponseWriter, r *http.Request) {
 	
-	artistId := 
-	offset := 
+	// artistId := 
+	// offset := 
 
-	likes, err := c.likesService.GetArtistLikes(r.Context(), )
+	// likes, err := c.likesService.GetArtistLikes(r.Context(), )
 
-	if err != nil {
-		http.Error(w, "Failed to retrieve likes", http.StatusInternalServerError)
-		return
-	}
+	// if err != nil {
+	// 	http.Error(w, "Failed to retrieve likes", http.StatusInternalServerError)
+	// 	return
+	// }
 
-	// Encode likes in json and send back
-	for i := 0; i < 25; i++ {
+	// // Encode likes in json and send back
+	// for i := 0; i < 25; i++ {
 
-	}
+	// }
 
 }
 
