@@ -1,10 +1,12 @@
 package repository
 
 import (
-	"github.com/trentjkelly/layerr/internals/config"
 	"context"
-	"mime/multipart"
+	"fmt"
 	"io"
+	"mime/multipart"
+
+	"github.com/trentjkelly/layerr/internals/config"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
@@ -44,11 +46,13 @@ func (r *TrackStorageRepository) CreateTrack(ctx context.Context, file multipart
 }
 
 // Gets a track from storage (to be streamed)
-func (r *TrackStorageRepository) ReadTrack(ctx context.Context, trackName *string) (io.ReadCloser, error) {
+func (r *TrackStorageRepository) ReadTrack(ctx context.Context, trackName *string, startByte int, endByte int) (io.ReadCloser, error) {
+	rangeString := fmt.Sprintf("bytes=%d-%d", startByte, endByte)
 
 	input := &s3.GetObjectInput{
 		Bucket: r.trackBucketName,
 		Key: trackName,
+		Range: aws.String(rangeString),
 	}
 
 	res, err := r.r2Client.GetObject(ctx, input)

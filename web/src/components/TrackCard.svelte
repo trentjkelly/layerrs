@@ -1,9 +1,10 @@
 <script>
-    import { onMount } from 'svelte';
+    import { onMount, onDestroy } from 'svelte';
     import { audio, currentTrack, currentTrackId, isPlaying } from '../stores/player';
         
     // Inherits the trackId from the page
     let { trackId } = $props();
+
     // State variables for the page
     let coverURL = $state('');
     let newAudioURL = $state('');
@@ -13,11 +14,37 @@
     let isTrackLiked = $state(false);
     let isHovered = $state(false);
 
+    // New variables
+    let audioElement = $state();
+    let mediaSource = $state();
+    let sourceBuffer = $state();
+    let isLoading = $state(false);
+    let currentOffset = $state(0);
+    const CHUNK_SIZE = 1024 * 1024; // 1 MB
+
     // When the component is loaded -- gets the track data & cover art 
     onMount(async () => {
         await getTrackData()
         await getCover()
     })
+
+    // Added cleanup when component is destroyed
+    onDestroy(() => {
+        if (mediaSource) {
+            if (sourceBuffer) {
+                try {
+                    mediaSource.removeSourceBuffer(sourceBuffer);
+                } catch (error) {
+                    console.warn("Error removing the source buffer", error);
+                }
+            }
+            mediaSource = null;
+            sourceBuffer = null
+        }
+        if(newAudioURL) {
+            URL.revokeObjectURL(newAudioURL);
+        }
+    });
 
     // Requests the metadata for the track
     async function getTrackData() {
@@ -63,15 +90,71 @@
     // Requests the audio for the track
     async function getAudio() {
         try {
-            const response = await fetch(`http://localhost:8080/api/track/${trackId}/audio`, { method: "GET"});
-            if (!response.ok) {
-                throw new Error("Failed to stream track audio");
-            }
-            const blob = await response.blob();
-            newAudioURL = URL.createObjectURL(blob);
+            mediaSource = new MediaSource();
+            audioElement = new Audio();
+            currentOffset = 0;
+
+            const sourceURL = URL.createObjectURL(mediaSource);
+            audioElement.src = sourceURL;
+
+            mediaSource.addEventListener('sourceopen', async () => {
+                try {
+                    sourceBuffer = mediaSource.addSourceBuffer('audio/mpeg');
+                    
+                    if (sourceBuffer) {
+                        sourceBuffer.addEventListener('updateend', () => {
+                            if (!isLoading) {
+                                loadNextChunk();
+                            }
+                        });
+                    }
+                    await loadNextChunk();
+                } catch (error) {
+                    console.error("Error setting up media source", error);
+                }
+            });
+
+            audio.set(audioElement);
+            newAudioURL = sourceURL;
 
         } catch (error) {
-            console.error("Error streaming track audio", error)
+            console.error("Error setting up audio stream", error);
+        }
+    }
+
+    async function loadNextChunk() {
+        if (isLoading || !mediaSource || mediaSource.readyState !== 'open') {
+            return
+        }
+
+        try {
+            isLoading = true;
+            const response = await fetch(`http://localhost:8080/api/track/${trackId}/audio`,
+            {
+                headers: {
+                    'Range': `bytes=${currentOffset}-${currentOffset + CHUNK_SIZE - 1}`
+                }
+            });
+
+            if(!response.ok) {
+                throw new Error('Failed to fetch chunk');
+            }
+
+            const data = await response.arrayBuffer();
+            if(data.byteLength === 0) {
+                mediaSource.endOfStream();
+                return;
+            }
+
+            if (!sourceBuffer.updating) {
+                sourceBuffer.appendBuffer(data);
+                currentOffset += data.byteLength;
+            }
+
+        } catch (error) {
+            console.error('Error loading chunk:', error);
+        } finally {
+            isLoading = false;
         }
     }
 
@@ -82,7 +165,7 @@
             if (trackId === $currentTrackId) {
                 if ($audio.paused) {
                     isPlaying.set(true)
-                    $audio.play()
+                    await $audio.play()
                 } else {
                     isPlaying.set(false)
                     $audio.pause()
@@ -95,14 +178,29 @@
                     isPlaying.set(false)
                     $audio.pause()
                 }
+
+                // Clean up old MediaSource if it exists
+                if (mediaSource) {
+                    if (sourceBuffer) {
+                        try {
+                            mediaSource.removeSourceBuffer(sourceBuffer);
+                        } catch (error) {
+                            console.warn("Error removing source buffer", error);
+                        }
+                    }
+                    mediaSource = null;
+                    sourceBuffer = null;
+                }
+
                 // Play new audio
                 isPlaying.set(true)
                 await getAudio()
                 currentTrack.set(newAudioURL)
                 currentTrackId.set(trackId)
-                if ($currentTrack) {
-                    $audio.src = $currentTrack
-                }
+
+                // if ($currentTrack) {
+                //     $audio.src = $currentTrack
+                // }
                 try {
                     await $audio.play()
                 } catch (error) {

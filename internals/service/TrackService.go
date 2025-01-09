@@ -99,7 +99,7 @@ func (s *TrackService) GetTrackInfo(ctx context.Context, trackId int) (*entities
 }
 
 // Streams a track by its track id
-func (s *TrackService) StreamTrack(ctx context.Context, trackId int) (io.ReadCloser, error) {
+func (s *TrackService) StreamTrack(ctx context.Context, trackId int, startByte int, endByte int) (io.ReadCloser, error) {
 
 	// Get the R2 storage Key
 	track := new(entities.Track)
@@ -111,7 +111,7 @@ func (s *TrackService) StreamTrack(ctx context.Context, trackId int) (io.ReadClo
 	}
 
 	// Stream the track back to the frontend
-	file, err := s.trackStorageRepo.ReadTrack(ctx, &track.R2TrackKey)
+	file, err := s.trackStorageRepo.ReadTrack(ctx, &track.R2TrackKey, startByte, endByte)
 	if err != nil {
 		return nil, err
 	}

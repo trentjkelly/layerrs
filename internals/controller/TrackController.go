@@ -2,6 +2,7 @@ package controller
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -103,8 +104,18 @@ func (c *TrackController) TrackAudioHandlerGet(w http.ResponseWriter, r *http.Re
 		return
 	}
 
+	// Getting the byte range from the request
+	byteRange := r.Header.Get("Range")
+	var startByte int
+	var endByte int
+	_, err = fmt.Sscanf(byteRange, "bytes=%d-%d", &startByte, &endByte)
+	if err != nil {
+		http.Error(w, "Could not parse byte range", http.StatusBadRequest)
+		return 
+	}
+
 	// Get audio from storage
-	file, err := c.trackService.StreamTrack(r.Context(), trackId)
+	file, err := c.trackService.StreamTrack(r.Context(), trackId, startByte, endByte)
 	if err != nil {
 		http.Error(w, "Failed to stream track", http.StatusInternalServerError)
 		return
@@ -116,7 +127,7 @@ func (c *TrackController) TrackAudioHandlerGet(w http.ResponseWriter, r *http.Re
 	w.Header().Set("Content-Disposition", "inline")
 	_, err = io.Copy(w, file)
 	if err != nil {
-		http.Error(w, "Error while streaming audio", http.StatusInternalServerError)
+		http.Error(w, "Error while streaming audio", http.StatusPartialContent)
 	}
 
 	w.WriteHeader(http.StatusOK)
