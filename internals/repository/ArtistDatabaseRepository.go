@@ -7,6 +7,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/trentjkelly/layerr/internals/config"
 	"github.com/trentjkelly/layerr/internals/entities"
+	// "log"
 )
 
 type ArtistDatabaseRepository struct {
@@ -26,11 +27,24 @@ func (r *ArtistDatabaseRepository) CloseDB() {
 }
 
 // Adds an Artist to the database, but only the non-optional fields 
-func (r *ArtistDatabaseRepository) CreateArtist(ctx context.Context, artist *entities.Artist) error {
-	query := `INSERT INTO artist (name, username, email) VALUES ($1, $2, $3) RETURNING id;`
-	row := r.db.QueryRow(ctx, query, artist.Name, artist.Username, artist.Email)
-	err := row.Scan(&artist.Id)
+func (r *ArtistDatabaseRepository) CreateArtist(ctx context.Context, username string, name string, email string, password string) (int, error) {
+	query := `INSERT INTO artist (username, name, email, password) VALUES ($1, $2, $3, $4) RETURNING id;`
+	row := r.db.QueryRow(ctx, query, username, name, email, password)
+	
+	var artistId int
+	err := row.Scan(&artistId)
+	if err != nil {
+		return 0, err
+	}
 
+	return artistId, nil
+}
+
+func (r *ArtistDatabaseRepository) GetArtistUsernamePassword(ctx context.Context, artist *entities.Artist, email string) (error) {
+	query := `SELECT username, password FROM artist WHERE email=$1;`
+	row := r.db.QueryRow(ctx, query, email)
+
+	err := row.Scan(&artist.Username, &artist.Password)
 	if err != nil {
 		return err
 	}
@@ -47,7 +61,7 @@ func (r *ArtistDatabaseRepository) ReadArtistById(ctx context.Context, artist *e
 	var bio sql.NullString
 	var r2ImageKey sql.NullString
 
-	err := row.Scan(&artist.Id, &artist.Name, &artist.Username, &artist.Email, &bio, &r2ImageKey, &artist.CreatedAt, &artist.UpdatedAt)
+	err := row.Scan(&artist.Id, &artist.Name, &artist.Username, &artist.Email, &bio, &r2ImageKey, &artist.CreatedAt, &artist.UpdatedAt, &artist.Password)
 
 	if err != nil {
 		return err

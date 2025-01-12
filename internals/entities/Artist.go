@@ -13,4 +13,5 @@ type Artist struct {
 	R2ImageKey 	string		`json:"r2ImageKey"`
 	CreatedAt 	time.Time	`json:"createdAt"`
 	UpdatedAt 	time.Time	`json:"updatedAt"`
+	Password	string		`json:"password"`
 }

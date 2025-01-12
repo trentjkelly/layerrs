@@ -1,6 +1,7 @@
 <script>  
     import { isSidebarOpen } from "../stores/player";
     import { goto } from "$app/navigation";
+    import { tokenString } from "../stores/player";
 
     function toggleSidebar() {
       $isSidebarOpen = !$isSidebarOpen;
@@ -19,7 +20,7 @@
     }
 
     function navigateSignIn() {
-        goto('/signin')
+        goto('/login')
     }
     
 </script>
@@ -59,9 +60,11 @@
                     <p class="pl-3 text-lg">Upload</p>
                 </button>
             </li>
-            <li class="hover:bg-gray-500 rounded border text-indigo-200 border-indigo-200">
-                <button class="w-full h-full flex flex-row items-center justify-center p-2 " onclick={navigateSignIn}>Sign-up / Sign-in</button>
-            </li>
+            {#if $tokenString == ''}
+                <li class="hover:bg-gray-500 rounded border text-indigo-200 border-indigo-200">
+                    <button class="w-full h-full flex flex-row items-center justify-center p-2 " onclick={navigateSignIn}>Log In</button>
+                </li>
+            {/if}
         </ul>
   
     </div>

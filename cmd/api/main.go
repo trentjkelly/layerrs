@@ -15,7 +15,6 @@ func main() {
 
 	// Load environment variables
 	err := godotenv.Load()
-
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -25,7 +24,9 @@ func main() {
 	// 
 
 	// Repositories
-	// artistDatabaseRepo := repository.NewArtistDatabaseRepository()
+	passwordRepo := repository.NewPasswordRepository()
+	authRepo := repository.NewAuthRepository()
+	artistDatabaseRepo := repository.NewArtistDatabaseRepository()
 	// likesDatabaseRepo := repository.NewLikesDatabaseRepository()
 	trackDatabaseRepo := repository.NewTrackDatabaseRepository()
 	trackTreeDatabaseRepo := repository.NewTrackTreeDatabaseRepository()
@@ -34,12 +35,14 @@ func main() {
 	trackStorageRepo := repository.NewTrackStorageRepository()
 
 	// Services
+	authService := service.NewAuthService(passwordRepo, artistDatabaseRepo, authRepo)
 	trackService := service.NewTrackService(trackStorageRepo, coverStorageRepo, trackDatabaseRepo, trackTreeDatabaseRepo)
 	recService := service.NewRecommendationsService(trackDatabaseRepo)
 	// artistService := service.NewArtistService()
 	// likesService := service.NewLikesService()
 
 	// Controllers
+	authController := controller.NewAuthController(authService)
 	trackController := controller.NewTrackController(trackService)
 	recController := controller.NewRecommendationsController(recService)
 	// artistController := controller.NewArtistController(artistService)
@@ -55,6 +58,7 @@ func main() {
 		config		: cfg,
 		trackController: trackController,
 		recommendationsController: recController,
+		authController: authController,
 	}
 
 	// Mount and run the application

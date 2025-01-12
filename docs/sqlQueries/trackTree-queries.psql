@@ -1,9 +1,0 @@
-CREATE TABLE track_tree (
-    root_id INT NOT NULL,
-    child_id INT NOT NULL,
-    PRIMARY KEY (root_id, child_id),
-    FOREIGN KEY (root_id) REFERENCES track(id),
-    FOREIGN KEY (child_id) REFERENCES track(id)
-);
-
-INSERT INTO track_tree (root_id, child_id) VALUES ('@rootId', '@childId')
