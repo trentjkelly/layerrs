@@ -32,9 +32,7 @@ func (app *application) mount() http.Handler {
   	r.Use(middleware.RealIP)
   	r.Use(middleware.Logger)
   	r.Use(middleware.Recoverer)
-
 	r.Use(middleware.Timeout(time.Second * 60))
-
 	r.Use(cors.Handler(cors.Options{
 		AllowedOrigins:   []string{"*"},
 		AllowedMethods:   []string{"GET", "POST", "OPTIONS"},
@@ -47,26 +45,41 @@ func (app *application) mount() http.Handler {
 	r.Route("/api", func(r chi.Router) {
 
 		r.Route("/authentication", func(r chi.Router){
-			r.Options("/login", app.trackController.AuthHandlerOptions)
+			// r.Options("/login", app.trackController.AuthHandlerOptions)
 			r.Post("/signup", app.authController.RegisterArtistHandler)
 			r.Post("/login", app.authController.LogInArtistHandler)
 		})
 
 		r.Route("/track", func(r chi.Router) {
 			r.Options("/", app.trackController.TrackHandlerOptions)
-			r.Post("/", app.trackController.TrackHandlerPost)
 			r.Route("/{id}", func(r chi.Router) {
 				r.Get("/audio", app.trackController.TrackAudioHandlerGet)
 				r.Get("/cover", app.trackController.TrackCoverHandlerGet)
 				r.Get("/data", app.trackController.TrackerDataHandlerGet)
-				// r.Put("/", app.trackController)
+
+				// r.Use(AuthJWTMiddleware)
+				// r.Put("/", app.trackController.)
 				// r.Delete("/", app.trackController)
+			})
+			r.Group(func (r chi.Router) {
+				r.Use(AuthJWTMiddleware)
+				r.Post("/", app.trackController.TrackHandlerPost)
 			})
 		})
 
+		// Different algorithms for showing pages of songs
 		r.Route("/recommendations", func(r chi.Router) {
-			r.Route("/home", func (r chi.Router){
-				r.Get("/{artistId}", app.recommendationsController.RecommendationsHandlerHomeGet)
+			r.Route("/home", func (r chi.Router) {
+				r.Get("/", app.recommendationsController.RecommendationsHandlerHomeGet) // Base home page algorithm
+
+				r.Group(func (r chi.Router) {
+					r.Use(AuthJWTMiddleware)
+					r.Get("/{artistId}", app.recommendationsController.RecommendationsHandlerHomeGet) // Personalized home page algorithm
+				})
+			})
+			r.Route("/library", func (r chi.Router) {
+				r.Use(AuthJWTMiddleware)
+				r.Get("/{artistId}", app.recommendationsController.ReccomendationsHandlerLikesGet) // User's library algorithm
 			})
 		})
 

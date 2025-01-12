@@ -3,6 +3,13 @@
     import TopHeader from "../components/TopHeader.svelte";
     import TrackCard from "../components/TrackCard.svelte";
     import { isSidebarOpen } from "../stores/player";
+    import { jwt } from "../stores/auth";
+
+    // Set session jwt to the cookie jwt if it exists
+    export let data 
+    if (data.token) {
+        jwt.set(data.token)
+    }
 
     // Each of the songs to be loaded in
     let artistId = 1 // Static for now

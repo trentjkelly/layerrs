@@ -1,7 +1,7 @@
 <script>  
     import { isSidebarOpen } from "../stores/player";
     import { goto } from "$app/navigation";
-    import { tokenString } from "../stores/player";
+    import { jwt } from "../stores/auth";
 
     function toggleSidebar() {
       $isSidebarOpen = !$isSidebarOpen;
@@ -60,7 +60,7 @@
                     <p class="pl-3 text-lg">Upload</p>
                 </button>
             </li>
-            {#if $tokenString == ''}
+            { #if !$jwt }
                 <li class="hover:bg-gray-500 rounded border text-indigo-200 border-indigo-200">
                     <button class="w-full h-full flex flex-row items-center justify-center p-2 " onclick={navigateSignIn}>Log In</button>
                 </li>

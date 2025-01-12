@@ -2,7 +2,6 @@
     import TopHeader from "../../components/TopHeader.svelte";
     import { isSidebarOpen } from "../../stores/player";
     import { goto } from "$app/navigation";
-    import { tokenString } from "../../stores/player";
 
     let email = $state('')
     let password = $state('')
@@ -22,8 +21,20 @@
                 })
 
                 // Set tokenString (session level variable) to recieved token
-                const data = await res.json()
-                tokenString.set(data.token)
+                const jsonData = await res.json()
+
+                try {
+                    const res  = await fetch('/cookies', { 
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({ token: jsonData.token })
+                    })
+                    if (!res.ok) {
+                        console.error("Failed to set the JWT", res.statusText);
+                    }
+                } catch (error) {
+                    console.error("Failed to set the JWT")
+                }
 
                 // Go to homepage when logged in
                 if (res.status == 200) {

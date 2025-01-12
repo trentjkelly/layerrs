@@ -8,6 +8,8 @@
     let title = $state();
     let artistId = $state();
 
+    // let data = $props();
+
     function removeAudioFile() {
         audioFiles = null
     }
@@ -27,7 +29,13 @@
             form.append('coverArtFile', coverArtFile)
             form.append('name', title)
             form.append('artistId', artistId)
-            const res = await fetch("http://localhost:8080/api/track/", {method: "POST", body: form});
+            const res = await fetch("http://localhost:8080/api/track/", { 
+                method: "POST", 
+                // headers: {
+                //     'Authorization': `Bearer ${data.jwt}`
+                // },
+                body: form
+            });
             console.log(res)
         } else {
             console.log("audioFile and coverArtFile are not valid")

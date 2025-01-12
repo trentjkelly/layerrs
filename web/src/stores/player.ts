@@ -10,6 +10,3 @@ export const isSidebarOpen = writable(true);
 // export const isSongSelected = writable(true);
 export const audio = writable<HTMLAudioElement | null>(null);
 
-// Token string to send back for subsequent requests
-export const tokenString = writable('');
-

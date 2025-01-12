@@ -34,5 +34,5 @@ func (c *RecommendationsController) RecommendationsHandlerHomeGet(w http.Respons
 
 // Sends a user what tracks to show on their likes page
 func (c *RecommendationsController) ReccomendationsHandlerLikesGet(w http.ResponseWriter, r *http.Request) {
-
+	
 }
