@@ -22,7 +22,7 @@ func NewLikesController(likesService *service.LikesService) *LikesController {
 
 func (c *LikesController) LikesHandlerOptions(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
-    w.Header().Set("Access-Control-Allow-Methods", "POST, GET, PUT, OPTIONS")
+    w.Header().Set("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE, OPTIONS")
     w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
     w.WriteHeader(http.StatusOK)
 }
@@ -86,10 +86,10 @@ func (c *LikesController) LikesHandlerDelete(w http.ResponseWriter, r *http.Requ
 	artistIdFloat := r.Context().Value(entities.ArtistIdKey).(float64)
 	artistId := int(artistIdFloat)
 
-	trackStr := r.FormValue("trackId")
+	trackStr := r.URL.Query().Get("trackId")
 	trackId, err := strconv.Atoi(trackStr)
 	if err != nil {
-		http.Error(w, "Invalid track id", http.StatusBadRequest)
+		http.Error(w, "Invalid trackId", http.StatusBadRequest)
 		return
 	}
 	

@@ -246,9 +246,15 @@
     // Changes the like button image and requests backend to save a like 
     async function toggleLikedTrack() {
         isTrackLiked = !isTrackLiked
-        await sendLikeRequest()
+
+        if (isTrackLiked) {
+            await sendLikeRequest()
+        } else {
+            await sendUnlikeRequest()
+        }
     }
 
+    // Requests the backend to like a track for the given user
     async function sendLikeRequest() {
         const formData = new FormData();
         formData.append('trackId', trackId)
@@ -263,6 +269,24 @@
             })
         } catch (error) {
             console.error("Could not like track")
+        }
+    }
+    
+    // Requests the backend to unlike a track for the given user
+    async function sendUnlikeRequest() {
+        const params = new URLSearchParams({
+            trackId: trackId
+        })
+
+        try {
+            await fetch(`http://localhost:8080/api/likes?${params}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${$jwt}`
+                }
+            })
+        } catch (error) {
+            console.error("Could not unlike track")
         }
     }
 
