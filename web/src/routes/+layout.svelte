@@ -4,7 +4,7 @@
     import AudioPlayer from '../components/AudioPlayer.svelte';
     import SideBar from '../components/SideBar.svelte';
     import { audio } from '../stores/player';
-	import { refreshToken } from '../stores/auth';
+	import { refreshToken, isLoggedIn } from '../stores/auth';
 
 	let { children } = $props();
 
@@ -29,6 +29,12 @@
 	}
 
 	async function refreshJWT(refreshToken: string) {
+
+		if(!refreshToken) {
+			isLoggedIn.set(false)
+			return
+		}
+		
 		let newJWT = ""
 		let newRefreshToken = ""
 

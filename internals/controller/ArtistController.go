@@ -3,6 +3,9 @@ package controller
 import (
 	"net/http"
 	"github.com/trentjkelly/layerr/internals/service"
+	"strconv"
+	"encoding/json"
+	"github.com/go-chi/chi/v5"
 )
 
 type ArtistController struct {
@@ -36,7 +39,27 @@ func (c *ArtistController) ArtistHandlerPut(w http.ResponseWriter, r *http.Reque
 
 // GET request -- Sends the artists informaiton to frontend
 func (c *ArtistController) ArtistHandlerGet(w http.ResponseWriter, r *http.Request) {
+	
+	// Get artistId
+	artistStr := chi.URLParam(r, "artistId")
+	artistId, err := strconv.Atoi(artistStr)
+	if err != nil {
+		http.Error(w, "Invalid artist id", http.StatusBadRequest)
+		return
+	}
 
+	// Get the rest of the artist data
+	artist, err := c.artistService.GetArtistData(r.Context(), artistId)
+	if err != nil {
+		http.Error(w, "Could not get artist data", http.StatusInternalServerError)
+		return
+	}
+
+	// Send the data
+	err = json.NewEncoder(w).Encode(artist)
+	if err != nil {
+		http.Error(w, "Could not send artist data", http.StatusInternalServerError)
+	}
 }
 
 // DELETE request -- Deletes an artist's information

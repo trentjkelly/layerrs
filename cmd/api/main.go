@@ -38,7 +38,7 @@ func main() {
 	authService := service.NewAuthService(passwordRepo, artistDatabaseRepo, authRepo)
 	trackService := service.NewTrackService(trackStorageRepo, coverStorageRepo, trackDatabaseRepo, trackTreeDatabaseRepo)
 	recService := service.NewRecommendationsService(trackDatabaseRepo)
-	// artistService := service.NewArtistService()
+	artistService := service.NewArtistService(artistDatabaseRepo)
 	likesService := service.NewLikesService(likesDatabaseRepo, trackDatabaseRepo)
 
 	// Controllers
@@ -46,7 +46,7 @@ func main() {
 	trackController := controller.NewTrackController(trackService)
 	recController := controller.NewRecommendationsController(recService)
 	likesController := controller.NewLikesController(likesService)
-	// artistController := controller.NewArtistController(artistService)
+	artistController := controller.NewArtistController(artistService)
 
 	
 	// Setup configuration and injected dependencies
@@ -60,6 +60,7 @@ func main() {
 		recommendationsController: recController,
 		authController: authController,
 		likesController: likesController,
+		artistController: artistController,
 	}
 
 	// Mount and run the application

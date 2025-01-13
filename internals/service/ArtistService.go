@@ -1,8 +1,9 @@
 package service
 
 import (
+	"github.com/trentjkelly/layerr/internals/entities"
 	"github.com/trentjkelly/layerr/internals/repository"
-	// "github.com/trentjkelly/layerr/internals/entities"
+	"context"	
 )
 
 type ArtistService struct {
@@ -14,6 +15,19 @@ func NewArtistService(artistDatabaseRepository *repository.ArtistDatabaseReposit
 	artistService := new(ArtistService)
 	artistService.artistDatabaseRepository = artistDatabaseRepository
 	return artistService
+}
+
+func (s *ArtistService) GetArtistData(ctx context.Context, artistId int) (*entities.Artist, error) {
+	
+	artist := new(entities.Artist)
+	artist.Id = artistId
+
+	err := s.artistDatabaseRepository.ReadArtistById(ctx, artist)
+	if err != nil {
+		return artist, err
+	}
+
+	return artist, nil
 }
 
 // Creates a new artist

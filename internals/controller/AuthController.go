@@ -86,7 +86,12 @@ func (c *AuthController) RefreshHandler(w http.ResponseWriter, r *http.Request) 
 	// Generate new JWT
 	tokenString, err := c.authService.RefreshJWT(r.Context(), request.RefreshToken)
 	if err != nil {
+		if err == entities.ErrInvalidToken {
+			http.Error(w, "Token is invalid", http.StatusUnauthorized)
+			return
+		}
 		http.Error(w, "Could not refresh jwt", http.StatusInternalServerError)
+		return
 	}
 
 	// Send back refreshed jwt

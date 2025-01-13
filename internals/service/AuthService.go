@@ -79,8 +79,7 @@ func (s *AuthService) RefreshJWT(ctx context.Context, refreshToken string) (stri
 	log.Println(refreshToken)
 	token, err := s.authRepository.ValidateJWT(ctx, refreshToken)
 	if err != nil {
-		log.Println("here1")
-		return "", err
+		return "", entities.ErrInvalidToken
 	}
 
 	// Get claims from token

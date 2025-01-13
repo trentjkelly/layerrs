@@ -23,6 +23,7 @@ type application struct {
 	trackController				*controller.TrackController
 	recommendationsController 	*controller.RecommendationsController
 	likesController				*controller.LikesController
+	artistController 			*controller.ArtistController
 }
 
 func (app *application) mount() http.Handler {
@@ -50,6 +51,10 @@ func (app *application) mount() http.Handler {
 			r.Post("/signup", app.authController.RegisterArtistHandler)
 			r.Post("/login", app.authController.LogInArtistHandler)
 			r.Post("/refresh", app.authController.RefreshHandler)
+		})
+
+		r.Route("/artist", func(r chi.Router) {
+			r.Get("/{artistId}", app.artistController.ArtistHandlerGet)
 		})
 
 		r.Route("/track", func(r chi.Router) {
@@ -92,8 +97,6 @@ func (app *application) mount() http.Handler {
 			r.Get("/", app.likesController.LikesHandlerGet)
 			r.Delete("/", app.likesController.LikesHandlerDelete)
 		})
-
-		// r.Route("/artist", func(r chi.Router) {})
 	})
 
 	return r

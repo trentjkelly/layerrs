@@ -1,7 +1,8 @@
 <script>
     import { onMount, onDestroy } from 'svelte';
     import { audio, currentTrack, currentTrackId, isPlaying } from '../stores/player';
-    import { jwt } from '../stores/auth';    
+    import { isLoggedIn, jwt } from '../stores/auth';    
+    import { goto } from '$app/navigation';
 
 
     // Inherits the trackId from the page
@@ -11,6 +12,8 @@
     let coverURL = $state('');
     let newAudioURL = $state('');
     let trackName = $state('');
+    let artistId = $state(0);
+    let artistName = $state('');
     let previousTrackName = $state('');
     let isExpanded = $state(false);
     let isTrackLiked = $state(false);
@@ -25,6 +28,7 @@
     // When the component is loaded -- gets the track data & cover art 
     onMount(async () => {
         await getTrackData()
+        await getArtistName()
         await getIsLiked()
         await getCover()
     })
@@ -56,32 +60,53 @@
             }
             const trackData = await response.json();
             trackName = trackData.name
-            previousTrackName = "Yessirski"
-            // artistName = trackData.
+            artistId = trackData.artistId
+
+            // previousTrackName = ""
         } catch (error) {
             console.error("Error catching track data", error)
         }
     }
 
+    // Gets the name of the artist
+    async function getArtistName() {
+        try {
+            const response = await fetch(`http://localhost:8080/api/artist/${artistId}`, {
+                method: "GET"
+            })
+            if(!response.ok) {
+                throw new Error("Failed to get artist data");
+            }
+
+            const artistData = await response.json();
+            artistName = artistData.name
+        } catch (error) {
+            console.error("Could not retrieve artist data")
+        }
+    }
+
     // Checks if the track is liked when page is loaded
     async function getIsLiked() {
-        try {
-            const params = new URLSearchParams({
-                trackId: trackId
-            })
-
-            const response = await fetch(`http://localhost:8080/api/likes?${params}`, {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${$jwt}`
+        // If user is logged in
+        if ($isLoggedIn) {
+            try {
+                const params = new URLSearchParams({
+                    trackId: trackId
+                })
+    
+                const response = await fetch(`http://localhost:8080/api/likes?${params}`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${$jwt}`
+                    }
+                })
+                if (response.ok) {
+                    const data = await response.json()
+                    isTrackLiked = data.isLiked
                 }
-            })
-            if (response.ok) {
-                const data = await response.json()
-                isTrackLiked = data.isLiked
+            } catch (error) {
+                console.log(error)
             }
-        } catch (error) {
-            console.log(error)
         }
     }
 
@@ -260,13 +285,18 @@
         formData.append('trackId', trackId)
 
         try {
-            await fetch('http://localhost:8080/api/likes', {
+            const res = await fetch('http://localhost:8080/api/likes', {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${$jwt}`
                 },
                 body: formData
             })
+
+            if (res.status == 401) {
+                goto('/login')
+            }
+
         } catch (error) {
             console.error("Could not like track")
         }
@@ -279,12 +309,17 @@
         })
 
         try {
-            await fetch(`http://localhost:8080/api/likes?${params}`, {
+            const res = await fetch(`http://localhost:8080/api/likes?${params}`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${$jwt}`
                 }
             })
+
+            if (res.status == 401) {
+                goto('/login')
+            }
+
         } catch (error) {
             console.error("Could not unlike track")
         }
@@ -333,9 +368,9 @@
     <!-- Section below the picture -->  
     <div class="w-72 h-24 bg-gray-700 rounded rounded-xl px-4">
         <div class="flex flex-row w-full">
-            <div class={`${isExpanded ? 'w-40' : 'w-64'}`}>
-                <p class="hover:underline truncate">{trackName}</p>
-                <p class="pb-2 truncate">{trackName}</p>
+            <div class={`flex flex-col ${isExpanded ? 'w-40' : 'w-64'}`}>
+                <a class="hover:underline truncate" href="/track/{trackId}">{trackName}</a>
+                <a class="pb-2 text-gray-400 hover:underline truncate" href="/artist/{artistId}">@{artistName}</a>
             </div>
             {#if isExpanded}
                 <div class="w-24 flex flex-row">
@@ -358,6 +393,8 @@
                     <img class="w-6 h-6" src="vinyl.png" alt="Song samples" />
                     <p class="ml-2 hover:underline">[SAMPLE] {previousTrackName}</p>
                 </button>
+            {:else}
+                <p class="text-blue-500">[ORIGINAL]</p>
             {/if}
         </div>
     </div>
