@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"encoding/json"
 	"net/http"
 	"strconv"
 
@@ -48,6 +49,34 @@ func (c *LikesController) LikesHandlerPost(w http.ResponseWriter, r *http.Reques
 	}
 
 	w.WriteHeader(http.StatusOK)
+}
+
+// Returns whether the artist has liked a given track
+func (c *LikesController) LikesHandlerGet(w http.ResponseWriter, r *http.Request) {
+
+	// Get artistId & trackId
+	artistIdFloat := r.Context().Value(entities.ArtistIdKey).(float64)
+	artistId := int(artistIdFloat)
+	trackStr := r.URL.Query().Get("trackId")
+	trackId, err := strconv.Atoi(trackStr)
+	if err != nil {
+		http.Error(w, "Invalid trackId", http.StatusBadRequest)
+		return
+	}
+
+	// Check if like is present (errorr eturned if it's not)
+	likeCheck := new(entities.LikeCheck)
+	likeCheck.IsLiked = true
+	err = c.likesService.CheckLike(r.Context(), artistId, trackId)
+	if err != nil {
+		likeCheck.IsLiked = false
+	}
+
+	// Send json
+	err = json.NewEncoder(w).Encode(likeCheck)
+	if err != nil {
+		http.Error(w, "Could not send back like", http.StatusInternalServerError)
+	}
 }
 
 // Removes a like for a given track from the given artist

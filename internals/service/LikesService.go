@@ -55,6 +55,20 @@ func (s *LikesService) GetArtistLikes(ctx context.Context, artistId int, offset 
 	return likes, nil
 }
 
+func (s *LikesService) CheckLike(ctx context.Context, artistId int, trackId int) error {
+	
+	like := new(entities.Like)
+	like.ArtistId = artistId
+	like.TrackId = trackId
+	
+	err := s.likesDatabaseRepository.ReadLikeByTrackIdArtistId(ctx, like)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (s *LikesService) RemoveLike(ctx context.Context, artistId int, trackId int) error {
 
 	// Deletes the row from the artist_likes_track table

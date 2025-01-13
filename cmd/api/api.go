@@ -88,8 +88,8 @@ func (app *application) mount() http.Handler {
 			r.Use(AuthJWTMiddleware)
 			r.Options("/", app.likesController.LikesHandlerOptions)
 			r.Post("/", app.likesController.LikesHandlerPost)
-			// r.Get("/", app.LikesController.LikesHandlerGet)
-			// r.Delete("/{id}", app.LikesController.LikesHandlerDelete)
+			r.Get("/", app.likesController.LikesHandlerGet)
+			r.Delete("/{id}", app.likesController.LikesHandlerDelete)
 		})
 
 		// r.Route("/artist", func(r chi.Router) {})

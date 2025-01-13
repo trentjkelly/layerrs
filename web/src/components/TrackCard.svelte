@@ -25,6 +25,7 @@
     // When the component is loaded -- gets the track data & cover art 
     onMount(async () => {
         await getTrackData()
+        await getIsLiked()
         await getCover()
     })
 
@@ -59,6 +60,28 @@
             // artistName = trackData.
         } catch (error) {
             console.error("Error catching track data", error)
+        }
+    }
+
+    // Checks if the track is liked when page is loaded
+    async function getIsLiked() {
+        try {
+            const params = new URLSearchParams({
+                trackId: trackId
+            })
+
+            const response = await fetch(`http://localhost:8080/api/likes?${params}`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${$jwt}`
+                }
+            })
+            if (response.ok) {
+                const data = await response.json()
+                isTrackLiked = data.isLiked
+            }
+        } catch (error) {
+            console.log(error)
         }
     }
 

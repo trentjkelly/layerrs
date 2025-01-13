@@ -10,3 +10,7 @@ type Like struct {
 	TrackId 	int			`json:"trackId"`
 	CreatedAt	time.Time	`json:"createdAt"`
 }
+
+type LikeCheck struct {
+	IsLiked	bool	`json:"isLiked"`
+}

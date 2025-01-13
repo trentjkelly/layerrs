@@ -60,6 +60,19 @@ func (r *LikesDatabaseRepository) ReadLikesByArtistId(ctx context.Context, artis
 	return likesArray, nil
 }
 
+func (r *LikesDatabaseRepository) ReadLikeByTrackIdArtistId(ctx context.Context, like *entities.Like) error {
+	query := `SELECT id FROM artist_likes_track WHERE artist_id=$1 AND track_id=$2;`
+	row := r.db.QueryRow(ctx, query, like.ArtistId, like.TrackId)
+
+	err := row.Scan(&like.Id)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+
 // Deletes a like from the database based on the like's artistId & trackId
 func (r *LikesDatabaseRepository) DeleteLike(ctx context.Context, like *entities.Like) error {
 	query := `DELETE FROM artist_likes_track WHERE artist_id=$1 AND track_id=$2 RETURNING id;`
