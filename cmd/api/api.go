@@ -45,10 +45,11 @@ func (app *application) mount() http.Handler {
 	// Root route -- everything goes underneath /api
 	r.Route("/api", func(r chi.Router) {
 
-		r.Route("/authentication", func(r chi.Router){
+		r.Route("/authentication", func(r chi.Router) {
 			// r.Options("/login", app.trackController.AuthHandlerOptions)
 			r.Post("/signup", app.authController.RegisterArtistHandler)
 			r.Post("/login", app.authController.LogInArtistHandler)
+			r.Post("/refresh", app.authController.RefreshHandler)
 		})
 
 		r.Route("/track", func(r chi.Router) {

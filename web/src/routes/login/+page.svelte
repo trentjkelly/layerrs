@@ -20,17 +20,20 @@
                     })
                 })
 
-                // Set tokenString (session level variable) to recieved token
                 const jsonData = await res.json()
 
+                // Set cookies for the refresh and jwt tokens
                 try {
                     const res  = await fetch('/cookies', { 
                         method: 'POST',
                         headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({ token: jsonData.token })
+                        body: JSON.stringify({ 
+                            refreshToken: jsonData.refreshToken,
+                            jwtToken: jsonData.token
+                        })
                     })
                     if (!res.ok) {
-                        console.error("Failed to set the JWT", res.statusText);
+                        console.error("Failed to set the JWT and refresh tokens", res.statusText);
                     }
                 } catch (error) {
                     console.error("Failed to set the JWT")

@@ -58,14 +58,39 @@ func (c *AuthController) LogInArtistHandler(w http.ResponseWriter, r *http.Reque
 	}
 
 	// Check credentials
-	tokenString, err := c.authService.LoginArtist(r.Context(), loginRequest.Email, loginRequest.Password)
+	tokenString, refreshString, err := c.authService.LoginArtist(r.Context(), loginRequest.Email, loginRequest.Password)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, "Could not log in the artist", http.StatusInternalServerError)
 	}
 
 	// Send back the token string
-	res := entities.LoginResponse{Token: tokenString}
+	res := entities.LoginResponse{
+		Token: tokenString,
+		Refresh: refreshString,
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(res)
+}
+
+func (c *AuthController) RefreshHandler(w http.ResponseWriter, r *http.Request) {
+	
+	// Get refresh token
+	request := new(entities.RefreshRequest)
+	json.NewDecoder(r.Body).Decode(&request.RefreshToken)
+	if (request.RefreshToken == "") {
+		http.Error(w, "Failed to get token", http.StatusBadRequest)
+	}
+	log.Println(request.RefreshToken)
+
+	// Generate new JWT
+	tokenString, err := c.authService.RefreshJWT(r.Context(), request.RefreshToken)
+	if err != nil {
+		http.Error(w, "Could not refresh jwt", http.StatusInternalServerError)
+	}
+
+	// Send back refreshed jwt
+	res := entities.JWTResponse{Token: tokenString}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(res)
 }
