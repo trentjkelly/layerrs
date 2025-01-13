@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
+	"log"
 
 	"github.com/trentjkelly/layerr/internals/entities"
 	"github.com/trentjkelly/layerr/internals/service"
@@ -96,6 +97,7 @@ func (c *LikesController) LikesHandlerDelete(w http.ResponseWriter, r *http.Requ
 	// Delete the like
 	err = c.likesService.RemoveLike(r.Context(), artistId, trackId)
 	if err != nil {
+		log.Println(err)
 		http.Error(w, "Could not remove a like for the track", http.StatusInternalServerError)
 		return
 	}

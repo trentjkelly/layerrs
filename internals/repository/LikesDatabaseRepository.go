@@ -76,7 +76,7 @@ func (r *LikesDatabaseRepository) ReadLikeByTrackIdArtistId(ctx context.Context,
 // Deletes a like from the database based on the like's artistId & trackId
 func (r *LikesDatabaseRepository) DeleteLike(ctx context.Context, like *entities.Like) error {
 	query := `DELETE FROM artist_likes_track WHERE artist_id=$1 AND track_id=$2 RETURNING id;`
-	row := r.db.QueryRow(ctx, query, like.Id)
+	row := r.db.QueryRow(ctx, query, like.ArtistId, like.TrackId)
 	err := row.Scan(&like.Id)
 
 	if err != nil {

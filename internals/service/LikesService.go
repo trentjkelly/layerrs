@@ -4,6 +4,7 @@ import (
 	"github.com/trentjkelly/layerr/internals/repository"
 	"github.com/trentjkelly/layerr/internals/entities"
 	"context"
+	"log"
 )
 
 type LikesService struct {
@@ -79,6 +80,7 @@ func (s *LikesService) RemoveLike(ctx context.Context, artistId int, trackId int
 
 	err := s.likesDatabaseRepository.DeleteLike(ctx, like)
 	if err != nil {
+		log.Println("1")
 		return err
 	}
 
@@ -88,6 +90,7 @@ func (s *LikesService) RemoveLike(ctx context.Context, artistId int, trackId int
 
 	err = s.trackDatabaseRepository.DecrementLikes(ctx, track)
 	if err != nil {
+		log.Println("2")
 		return err
 	}
 

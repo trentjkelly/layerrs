@@ -36,7 +36,7 @@ func (app *application) mount() http.Handler {
 	r.Use(middleware.Timeout(time.Second * 60))
 	r.Use(cors.Handler(cors.Options{
 		AllowedOrigins:   []string{"*"},
-		AllowedMethods:   []string{"GET", "POST", "OPTIONS"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Content-Type", "Authorization"},
 		AllowCredentials: false,
 		MaxAge:           300,
@@ -89,7 +89,7 @@ func (app *application) mount() http.Handler {
 			r.Options("/", app.likesController.LikesHandlerOptions)
 			r.Post("/", app.likesController.LikesHandlerPost)
 			r.Get("/", app.likesController.LikesHandlerGet)
-			r.Delete("/{id}", app.likesController.LikesHandlerDelete)
+			r.Delete("/", app.likesController.LikesHandlerDelete)
 		})
 
 		// r.Route("/artist", func(r chi.Router) {})
