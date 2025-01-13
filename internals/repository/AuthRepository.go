@@ -17,9 +17,9 @@ func NewAuthRepository() *AuthRepository {
 }
 
 // Creates a new JWT for a logged in user
-func (r *AuthRepository) CreateJWT(username string) (string, error) {
+func (r *AuthRepository) CreateJWT(artistId int) (string, error) {
 	claims := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"sub": username, // subject
+		"sub": artistId, // subject
 		"iss": "layerr", // issuer
 		"aud": "artist", // audience (role)
 		"exp": time.Now().Add(time.Hour).Unix(), //expiration

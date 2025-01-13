@@ -27,7 +27,7 @@ func main() {
 	passwordRepo := repository.NewPasswordRepository()
 	authRepo := repository.NewAuthRepository()
 	artistDatabaseRepo := repository.NewArtistDatabaseRepository()
-	// likesDatabaseRepo := repository.NewLikesDatabaseRepository()
+	likesDatabaseRepo := repository.NewLikesDatabaseRepository()
 	trackDatabaseRepo := repository.NewTrackDatabaseRepository()
 	trackTreeDatabaseRepo := repository.NewTrackTreeDatabaseRepository()
 	coverStorageRepo := repository.NewCoverStorageRepository()
@@ -39,14 +39,14 @@ func main() {
 	trackService := service.NewTrackService(trackStorageRepo, coverStorageRepo, trackDatabaseRepo, trackTreeDatabaseRepo)
 	recService := service.NewRecommendationsService(trackDatabaseRepo)
 	// artistService := service.NewArtistService()
-	// likesService := service.NewLikesService()
+	likesService := service.NewLikesService(likesDatabaseRepo, trackDatabaseRepo)
 
 	// Controllers
 	authController := controller.NewAuthController(authService)
 	trackController := controller.NewTrackController(trackService)
 	recController := controller.NewRecommendationsController(recService)
+	likesController := controller.NewLikesController(likesService)
 	// artistController := controller.NewArtistController(artistService)
-	// likesController := controller.NewLikesController(likesService)
 
 	
 	// Setup configuration and injected dependencies
@@ -59,6 +59,7 @@ func main() {
 		trackController: trackController,
 		recommendationsController: recController,
 		authController: authController,
+		likesController: likesController,
 	}
 
 	// Mount and run the application

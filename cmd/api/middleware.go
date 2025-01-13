@@ -1,9 +1,13 @@
 package main
 
 import (
+	"context"
 	"net/http"
 	"os"
 	"strings"
+
+	"github.com/golang-jwt/jwt/v5"
+	"github.com/trentjkelly/layerr/internals/entities"
 )
 
 func AuthJWTMiddleware(next http.Handler) http.Handler {
@@ -29,12 +33,29 @@ func AuthJWTMiddleware(next http.Handler) http.Handler {
 
 		// Get the actual token string & secret key
 		tokenString := authString[1]
-		_, err := ValidateJWT(tokenString, secretKey)
+		token, err := ValidateJWT(tokenString, secretKey)
 		if err != nil {
 			http.Error(w, "Invalid JWT", http.StatusUnauthorized)
 			return
 		}
 
-		next.ServeHTTP(w, r)
+		// Get the subject id from token claims
+		claims, ok := token.Claims.(jwt.MapClaims)
+		if !ok {
+			http.Error(w, "Could not get the claims from JWT", http.StatusUnauthorized)
+			return
+		}
+
+		// Get the sub from the claims
+		artistId, ok := claims["sub"]
+		if !ok {
+			http.Error(w, "Invalid subject claim", http.StatusUnauthorized)
+			return
+		}
+
+		// Pass artistId to next handler as context
+		ctx := context.WithValue(r.Context(), entities.ArtistIdKey, artistId)
+
+		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

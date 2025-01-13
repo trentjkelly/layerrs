@@ -1,8 +1,11 @@
 package controller
 
 import (
-	"github.com/trentjkelly/layerr/internals/service"
 	"net/http"
+	"strconv"
+
+	"github.com/trentjkelly/layerr/internals/entities"
+	"github.com/trentjkelly/layerr/internals/service"
 )
 
 type LikesController struct {
@@ -16,33 +19,59 @@ func NewLikesController(likesService *service.LikesService) *LikesController {
 	return likesController
 }
 
+func (c *LikesController) LikesHandlerOptions(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+    w.Header().Set("Access-Control-Allow-Methods", "POST, GET, PUT, OPTIONS")
+    w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+    w.WriteHeader(http.StatusOK)
+}
+
 // Adds a like for a given track from the given artist
 func (c *LikesController) LikesHandlerPost(w http.ResponseWriter, r *http.Request) {
 
-}
+	// Get artistId & trackId
+	artistIdFloat := r.Context().Value(entities.ArtistIdKey).(float64)
+	artistId := int(artistIdFloat)
 
-// Retrieves all liked tracks for a given artist
-func (c *LikesController) LikesHandlerGet(w http.ResponseWriter, r *http.Request) {
-	
-	// artistId := 
-	// offset := 
+	trackStr := r.FormValue("trackId")
+	trackId, err := strconv.Atoi(trackStr)
+	if err != nil {
+		http.Error(w, "Invalid track id", http.StatusBadRequest)
+		return
+	}
 
-	// likes, err := c.likesService.GetArtistLikes(r.Context(), )
+	// Add the like
+	err = c.likesService.AddLike(r.Context(), artistId, trackId)
+	if err != nil {
+		http.Error(w, "Could not add like to track", http.StatusInternalServerError)
+		return
+	}
 
-	// if err != nil {
-	// 	http.Error(w, "Failed to retrieve likes", http.StatusInternalServerError)
-	// 	return
-	// }
-
-	// // Encode likes in json and send back
-	// for i := 0; i < 25; i++ {
-
-	// }
-
+	w.WriteHeader(http.StatusOK)
 }
 
 // Removes a like for a given track from the given artist
 func (c *LikesController) LikesHandlerDelete(w http.ResponseWriter, r *http.Request) {
+
+	// Get artistId & trackId
+	artistIdFloat := r.Context().Value(entities.ArtistIdKey).(float64)
+	artistId := int(artistIdFloat)
+
+	trackStr := r.FormValue("trackId")
+	trackId, err := strconv.Atoi(trackStr)
+	if err != nil {
+		http.Error(w, "Invalid track id", http.StatusBadRequest)
+		return
+	}
+	
+	// Delete the like
+	err = c.likesService.RemoveLike(r.Context(), artistId, trackId)
+	if err != nil {
+		http.Error(w, "Could not remove a like for the track", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
 
 }
 

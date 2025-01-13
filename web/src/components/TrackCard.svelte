@@ -1,7 +1,9 @@
 <script>
     import { onMount, onDestroy } from 'svelte';
     import { audio, currentTrack, currentTrackId, isPlaying } from '../stores/player';
-        
+    import { jwt } from '../stores/auth';    
+
+
     // Inherits the trackId from the page
     let { trackId } = $props();
 
@@ -13,8 +15,6 @@
     let isExpanded = $state(false);
     let isTrackLiked = $state(false);
     let isHovered = $state(false);
-
-    // New variables
     let audioElement = $state();
     let mediaSource = $state();
     let sourceBuffer = $state();
@@ -220,9 +220,27 @@
         isExpanded = false
     }
 
-    // Changes the like button image
-    function toggleLikedTrack() {
+    // Changes the like button image and requests backend to save a like 
+    async function toggleLikedTrack() {
         isTrackLiked = !isTrackLiked
+        await sendLikeRequest()
+    }
+
+    async function sendLikeRequest() {
+        const formData = new FormData();
+        formData.append('trackId', trackId)
+
+        try {
+            await fetch('http://localhost:8080/api/likes', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${$jwt}`
+                },
+                body: formData
+            })
+        } catch (error) {
+            console.error("Could not like track")
+        }
     }
 
 </script>

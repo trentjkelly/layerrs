@@ -22,6 +22,7 @@ type application struct {
 	authController 				*controller.AuthController
 	trackController				*controller.TrackController
 	recommendationsController 	*controller.RecommendationsController
+	likesController				*controller.LikesController
 }
 
 func (app *application) mount() http.Handler {
@@ -36,7 +37,7 @@ func (app *application) mount() http.Handler {
 	r.Use(cors.Handler(cors.Options{
 		AllowedOrigins:   []string{"*"},
 		AllowedMethods:   []string{"GET", "POST", "OPTIONS"},
-		AllowedHeaders:   []string{"Content-Type"},
+		AllowedHeaders:   []string{"Content-Type", "Authorization"},
 		AllowCredentials: false,
 		MaxAge:           300,
 	}))
@@ -83,11 +84,13 @@ func (app *application) mount() http.Handler {
 			})
 		})
 
-		// r.Route("/likes", func(r chi.Router) {
-		// 	r.Post("/", app.LikesController.LikesHandlerPost)
-		// 	r.Get("/", app.LikesController.LikesHandlerGet)
-		// 	r.Delete("/{id}", app.LikesController.LikesHandlerDelete)
-		// })
+		r.Route("/likes", func(r chi.Router) {
+			r.Use(AuthJWTMiddleware)
+			r.Options("/", app.likesController.LikesHandlerOptions)
+			r.Post("/", app.likesController.LikesHandlerPost)
+			// r.Get("/", app.LikesController.LikesHandlerGet)
+			// r.Delete("/{id}", app.LikesController.LikesHandlerDelete)
+		})
 
 		// r.Route("/artist", func(r chi.Router) {})
 	})

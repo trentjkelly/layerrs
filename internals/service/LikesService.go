@@ -27,7 +27,6 @@ func (s *LikesService) AddLike(ctx context.Context, artistId int, trackId int) e
 	like.TrackId = trackId
 
 	err := s.likesDatabaseRepository.CreateLike(ctx, like)
-
 	if err != nil {
 		return err
 	}
@@ -56,12 +55,27 @@ func (s *LikesService) GetArtistLikes(ctx context.Context, artistId int, offset 
 	return likes, nil
 }
 
-func (s *LikesService) RemoveLike() error {
+func (s *LikesService) RemoveLike(ctx context.Context, artistId int, trackId int) error {
 
 	// Deletes the row from the artist_likes_track table
 	// s.likesDatabaseRepository.RemoveLike()
+	like := new(entities.Like)
+	like.ArtistId = artistId
+	like.TrackId = trackId
 
-	// Decrements the like counter for a given track (track table)
+	err := s.likesDatabaseRepository.DeleteLike(ctx, like)
+	if err != nil {
+		return err
+	}
+
+	// Decrement the like counter for a given track (track table)
+	track := new(entities.Track)
+	track.Id = trackId
+
+	err = s.trackDatabaseRepository.DecrementLikes(ctx, track)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }

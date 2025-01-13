@@ -26,7 +26,6 @@ func (c *RecommendationsController) RecommendationsHandlerHomeGet(w http.Respons
 	}
 
 	err = json.NewEncoder(w).Encode(rec)
-
 	if err != nil {
 		http.Error(w, "Unable to encode recommendations to json", http.StatusInternalServerError)
 	}

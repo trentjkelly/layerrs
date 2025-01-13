@@ -45,7 +45,7 @@ func (s *AuthService) LoginArtist(ctx context.Context, email string, password st
 
 	// Get username & password from artist
 	artist := new(entities.Artist)
-	err := s.artistDbRepository.GetArtistUsernamePassword(ctx, artist, email)
+	err := s.artistDbRepository.GetArtistIdUsernamePassword(ctx, artist, email)
 	if err != nil {
 		return "", err
 	}
@@ -57,7 +57,7 @@ func (s *AuthService) LoginArtist(ctx context.Context, email string, password st
 	}
 
 	// Send back a new JWT
-	tokenString, err := s.authRepository.CreateJWT(artist.Username)
+	tokenString, err := s.authRepository.CreateJWT(artist.Id)
 	if err != nil {
 		return "", err
 	}

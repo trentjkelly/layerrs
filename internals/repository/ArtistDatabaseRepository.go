@@ -40,11 +40,11 @@ func (r *ArtistDatabaseRepository) CreateArtist(ctx context.Context, username st
 	return artistId, nil
 }
 
-func (r *ArtistDatabaseRepository) GetArtistUsernamePassword(ctx context.Context, artist *entities.Artist, email string) (error) {
-	query := `SELECT username, password FROM artist WHERE email=$1;`
+func (r *ArtistDatabaseRepository) GetArtistIdUsernamePassword(ctx context.Context, artist *entities.Artist, email string) (error) {
+	query := `SELECT id, username, password FROM artist WHERE email=$1;`
 	row := r.db.QueryRow(ctx, query, email)
 
-	err := row.Scan(&artist.Username, &artist.Password)
+	err := row.Scan(&artist.Id, &artist.Username, &artist.Password)
 	if err != nil {
 		return err
 	}
