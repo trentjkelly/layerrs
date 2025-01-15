@@ -325,6 +325,10 @@
         }
     }
 
+    function navigateTrackPage() {
+        goto(`/track/${trackId}`)
+    }
+
 </script>
 
 <div class="w-64 h-auto flex flex-col justify-center mb-4 mx-1 bg-gray-800 hover:bg-gray-700" onmouseenter={onLikeAndDownload} onfocus={onLikeAndDownload} onmouseleave={offLikeAndDownload} role="button" tabindex="0">
@@ -366,7 +370,7 @@
     </div>
 
     <!-- Section below the picture -->  
-    <div class="w-full h-32 px-4">
+    <div onclick={navigateTrackPage} role="button" tabindex="0" onkeydown={(event) => {if (event.key === 'Enter' || event.key === ' ') navigateTrackPage}} class="w-full h-32 px-4">
         <div class="flex flex-row w-full mt-2">
             <div class={`flex flex-col ${isExpanded ? 'w-40' : 'w-full'}`}>
                 <a class="font-bold text-lg hover:underline truncate" href="/track/{trackId}">{trackName}</a>
