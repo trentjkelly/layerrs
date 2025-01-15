@@ -6,7 +6,7 @@ import (
 	"io"
 	"mime/multipart"
 
-	"github.com/trentjkelly/layerr/internals/config"
+	"github.com/trentjkelly/layerrs/internals/config"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"

@@ -2,8 +2,8 @@ package repository
 
 import (
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/trentjkelly/layerr/internals/config"
-	"github.com/trentjkelly/layerr/internals/entities"
+	"github.com/trentjkelly/layerrs/internals/config"
+	"github.com/trentjkelly/layerrs/internals/entities"
 	"context"
 )
 

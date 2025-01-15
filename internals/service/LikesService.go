@@ -1,8 +1,8 @@
 package service
 
 import (
-	"github.com/trentjkelly/layerr/internals/repository"
-	"github.com/trentjkelly/layerr/internals/entities"
+	"github.com/trentjkelly/layerrs/internals/repository"
+	"github.com/trentjkelly/layerrs/internals/entities"
 	"context"
 	"log"
 )

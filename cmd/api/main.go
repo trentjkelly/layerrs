@@ -6,9 +6,9 @@ import (
 	// Loads environment variables from local .env file
 	"github.com/joho/godotenv"
 	// Local imports
-	"github.com/trentjkelly/layerr/internals/controller"
-	"github.com/trentjkelly/layerr/internals/service"
-	"github.com/trentjkelly/layerr/internals/repository"
+	"github.com/trentjkelly/layerrs/internals/controller"
+	"github.com/trentjkelly/layerrs/internals/service"
+	"github.com/trentjkelly/layerrs/internals/repository"
 )
 
 func main() {

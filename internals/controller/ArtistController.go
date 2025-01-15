@@ -2,7 +2,7 @@ package controller
 
 import (
 	"net/http"
-	"github.com/trentjkelly/layerr/internals/service"
+	"github.com/trentjkelly/layerrs/internals/service"
 	"strconv"
 	"encoding/json"
 	"github.com/go-chi/chi/v5"

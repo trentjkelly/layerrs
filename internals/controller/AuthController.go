@@ -6,8 +6,8 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/trentjkelly/layerr/internals/entities"
-	"github.com/trentjkelly/layerr/internals/service"
+	"github.com/trentjkelly/layerrs/internals/entities"
+	"github.com/trentjkelly/layerrs/internals/service"
 )
 
 type AuthController struct {

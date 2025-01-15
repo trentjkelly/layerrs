@@ -7,8 +7,8 @@ import (
 
 	"log"
 
-	"github.com/trentjkelly/layerr/internals/entities"
-	"github.com/trentjkelly/layerr/internals/repository"
+	"github.com/trentjkelly/layerrs/internals/entities"
+	"github.com/trentjkelly/layerrs/internals/repository"
 )
 
 type AuthService struct {

@@ -1,4 +1,4 @@
-module github.com/trentjkelly/layerr
+module github.com/trentjkelly/layerrs
 
 go 1.23.2
 

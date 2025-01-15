@@ -3,7 +3,7 @@ package controller
 import (
 	"net/http"
 	"encoding/json"
-	"github.com/trentjkelly/layerr/internals/service"
+	"github.com/trentjkelly/layerrs/internals/service"
 )
 
 type RecommendationsController struct {

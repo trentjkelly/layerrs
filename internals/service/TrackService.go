@@ -6,8 +6,8 @@ import (
 	"mime/multipart"
 	"path/filepath"
 	"strconv"
-	"github.com/trentjkelly/layerr/internals/entities"
-	"github.com/trentjkelly/layerr/internals/repository"
+	"github.com/trentjkelly/layerrs/internals/entities"
+	"github.com/trentjkelly/layerrs/internals/repository"
 )
 type TrackService struct {
 	trackStorageRepo 	*repository.TrackStorageRepository

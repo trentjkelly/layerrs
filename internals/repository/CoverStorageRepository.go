@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"github.com/trentjkelly/layerr/internals/config"
+	"github.com/trentjkelly/layerrs/internals/config"
 	"context"
 	"mime/multipart"
 	"io"

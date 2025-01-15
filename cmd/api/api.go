@@ -10,7 +10,7 @@ import (
 	"github.com/go-chi/cors"
 	"github.com/go-chi/chi/v5/middleware"
 	// Local packages
-	"github.com/trentjkelly/layerr/internals/controller"
+	"github.com/trentjkelly/layerrs/internals/controller"
 )
 
 type appConfig struct {
