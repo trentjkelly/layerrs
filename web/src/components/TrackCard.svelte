@@ -327,9 +327,9 @@
 
 </script>
 
-<div class="w-72 h-auto bg-gray-700 rounded rounded-xl flex flex-col justify-center mb-4 mx-1" onmouseenter={onLikeAndDownload} onfocus={onLikeAndDownload} onmouseleave={offLikeAndDownload} role="button" tabindex="0">
+<div class="w-64 h-auto flex flex-col justify-center mb-4 mx-1 bg-gray-800 hover:bg-gray-700" onmouseenter={onLikeAndDownload} onfocus={onLikeAndDownload} onmouseleave={offLikeAndDownload} role="button" tabindex="0">
     <!-- Picture section -->
-    <div class="h-72 w-72 flex flex-row items-center justify-center">
+    <div class="h-64 w-64 flex flex-row items-center justify-center">
         <div 
             id={trackId}
             onmouseover={hoverTrackImage} 
@@ -339,7 +339,7 @@
             onkeydown={(e) => {if (e.key === "Enter" || e.key === " ") playPauseAudio}} 
             role="button" 
             tabindex="0" 
-            class="h-64 w-64 bg-slate-400 flex flex-row items-center rounded rounded-xl justify-center"
+            class="h-64 w-64 bg-slate-700 flex flex-row items-center justify-center"
         >
             {#if coverURL}
                 <img class="h-64 w-64 absolute" src={coverURL} alt="cover art">
@@ -366,11 +366,11 @@
     </div>
 
     <!-- Section below the picture -->  
-    <div class="w-72 h-24 bg-gray-700 rounded rounded-xl px-4">
-        <div class="flex flex-row w-full">
-            <div class={`flex flex-col ${isExpanded ? 'w-40' : 'w-64'}`}>
-                <a class="hover:underline truncate" href="/track/{trackId}">{trackName}</a>
-                <a class="pb-2 text-gray-400 hover:underline truncate" href="/artist/{artistId}">@{artistName}</a>
+    <div class="w-full h-32 px-4">
+        <div class="flex flex-row w-full mt-2">
+            <div class={`flex flex-col ${isExpanded ? 'w-40' : 'w-full'}`}>
+                <a class="font-bold text-lg hover:underline truncate" href="/track/{trackId}">{trackName}</a>
+                <a class="pb-2 text-gray-400 text-md hover:underline truncate" href="/artist/{artistId}">@{artistName}</a>
             </div>
             {#if isExpanded}
                 <div class="w-24 flex flex-row">
@@ -394,7 +394,7 @@
                     <p class="ml-2 hover:underline">[SAMPLE] {previousTrackName}</p>
                 </button>
             {:else}
-                <p class="text-blue-500">[ORIGINAL]</p>
+                <p class="text-blue-500">[OG]</p>
             {/if}
         </div>
     </div>
