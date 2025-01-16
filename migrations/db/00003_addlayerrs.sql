@@ -1,0 +1,2 @@
+ALTER TABLE tracks 
+ADD COLUMN layerrs INT DEFAULT 0;

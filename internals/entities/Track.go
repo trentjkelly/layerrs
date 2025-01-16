@@ -13,6 +13,7 @@ type Track struct {
 	CreatedAt 	time.Time	`json:"createdAt"`
 	Plays		int			`json:"plays"`
 	Likes		int 		`json:"likes"`
+	Layerrs		int			`json:"layerrs"`
 }
 
 // Constructor for a new track

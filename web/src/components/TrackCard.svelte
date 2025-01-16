@@ -3,6 +3,8 @@
     import { audio, currentTrack, currentTrackId, isPlaying } from '../stores/player';
     import { isLoggedIn, jwt } from '../stores/auth';    
     import { goto } from '$app/navigation';
+    import LikeButton from './LikeButton.svelte';
+    import LayerrButton from './LayerrButton.svelte';
 
 
     // Inherits the trackId from the page
@@ -23,13 +25,14 @@
     let sourceBuffer = $state();
     let isLoading = $state(false);
     let currentOffset = $state(0);
+    let numLikes = $state(0);
+    let numLayerrs = $state(0);
     const CHUNK_SIZE = 1024 * 1024; // 1 MB
 
     // When the component is loaded -- gets the track data & cover art 
     onMount(async () => {
         await getTrackData()
         await getArtistName()
-        await getIsLiked()
         await getCover()
     })
 
@@ -61,6 +64,8 @@
             const trackData = await response.json();
             trackName = trackData.name
             artistId = trackData.artistId
+            numLikes = trackData.likes
+            numLayerrs = trackData.layerrs
 
             // previousTrackName = ""
         } catch (error) {
@@ -82,31 +87,6 @@
             artistName = artistData.name
         } catch (error) {
             console.error("Could not retrieve artist data")
-        }
-    }
-
-    // Checks if the track is liked when page is loaded
-    async function getIsLiked() {
-        // If user is logged in
-        if ($isLoggedIn) {
-            try {
-                const params = new URLSearchParams({
-                    trackId: trackId
-                })
-    
-                const response = await fetch(`http://localhost:8080/api/likes?${params}`, {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${$jwt}`
-                    }
-                })
-                if (response.ok) {
-                    const data = await response.json()
-                    isTrackLiked = data.isLiked
-                }
-            } catch (error) {
-                console.log(error)
-            }
         }
     }
 
@@ -268,63 +248,6 @@
         isExpanded = false
     }
 
-    // Changes the like button image and requests backend to save a like 
-    async function toggleLikedTrack() {
-        isTrackLiked = !isTrackLiked
-
-        if (isTrackLiked) {
-            await sendLikeRequest()
-        } else {
-            await sendUnlikeRequest()
-        }
-    }
-
-    // Requests the backend to like a track for the given user
-    async function sendLikeRequest() {
-        const formData = new FormData();
-        formData.append('trackId', trackId)
-
-        try {
-            const res = await fetch('http://localhost:8080/api/likes', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${$jwt}`
-                },
-                body: formData
-            })
-
-            if (res.status == 401) {
-                goto('/login')
-            }
-
-        } catch (error) {
-            console.error("Could not like track")
-        }
-    }
-    
-    // Requests the backend to unlike a track for the given user
-    async function sendUnlikeRequest() {
-        const params = new URLSearchParams({
-            trackId: trackId
-        })
-
-        try {
-            const res = await fetch(`http://localhost:8080/api/likes?${params}`, {
-                method: 'DELETE',
-                headers: {
-                    'Authorization': `Bearer ${$jwt}`
-                }
-            })
-
-            if (res.status == 401) {
-                goto('/login')
-            }
-
-        } catch (error) {
-            console.error("Could not unlike track")
-        }
-    }
-
     function navigateTrackPage() {
         goto(`/track/${trackId}`)
     }
@@ -377,17 +300,9 @@
                 <a class="pb-2 text-gray-400 text-md hover:underline truncate" href="/artist/{artistId}">@{artistName}</a>
             </div>
             {#if isExpanded}
-                <div class="w-24 flex flex-row">
-                    <button class="w-12 h-12 flex flex-row items-center justify-center" onclick={toggleLikedTrack}>
-                        {#if isTrackLiked}
-                            <img class="h-8 w-8 hover:h-9 hover:w-9" src="heart-checked.png" alt="Like Button"/>                       
-                        {:else}
-                            <img class="h-8 w-8 hover:h-9 hover:w-9" src="heart-unchecked.png" alt="Like Button"/>
-                        {/if}
-                    </button>
-                    <button class="w-12 h-12 flex flex-row items-center justify-center">
-                        <img class="h-8 w-8 hover:h-9 hover:w-9" src="vinyl.png" alt="Layerr Button"/>
-                    </button>
+                <div class="w-28 flex flex-row items-center justify-between">
+                    <LikeButton trackId={trackId} numLikes={numLikes}/>
+                    <LayerrButton trackId={trackId} numLayerrs={numLayerrs} />
                 </div>
             {/if}
         </div>

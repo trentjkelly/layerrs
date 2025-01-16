@@ -46,8 +46,7 @@ func (r *TrackDatabaseRepository) ReadTrackById(ctx context.Context, track *enti
 	var r2TrackKey sql.NullString
 	var r2CoverKey sql.NullString
 
-	err := row.Scan(&track.Id, &track.Name, &track.ArtistId, &r2TrackKey, &r2CoverKey, &track.CreatedAt, &track.Plays, &track.Likes)
-
+	err := row.Scan(&track.Id, &track.Name, &track.ArtistId, &r2TrackKey, &r2CoverKey, &track.CreatedAt, &track.Plays, &track.Likes, &track.Layerrs)
 	if err != nil {
 		return err
 	}
