@@ -10,6 +10,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/trentjkelly/layerrs/internals/service"
+	"github.com/trentjkelly/layerrs/internals/entities"
 )
 
 type TrackController struct {
@@ -43,14 +44,13 @@ func (c *TrackController) TrackHandlerPost(w http.ResponseWriter, r *http.Reques
 
 	// Getting metadata
 	trackName := r.FormValue("name")
-	artistId := r.FormValue("artistId")
+	artistIdFloat := r.Context().Value(entities.ArtistIdKey).(float64)
 	parentIdStr := r.FormValue("parentId") // Optional
-	if trackName == "" || artistId == "" {
-		http.Error(w, "Track name and artist are required", http.StatusBadRequest)
+	if trackName == "" {
+		http.Error(w, "Track name is required", http.StatusBadRequest)
 		return
 	}
 	parentIdInt := 0
-	artistIdInt := 0
 
 	// Converting parentId & artistId to integers
 	if parentIdStr != "" {
@@ -60,7 +60,7 @@ func (c *TrackController) TrackHandlerPost(w http.ResponseWriter, r *http.Reques
 			return
 		}
 	}
-	artistIdInt, err = strconv.Atoi(artistId)
+	artistIdInt := int(artistIdFloat)
 	if err != nil {
 		http.Error(w, "Invalid artist id", http.StatusBadRequest)
 		return
