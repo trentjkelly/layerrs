@@ -84,9 +84,10 @@ func (app *application) mount() http.Handler {
 					r.Get("/{artistId}", app.recommendationsController.RecommendationsHandlerHomeGet) // Personalized home page algorithm
 				})
 			})
+
 			r.Route("/library", func (r chi.Router) {
 				r.Use(AuthJWTMiddleware)
-				r.Get("/{artistId}", app.recommendationsController.ReccomendationsHandlerLikesGet) // User's library algorithm
+				r.Get("/", app.recommendationsController.RecommendationsHandlerLibraryGet) // User's library algorithm
 			})
 		})
 

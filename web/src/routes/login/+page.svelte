@@ -56,7 +56,7 @@
 
 </script>
 
-<main class={`transition-all duration-300 h-full w-full p-8 ${$isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
+<main class={`transition-all duration-300 h-full w-full ${$isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
 
     <TopHeader pageName="Log in" pageIcon=""></TopHeader>
 

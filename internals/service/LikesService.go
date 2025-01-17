@@ -45,16 +45,16 @@ func (s *LikesService) AddLike(ctx context.Context, artistId int, trackId int) e
 	return nil
 }
 
-func (s *LikesService) GetArtistLikes(ctx context.Context, artistId int, offset int) ([25]*entities.Like, error) {
-	// Returns all of the tracks an artist has liked, sorted by most to least recently
-	likes, err := s.likesDatabaseRepository.ReadLikesByArtistId(ctx, artistId, offset)
+// func (s *LikesService) GetArtistLikes(ctx context.Context, artistId int, offset int) ([25]int, error) {
+// 	// Returns all of the tracks an artist has liked, sorted by most to least recently
+// 	likes, err := s.likesDatabaseRepository.Read25LikesByArtistId(ctx, artistId, offset)
 
-	if err != nil {
-		return [25]*entities.Like{}, err
-	}
+// 	if err != nil {
+// 		return likes, err
+// 	}
 
-	return likes, nil
-}
+// 	return likes, nil
+// }
 
 func (s *LikesService) CheckLike(ctx context.Context, artistId int, trackId int) error {
 	

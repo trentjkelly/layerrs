@@ -54,7 +54,7 @@
 
 </script>
 
-<main class={`transition-all duration-300 h-full w-full p-8 ${$isSidebarOpen ? 'ml-64' : 'ml-0'} bg-gradient-to-b from-gray-900 to-gray-800`}>
+<main class={`transition-all duration-300 h-full w-full ${$isSidebarOpen ? 'ml-64' : 'ml-0'} bg-gradient-to-b from-gray-900 to-gray-800`}>
 
     <TopHeader pageName="Upload" pageIcon="upload.png"></TopHeader>
 

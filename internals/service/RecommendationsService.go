@@ -8,11 +8,13 @@ import (
 
 type RecommendationsService struct {
 	trackDbRepo *repository.TrackDatabaseRepository
+	likesDbRepo *repository.LikesDatabaseRepository
 }
 
-func NewRecommendationsService(trackDbRepo *repository.TrackDatabaseRepository) *RecommendationsService {
+func NewRecommendationsService(trackDbRepo *repository.TrackDatabaseRepository, likesDbRepo *repository.LikesDatabaseRepository) *RecommendationsService {
 	recService := new(RecommendationsService)
 	recService.trackDbRepo = trackDbRepo
+	recService.likesDbRepo = likesDbRepo
 	return recService
 }
 
@@ -29,6 +31,12 @@ func (s *RecommendationsService) MostLikedAlgorithm(ctx context.Context) (*entit
 }
 
 // Gets the most recent liked tracks for an artist -- algorithm shown for an individual artist's library page
-// func (s *RecommendationsService) ArtistLikesAlgorithm(offset int) error {
+func (s *RecommendationsService) ArtistLikesAlgorithm(ctx context.Context, artistId int, offset int) ([25]int, error) {
 
-// }
+	likesArr, err := s.likesDbRepo.Read25LikesByArtistId(ctx, artistId, offset)
+	if err != nil {
+		return likesArr, err
+	}
+
+	return likesArr, nil
+}

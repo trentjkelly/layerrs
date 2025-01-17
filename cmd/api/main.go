@@ -37,7 +37,7 @@ func main() {
 	// Services
 	authService := service.NewAuthService(passwordRepo, artistDatabaseRepo, authRepo)
 	trackService := service.NewTrackService(trackStorageRepo, coverStorageRepo, trackDatabaseRepo, trackTreeDatabaseRepo)
-	recService := service.NewRecommendationsService(trackDatabaseRepo)
+	recService := service.NewRecommendationsService(trackDatabaseRepo, likesDatabaseRepo)
 	artistService := service.NewArtistService(artistDatabaseRepo)
 	likesService := service.NewLikesService(likesDatabaseRepo, trackDatabaseRepo)
 

@@ -37,23 +37,21 @@ func (r *LikesDatabaseRepository) CreateLike(ctx context.Context, like *entities
 }
 
 // Gets 25 likes sorted most recent to least recent offset by a certain number for a given artist
-func (r *LikesDatabaseRepository) ReadLikesByArtistId(ctx context.Context, artistId int, offset int) ([25]*entities.Like, error) {
-	query := `SELECT * FROM artist_likes_track WHERE artist_id=$1 ORDER BY created_at DESC LIMIT 25 OFFSET $2;`
+func (r *LikesDatabaseRepository) Read25LikesByArtistId(ctx context.Context, artistId int, offset int) ([25]int, error) {
+	query := `SELECT track_id FROM artist_likes_track WHERE artist_id=$1 ORDER BY created_at DESC LIMIT 25 OFFSET $2;`
 	rows, err := r.db.Query(ctx, query, artistId, offset)
+	
+	var likesArray [25]int
 
 	if err != nil {
-		return [25]*entities.Like{}, err
+		return likesArray, err
 	}
 	defer rows.Close()
 
 	// Construct likes array for user
-	var likesArray [25]*entities.Like
 	i := 0
-
 	for rows.Next() {
-		like := new(entities.Like)
-		rows.Scan(&like.Id, &like.ArtistId, &like.TrackId, &like.CreatedAt)
-		likesArray[i] = like
+		rows.Scan(&likesArray[i])
 		i++
 	}
 		

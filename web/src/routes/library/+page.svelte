@@ -2,25 +2,42 @@
     import TopHeader from "../../components/TopHeader.svelte";
     import TrackCard from "../../components/TrackCard.svelte";
     import { isSidebarOpen } from "../../stores/player";
+    import { onMount } from "svelte";
+    import { jwt } from "../../stores/auth";
 
-    function toggleSidebar() {
-        $isSidebarOpen = !$isSidebarOpen;
+    /**
+     * @type {any[]}
+     */
+    let trackIds = [];
+
+    async function fetchData() {
+        const response = await fetch(`http://localhost:8080/api/recommendations/library`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${$jwt}`
+            }
+        })
+        const data = await response.json();
+        console.log(data)
+        trackIds = Object.keys(data).map(key => data[key])
     }
+
+    onMount(() => {
+        fetchData()
+    })
+
 </script>
 
-<main class={`transition-all duration-300 h-full w-full p-8 ${$isSidebarOpen ? 'ml-64' : 'ml-0'} bg-gradient-to-b from-gray-800 to-gray-900`}>
+<main class={`transition-all duration-300 h-full w-full ${$isSidebarOpen ? 'ml-64' : 'ml-0'} bg-gradient-to-b from-gray-800 to-gray-900`}>
 
     <TopHeader pageName="Your Library" pageIcon="vinyl.png"></TopHeader>
 
     <section class="w-full flex flex-wrap justify-around pb-24">
-        <TrackCard trackId={14}></TrackCard>
-        <TrackCard trackId={15}></TrackCard>
-        <TrackCard trackId={16}></TrackCard>
-        <TrackCard trackId={17}></TrackCard>
-        <TrackCard trackId={14}></TrackCard>
-        <TrackCard trackId={15}></TrackCard>
-        <TrackCard trackId={16}></TrackCard>
-        <TrackCard trackId={17}></TrackCard>
+        {#each trackIds as id}
+            {#if id}
+                <TrackCard trackId={id}></TrackCard>
+            {/if}
+        {/each}
     </section>
 
 </main>
