@@ -4,6 +4,8 @@
     import { isSidebarOpen } from "../../stores/player";
     import { onMount } from "svelte";
     import { jwt } from "../../stores/auth";
+    import { isLoggedIn } from "../../stores/auth";
+    import LogInPopup from "../../components/LogInPopup.svelte";
 
     /**
      * @type {any[]}
@@ -22,8 +24,8 @@
         trackIds = Object.keys(data).map(key => data[key])
     }
 
-    onMount(() => {
-        fetchData()
+    onMount(async () => {
+        await fetchData()
     })
 
 </script>
@@ -32,12 +34,18 @@
 
     <TopHeader pageName="Your Library" pageIcon="vinyl.png"></TopHeader>
 
+    
     <section class="w-full flex flex-wrap justify-around pb-24">
-        {#each trackIds as id}
-            {#if id}
-                <TrackCard trackId={id}></TrackCard>
-            {/if}
-        {/each}
-    </section>
+        {#if $isLoggedIn}
 
+            {#each trackIds as id}
+                {#if id}
+                    <TrackCard trackId={id}></TrackCard>
+                {/if}
+            {/each}
+
+        {:else}
+            <LogInPopup />
+        {/if}
+    </section>
 </main>

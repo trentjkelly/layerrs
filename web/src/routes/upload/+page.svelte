@@ -54,11 +54,11 @@
 
 </script>
 
-<main class={`transition-all duration-300 h-full w-full ${$isSidebarOpen ? 'ml-64' : 'ml-0'} bg-gradient-to-b from-gray-900 to-gray-800`}>
+<main class={`transition-all duration-300 h-full w-full ${$isSidebarOpen ? 'ml-64' : 'ml-0'} bg-gradient-to-b from-gray-800 to-gray-900`}>
 
     <TopHeader pageName="Upload" pageIcon="upload.png"></TopHeader>
 
-    <section class="w-full flex flex-row justify-center">
+    <section class="w-full flex flex-row justify-center mt-12">
 
             <div class="border border-gray-600 bg-gray-800 rounded-3xl w-1/2 flex flex-col items-center">
                 {#if !isUploaded}
