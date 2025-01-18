@@ -5,6 +5,7 @@
     import { goto } from '$app/navigation';
     import LikeButton from './LikeButton.svelte';
     import LayerrButton from './LayerrButton.svelte';
+    import ParentTrackButton from './ParentTrackButton.svelte';
 
 
     // Inherits the trackId from the page
@@ -13,10 +14,14 @@
     // State variables for the page
     let coverURL = $state('');
     let newAudioURL = $state('');
-    let trackName = $state('');
+    let trackName = $state('yessir');
     let artistId = $state(0);
     let artistName = $state('');
-    let previousTrackName = $state('');
+    
+    let parentTrackName = $state('');
+    let parentTrackId = $state(0);
+    let parentTrackArist = $state('Yer')
+
     let isExpanded = $state(false);
     let isTrackLiked = $state(false);
     let isHovered = $state(false);
@@ -293,7 +298,7 @@
     </div>
 
     <!-- Section below the picture -->  
-    <div onclick={navigateTrackPage} role="button" tabindex="0" onkeydown={(event) => {if (event.key === 'Enter' || event.key === ' ') navigateTrackPage}} class="w-full h-32 px-4">
+    <div class="w-full h-28 px-4">
         <div class="flex flex-row w-full mt-2">
             <div class={`flex flex-col ${isExpanded ? 'w-40' : 'w-full'}`}>
                 <a class="font-bold text-lg hover:underline truncate" href="/track/{trackId}">{trackName}</a>
@@ -306,14 +311,11 @@
                 </div>
             {/if}
         </div>
-        <div>
-            {#if previousTrackName}
-                <button class="text-indigo-500 flex flex-row items-center">
-                    <img class="w-6 h-6" src="vinyl.png" alt="Song samples" />
-                    <p class="ml-2 hover:underline">[SAMPLE] {previousTrackName}</p>
-                </button>
+        <div class="pb-4">
+            {#if parentTrackName}
+                <ParentTrackButton parentTrackId={parentTrackId} parentTrackArist={parentTrackArist} parentTrackName={parentTrackName}/>
             {:else}
-                <p class="text-blue-500">[OG]</p>
+                <p class="text-blue-500">Original Track</p>
             {/if}
         </div>
     </div>

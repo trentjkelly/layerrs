@@ -29,8 +29,8 @@
         trackIds = Object.keys(data).map(key => data[key])
     }
 
-    onMount(() => {
-        fetchData()
+    onMount(async () => {
+        await fetchData()
     })
 
     function toggleSidebar() {

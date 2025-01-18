@@ -60,7 +60,7 @@
 
     <section class="w-full flex flex-row justify-center mt-12">
 
-            <div class="border border-gray-600 bg-gray-800 rounded-3xl w-1/2 flex flex-col items-center">
+            <div class="outline outline-gray-600 rounded-3xl w-1/2 flex flex-col items-center">
                 {#if !isUploaded}
                     <h2 class="my-8 text-4xl font-bold">Upload a Track</h2>
                     

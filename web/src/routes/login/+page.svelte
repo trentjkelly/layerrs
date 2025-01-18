@@ -62,18 +62,19 @@
 
     <section class="w-full flex flex-row justify-center">
 
-        <div class="border border-gray-600 bg-gray-800 rounded-3xl w-1/2 flex flex-col items-center">
+        <div class="outline outline-gray-600 rounded-3xl w-1/2 flex flex-col items-center mt-24">
             <h2 class="my-8 text-4xl">Log In</h2>
             <div class="flex flex-col">
                 <label for="email">Email:</label>
-                <input id="email" class="text-black" type="text" bind:value={email}>
+                <input id="email" class="text-black mb-4" type="text" bind:value={email}>
 
                 <label for="password">Password:</label>
                 <input id="password" class="text-black" type="text" bind:value={password}>
-
-                <button onclick={login} class="h-20 w-20 bg-indigo-400">Log in!</button>
+                <div class="w-full h-auto flex flex-row items-center justify-center mt-8">
+                    <button onclick={login} class="h-12 w-32 bg-indigo-500 hover:bg-indigo-400 rounded rounded-full">Log in!</button>
+                </div>
             </div>
-            <button onclick={navigateSignUp} class="h-20 w-20">Sign up instead....</button>
+            <button onclick={navigateSignUp} class="h-20 w-32 hover:underline mt-8 text-gray-400">Sign up instead....</button>
         </div>
         
     </section>
