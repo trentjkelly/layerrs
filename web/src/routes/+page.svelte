@@ -5,15 +5,6 @@
     import { isSidebarOpen } from "../stores/player";
     import { jwt, refreshToken } from "../stores/auth";
 
-    // Load tokens from cookies to session variables
-    export let data 
-    if (data.token) {
-        jwt.set(data.token)
-    }
-    if(data.refreshToken) {
-        refreshToken.set(data.refreshToken)
-    }
-
     // Each of the songs to be loaded in
     let artistId = 1 // Static for now
 

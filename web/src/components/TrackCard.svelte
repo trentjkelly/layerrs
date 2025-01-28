@@ -281,16 +281,16 @@
             {#if isHovered}
                 {#if $isPlaying}
                     {#if (trackId === $currentTrackId)}
-                        <img class="h-20 w-20 absolute" src="pause.png" alt="Pause button" />
+                        <img class="h-20 w-20 absolute" src="/pause.png" alt="Pause button" />
                     {:else}
-                        <img class="h-20 w-20 absolute" src="play.png" alt="Play button" />
+                        <img class="h-20 w-20 absolute" src="/play.png" alt="Play button" />
                     {/if}
                 {:else}
-                    <img class="h-20 w-20 absolute" src="play.png" alt="Play button" />
+                    <img class="h-20 w-20 absolute" src="/play.png" alt="Play button" />
                 {/if}
             {:else}
                 {#if ($isPlaying && (trackId === $currentTrackId))}
-                    <img class="h-20 w-20 absolute" src="pause.png" alt="Pause button" />
+                    <img class="h-20 w-20 absolute" src="/pause.png" alt="Pause button" />
                 {/if}
             {/if}
             

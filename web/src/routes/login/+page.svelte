@@ -2,6 +2,7 @@
     import TopHeader from "../../components/TopHeader.svelte";
     import { isSidebarOpen } from "../../stores/player";
     import { goto } from "$app/navigation";
+    import { isLoggedIn, jwt, refreshToken } from "../../stores/auth";
 
     let email = $state('')
     let password = $state('')
@@ -38,6 +39,11 @@
                 } catch (error) {
                     console.error("Failed to set the JWT")
                 }
+
+                // Set cookies locally to stores as well
+                jwt.set(jsonData.token)
+                refreshToken.set(jsonData.refreshToken)
+                isLoggedIn.set(true)
 
                 // Go to homepage when logged in
                 if (res.status == 200) {

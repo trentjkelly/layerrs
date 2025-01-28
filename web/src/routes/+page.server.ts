@@ -1,6 +1,7 @@
 // Loads the jwt from cookies
-export function load({ cookies }) {
-    const refreshToken = cookies.get('refreshJWT')
-    const token = cookies.get('jwt')
-    return { token, refreshToken }
-}
+// export function load({ cookies }) {
+//     const newRefreshToken = cookies.get('refreshJWT')
+//     const newJWT = cookies.get('jwt')
+
+//     return { newJWT, newRefreshToken }
+// }

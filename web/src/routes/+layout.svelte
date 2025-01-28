@@ -4,61 +4,78 @@
     import AudioPlayer from '../components/AudioPlayer.svelte';
     import SideBar from '../components/SideBar.svelte';
     import { audio } from '../stores/player';
-	import { refreshToken, isLoggedIn } from '../stores/auth';
+	import { jwt, refreshToken, isLoggedIn } from '../stores/auth';
 
-	let { children } = $props();
+	let { data, children } = $props();
 
 	// Initialize audio component across the entire session
 	onMount(async () => {
 		audio.set(new Audio())
 
+    	// Load tokens from cookies to session variables
+		await loadCookies()
+		console.log("jwt: " + $jwt)
+		console.log("refreshToken: " + $refreshToken)
+
 		const sessionKey = 'sessionStarted';
 
+		await handleSessionStart()
+
 		// Checking if this is the first page load for the session
-		if (!sessionStorage.getItem(sessionKey)) {
-			sessionStorage.setItem(sessionKey, 'true');
-			await handleSessionStart();
-		}
+		// if (!sessionStorage.getItem(sessionKey)) {
+		// 	sessionStorage.setItem(sessionKey, 'true');
+		// 	await handleSessionStart();
+		// }
 	});
+
+	async function loadCookies() {
+		console.log("loading cookies initially")
+		if (data.newJWT) {
+			console.log("Setting JWT")
+        	jwt.set(data.newJWT)
+			isLoggedIn.set(true)
+    	}
+    	if (data.newRefreshToken) {
+			console.log("Setting refresh token")
+        	refreshToken.set(data.newRefreshToken)
+    	}
+	}
 
 	async function handleSessionStart() {
 		console.log('Session started!');
+		console.log($refreshToken)
 
-		// Refresh JWT if it's not expired
-		await refreshJWT($refreshToken)
-	}
-
-	async function refreshJWT(refreshToken: string) {
-
-		if(!refreshToken) {
+		// Refresh token doesn't exist (already loaded from cookies in page.server.ts), then logout:
+		if($refreshToken == "") {
+			console.log("no refresh token")
+			await deleteTokens()
 			isLoggedIn.set(false)
 			return
 		}
-		
-		let newJWT = ""
-		let newRefreshToken = ""
 
-		console.log(refreshToken)
+		// Refresh JWT w/ Refresh token (get back status code, potentially jwt)
+		const values = await refreshJWT()
+		const status = values[0]
+		const newJWT = values[1]
 
-		try {
-			const res = await fetch(`http://localhost:8080/api/authentication/refresh`, {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json"
-				},
-				body: JSON.stringify({ refreshToken })
-			})
-
-			const resJson = await res.json()
-			newJWT = resJson.token
-			newRefreshToken = resJson.refreshToken
-		} catch (error) {
-			console.log("Request for refresh denied")
+		// Refresh token was invalid, so log out
+		if (status == 401 || status == 500) {
+			console.log("invalid refresh token, logging out")
+			await deleteTokens()
+			isLoggedIn.set(false)
+		} // Refresh token was valid, so stay logged in
+		else {
+			console.log("refresh token is valid, so staying logged in")
+			if (typeof newJWT !== 'string') {
+				console.error("newJWT is not a string")
+			} else {
+				await writeTokensToCookies(newJWT, $refreshToken)
+				isLoggedIn.set(true)
+			}
 		}
+	}
 
-		console.log(newJWT)
-		console.log(newRefreshToken)
-
+	async function writeTokensToCookies(newJWT : string, newRefreshToken : string) {
 		try {
 			const res2  = await fetch('/cookies', { 
 				method: 'POST',
@@ -71,6 +88,33 @@
 		} catch (error) {
 			console.error("Failed to set the JWT");
 		}
+	}
+
+	async function refreshJWT() : Promise<(string | number)[]> {
+		
+		let newJWT = ""
+		let status = 0
+
+		try {
+			const res = await fetch(`http://localhost:8080/api/authentication/refresh`, {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json"
+				},
+				body: JSON.stringify({ $refreshToken })
+			})
+			status = await res.status
+			const resJson = await res.json()
+			newJWT = resJson.token
+		} catch (error) {
+			console.log("Request for refresh denied")
+		}
+
+		return [status, newJWT]
+	}
+
+	async function deleteTokens() {
+		await fetch('/cookies', { method: 'DELETE' })
 	}
 
 </script>
