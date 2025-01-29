@@ -4,7 +4,7 @@ import (
 	// Base imports
 	"log"
 	// Loads environment variables from local .env file
-	"github.com/joho/godotenv"
+	// "github.com/joho/godotenv"
 	// Local imports
 	"github.com/trentjkelly/layerrs/internals/controller"
 	"github.com/trentjkelly/layerrs/internals/service"
@@ -14,11 +14,11 @@ import (
 func main() {
 
 	// Load environment variables
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal(err)
-	}
-
+	// err := godotenv.Load()
+	// if err != nil {
+	//	log.Fatal(err)
+	// }
+	
 	// 
 	// Initialize Layered Architecture
 	// 
