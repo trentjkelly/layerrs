@@ -23,7 +23,3 @@ jobs:
             git pull origin main
             docker-compose up --build
             echo "Successful deployment"
-          docker-compose down
-          git pull origin main
-          docker-compose up --build
-          echo "Successful deployment"
