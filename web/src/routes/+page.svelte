@@ -15,7 +15,7 @@
 
 
     async function fetchData() {
-        const response = await fetch(`http://localhost:8080/api/recommendations/home`)
+        const response = await fetch(`http://layerrs.com/api/recommendations/home`)
         const data = await response.json();
         trackIds = Object.keys(data).map(key => data[key])
     }

@@ -4,7 +4,7 @@
     let { trackId, numLayerrs } = $props();
 
     function navigateLayerr() {
-        goto(`/layerr/${trackId}`)
+        goto(`/layerrs/${trackId}`)
     }
 
 </script>

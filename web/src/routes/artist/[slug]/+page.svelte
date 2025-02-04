@@ -9,7 +9,7 @@
     let artistBio = "Insert some corny ass drake quote as your bio ig"
 
     async function getArtistData() {
-        await fetch('http://localhost:8080/api/artist/')
+        await fetch('http://layerrs.com/api/artist/')
     }
 
 </script>

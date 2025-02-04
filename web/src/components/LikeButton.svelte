@@ -20,7 +20,7 @@
                     trackId: trackId
                 })
     
-                const response = await fetch(`http://localhost:8080/api/likes?${params}`, {
+                const response = await fetch(`http:///layerrs.com/api/likes?${params}`, {
                     method: 'GET',
                     headers: {
                         'Authorization': `Bearer ${$jwt}`
@@ -55,7 +55,7 @@
         formData.append('trackId', trackId)
 
         try {
-            const res = await fetch('http://localhost:8080/api/likes', {
+            const res = await fetch('http://layerrs.com/api/likes', {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${$jwt}`
@@ -79,7 +79,7 @@
         })
 
         try {
-            const res = await fetch(`http://localhost:8080/api/likes?${params}`, {
+            const res = await fetch(`http://layerrs.com/api/likes?${params}`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${$jwt}`

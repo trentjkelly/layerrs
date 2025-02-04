@@ -31,7 +31,7 @@
             form.append('audioFile', audioFile)
             form.append('coverArtFile', coverArtFile)
             form.append('name', title)
-            const res = await fetch("http://localhost:8080/api/track/", { 
+            const res = await fetch("http://layerrs.com/api/track/", { 
                 method: "POST", 
                 headers: {
                     'Authorization': `Bearer ${$jwt}`

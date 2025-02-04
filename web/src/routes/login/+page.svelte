@@ -10,7 +10,7 @@
     async function login() {
         if ((email !== '') && (password !== '')) {
             try {
-                const res = await fetch(`http://localhost:8080/api/authentication/login`, {
+                const res = await fetch(`http://layerrs.com/api/authentication/login`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json"
