@@ -14,7 +14,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Deploy Go + SvelteKit app w/ SSH
-        uses: appleboy/ssh-key-action@v1.2.0
+        uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.SSH_HOST }} 
           username: ${{ secrets.SSH_USERNAME }}
@@ -23,5 +23,5 @@ jobs:
             cd ~/layerrs
             docker-compose down
             git pull origin main
-            docker-compose up --build -d
+            docker-compose up --build -d 
             echo "Successful deployment"
