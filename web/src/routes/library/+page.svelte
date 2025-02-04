@@ -15,7 +15,7 @@
     async function fetchData() {
         console.log("jwt" + $jwt)
 
-        const response = await fetch(`http://layerrs.com/api/recommendations/library`, {
+        const response = await fetch(`https://layerrs.com/api/recommendations/library`, {
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${$jwt}`

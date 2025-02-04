@@ -96,7 +96,7 @@
 		let status = 0
 
 		try {
-			const res = await fetch(`http://layerrs.com/api/authentication/refresh`, {
+			const res = await fetch(`https://layerrs.com/api/authentication/refresh`, {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json"
