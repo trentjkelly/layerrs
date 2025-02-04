@@ -10,16 +10,24 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Deploy Go + SvelteKit app
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install SSH key
         uses: shimataro/ssh-key-action@v2
         with:
-          host: ${{ secrets.SSH_HOST }} 
           key: ${{ secrets.SSH_KEY }}
-          username: ${{ secrets.SSH_USERNAME }}
+          known_hosts: "placeholder"
 
-          script: |
-            cd ~/layerrs
-            docker-compose down
-            git pull origin main
-            docker-compose up --build
-            echo "Successful deployment"
+      # SSH into the VM and run deployment commands
+      - name: Run deployment commands on VM
+        run: |
+          ssh -o StrictHostKeyChecking=no \
+              -i ~/.ssh/id_rsa \
+              ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} << 'EOF'
+          cd ~/layerrs
+          docker-compose down
+          git pull origin main
+          docker-compose up --build
+          echo "Successful deployment"
+          EOF
