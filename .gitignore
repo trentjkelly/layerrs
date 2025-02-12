@@ -1,15 +1,8 @@
 # Environment variables
 .env
-.env.backend.prod
-.env.backend.dev
-.env.frontend.prod
-.env.frontend.dev
-
+.env.*
 web/.env
-web/.env.backend.prod
-web/.env.backend.dev
-web/.env.frontend.prod
-web/.env.frontend.dev
+web/.env.*
 
 # A black hole
 web/node_modules
