@@ -5,6 +5,7 @@ import (
 	"context"
 	"mime/multipart"
 	"io"
+	"os"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
@@ -21,7 +22,7 @@ func NewCoverStorageRepository() *CoverStorageRepository {
 	coverStorageRepository := new(CoverStorageRepository)
 	coverStorageRepository.r2Config = config.CreateR2Config()
 	coverStorageRepository.r2Client = config.CreateR2Client(coverStorageRepository.r2Config)
-	coverStorageRepository.coverBucketName = aws.String("track-covers")
+	coverStorageRepository.coverBucketName = aws.String(os.Getenv("TRACK_COVER_BUCKET_NAME"))
 	return coverStorageRepository
 }
 

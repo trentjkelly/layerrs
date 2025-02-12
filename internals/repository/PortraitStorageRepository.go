@@ -4,6 +4,7 @@ import (
 	"github.com/trentjkelly/layerrs/internals/config"
 	"context"
 	"mime/multipart"
+	"os"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
@@ -20,7 +21,7 @@ func NewPortraitStorageRepository() *PortraitStorageRepository {
 	portraitStorageRepository := new(PortraitStorageRepository)
 	portraitStorageRepository.r2Config = config.CreateR2Config()
 	portraitStorageRepository.r2Client = config.CreateR2Client(portraitStorageRepository.r2Config)
-	portraitStorageRepository.portraitBucketName = aws.String("artist-portrait")
+	portraitStorageRepository.portraitBucketName = aws.String(os.Getenv("ARTIST_PORTRAIT_BUCKET_NAME"))
 	return portraitStorageRepository
 }
 

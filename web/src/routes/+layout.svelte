@@ -96,7 +96,8 @@
 		let status = 0
 
 		try {
-			const res = await fetch(`https://layerrs.com/api/authentication/refresh`, {
+			const backendURL = import.meta.env.VITE_BACKEND_URL;
+			const res = await fetch(`${backendURL}/api/authentication/refresh`, {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json"

@@ -62,7 +62,8 @@
     // Requests the metadata for the track
     async function getTrackData() {
         try {
-            const response = await fetch(`https://layerrs.com/api/track/${trackId}/data`, { method: "GET"});
+            const backendURL = import.meta.env.VITE_BACKEND_URL;
+            const response = await fetch(`${backendURL}api/track/${trackId}/data`, { method: "GET"});
             if (!response.ok) {
                 throw new Error("Failed to get track data");
             }
@@ -81,7 +82,8 @@
     // Gets the name of the artist
     async function getArtistName() {
         try {
-            const response = await fetch(`https://layerrs.com/api/artist/${artistId}`, {
+            const backendURL = import.meta.env.VITE_BACKEND_URL;
+            const response = await fetch(`${backendURL}/api/artist/${artistId}`, {
                 method: "GET"
             })
             if(!response.ok) {
@@ -98,7 +100,8 @@
     // Requests the cover art for the track
     async function getCover() {
         try {
-            const response = await fetch(`https://layerrs.com/api/track/${trackId}/cover`, { method: "GET"});
+            const backendURL = import.meta.env.VITE_BACKEND_URL;
+            const response = await fetch(`${backendURL}/api/track/${trackId}/cover`, { method: "GET"});
             if (!response.ok) {
                 throw new Error("Failed to catch cover art");
             }
@@ -162,7 +165,8 @@
 
         try {
             isLoading = true;
-            const response = await fetch(`https://layerrs.com/api/track/${trackId}/audio`,
+            const backendURL = import.meta.env.VITE_BACKEND_URL;
+            const response = await fetch(`${backendURL}/api/track/${trackId}/audio`,
             {
                 headers: {
                     'Range': `bytes=${currentOffset}-${currentOffset + CHUNK_SIZE - 1}`

@@ -19,8 +19,9 @@
                 const params = new URLSearchParams({
                     trackId: trackId
                 })
-    
-                const response = await fetch(`http:///layerrs.com/api/likes?${params}`, {
+
+                const backendURL = import.meta.env.VITE_BACKEND_URL;
+                const response = await fetch(`${backendURL}/api/likes?${params}`, {
                     method: 'GET',
                     headers: {
                         'Authorization': `Bearer ${$jwt}`
@@ -55,7 +56,8 @@
         formData.append('trackId', trackId)
 
         try {
-            const res = await fetch('https://layerrs.com/api/likes', {
+            const backendURL = import.meta.env.VITE_BACKEND_URL;
+            const res = await fetch(`${backendURL}/api/likes`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${$jwt}`
@@ -79,7 +81,8 @@
         })
 
         try {
-            const res = await fetch(`https://layerrs.com/api/likes?${params}`, {
+            const backendURL = import.meta.env.VITE_BACKEND_URL;
+            const res = await fetch(`${backendURL}/api/likes?${params}`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${$jwt}`

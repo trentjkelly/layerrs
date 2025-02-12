@@ -5,6 +5,8 @@ services:
     build:
       context: ~/layerrs/web #Path to frontend dockerfile
       dockerfile: Dockerfile
+    env_file:
+      - ~/.env.production
     image: layerrs-frontend:latest
     container_name: frontend
     ports:
@@ -18,7 +20,7 @@ services:
       context: ~/layerrs #Path to backend dockerfile
       dockerfile: Dockerfile
     env_file:
-      - ~/.env
+      - ~/.env.backend.prod
     image: layerrs-backend:latest
     container_name: backend
     ports:

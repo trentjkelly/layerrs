@@ -15,7 +15,8 @@
 
 
     async function fetchData() {
-        const response = await fetch(`https://layerrs.com/api/recommendations/home`)
+        const backendURL = import.meta.env.VITE_BACKEND_URL;
+        const response = await fetch(`${backendURL}/api/recommendations/home`)
         const data = await response.json();
         trackIds = Object.keys(data).map(key => data[key])
     }

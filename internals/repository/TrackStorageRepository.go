@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"mime/multipart"
+	"os"
 
 	"github.com/trentjkelly/layerrs/internals/config"
 
@@ -23,7 +24,7 @@ func NewTrackStorageRepository() *TrackStorageRepository {
 	trackStorageRepository := new(TrackStorageRepository)
 	trackStorageRepository.r2Config = config.CreateR2Config()
 	trackStorageRepository.r2Client = config.CreateR2Client(trackStorageRepository.r2Config)
-	trackStorageRepository.trackBucketName = aws.String("track-audio")
+	trackStorageRepository.trackBucketName = aws.String(os.Getenv("TRACK_AUDIO_BUCKET_NAME"))
 	return trackStorageRepository
 }
 

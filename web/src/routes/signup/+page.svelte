@@ -12,7 +12,8 @@
     async function signup() {
         if ((email !== '') && (password !== '') && (name !== '') && (username !== '')) {
             try {
-                const res = await fetch(`https://layerrs.com/api/authentication/signup`, {
+                const backendURL = import.meta.env.VITE_BACKEND_URL;
+                const res = await fetch(`${backendURL}/api/authentication/signup`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json"
