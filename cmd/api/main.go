@@ -9,17 +9,17 @@ import (
 	"github.com/trentjkelly/layerrs/internals/repository"
 
 	// -- DEV ONLY --
-	"github.com/joho/godotenv"
+	// "github.com/joho/godotenv"
 	// -- END DEV ONLY --
 )
 
 func main() {
 
 	// -- DEV ONLY --
-	err := godotenv.Load(".env.backend.dev")
-	if err != nil {
-		log.Fatal(err)
-	}
+	// err := godotenv.Load(".env.backend.dev")
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
 	// -- END DEV ONLY --
 	
 	// 
