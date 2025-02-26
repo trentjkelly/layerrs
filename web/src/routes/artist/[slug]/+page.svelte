@@ -9,8 +9,8 @@
     let artistBio = "Insert some corny ass drake quote as your bio ig"
 
     async function getArtistData() {
-        const backendURL = import.meta.env.VITE_BACKEND_URL;
-        await fetch(`${backendURL}/api/artist/`)
+        // const backendURL = import.meta.env.VITE_BACKEND_URL;
+        await fetch(`https://layerrs.com/api/artist/`)
     }
 
 </script>

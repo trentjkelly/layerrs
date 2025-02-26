@@ -32,8 +32,8 @@
             form.append('coverArtFile', coverArtFile)
             form.append('name', title)
 
-            const backendURL = import.meta.env.VITE_BACKEND_URL;
-            const res = await fetch(`${backendURL}/api/track/`, { 
+            // const backendURL = import.meta.env.VITE_BACKEND_URL;
+            const res = await fetch(`https://layerrs.com/api/track/`, { 
                 method: "POST", 
                 headers: {
                     'Authorization': `Bearer ${$jwt}`

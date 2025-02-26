@@ -15,8 +15,8 @@
     async function fetchData() {
         console.log("jwt" + $jwt)
 
-        const backendURL = import.meta.env.VITE_BACKEND_URL;
-        const response = await fetch(`${backendURL}/api/recommendations/library`, {
+        // const backendURL = import.meta.env.VITE_BACKEND_URL;
+        const response = await fetch(`https://layerrs.com/api/recommendations/library`, {
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${$jwt}`

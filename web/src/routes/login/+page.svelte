@@ -10,8 +10,8 @@
     async function login() {
         if ((email !== '') && (password !== '')) {
             try {
-                const backendURL = import.meta.env.VITE_BACKEND_URL;
-                const res = await fetch(`${backendURL}/api/authentication/login`, {
+                // const backendURL = import.meta.env.VITE_BACKEND_URL;
+                const res = await fetch(`https://layerrs.com/api/authentication/login`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json"
