@@ -8,6 +8,7 @@ import (
 
 	"github.com/trentjkelly/layerrs/internals/entities"
 	"github.com/trentjkelly/layerrs/internals/service"
+	"fmt"
 )
 
 type AuthController struct {
@@ -40,6 +41,7 @@ func (c *AuthController) RegisterArtistHandler(w http.ResponseWriter, r *http.Re
 	// Create new artist
 	err = c.authService.CreateArtist(r.Context(), signupRequest.Password, signupRequest.Username, signupRequest.Name, signupRequest.Email)
 	if err != nil {
+		fmt.Println(err)
 		http.Error(w, "Could not create new artst", http.StatusInternalServerError)
 		return
 	}
