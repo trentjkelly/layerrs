@@ -10,5 +10,7 @@ web/node_modules
 # Stupid mac metadata
 .DS_Store
 
-# Any executable in bin/*
+# Any executable in bin/* or root directory
 bin/*
+api
+./api
