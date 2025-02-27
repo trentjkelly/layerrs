@@ -3,6 +3,7 @@ CREATE TABLE artist (
     name VARCHAR(64) NOT NULL,
     username VARCHAR(64) NOT NULL UNIQUE,
     email VARCHAR(255) NOT NULL UNIQUE,
+    password VARCHAR(72) NOT NULL DEFAULT 0,
     bio TEXT,
     r2_image_key VARCHAR(64),
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
