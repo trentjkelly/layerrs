@@ -1,2 +1,0 @@
-ALTER TABLE track
-ADD COLUMN layerrs INT DEFAULT 0;
