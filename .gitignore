@@ -5,12 +5,35 @@ web/.env
 web/.env.*
 
 # A black hole
-web/node_modules
+frontend/node_modules
 
 # Stupid mac metadata
 .DS_Store
 
 # Any executable in bin/* or root directory
 bin/*
-api
-./api
+
+node_modules
+
+# Output
+.output
+.vercel
+.netlify
+.wrangler
+/.svelte-kit
+/build
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Env
+.env
+.env.*
+!.env.example
+!.env.test
+
+# Vite
+vite.config.js.timestamp-*
+vite.config.ts.timestamp-*
+
