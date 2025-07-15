@@ -20,8 +20,8 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
           script: |
-            cd ~/layerrs
-            docker-compose down
+            cd ~/layerrs/infrastructure
+            docker compose down
             git pull origin main
-            docker-compose up --build -d 
+            docker compose up --build -d 
             echo "Successful deployment"
