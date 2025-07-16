@@ -34,7 +34,6 @@ func (c *TrackController) TrackHandlerOptions(w http.ResponseWriter, r *http.Req
 
 // POST request -- creating a new track (POST /track)
 func (c *TrackController) TrackHandlerPost(w http.ResponseWriter, r *http.Request) {
-
 	// Parse form (for trackAudio and coverArt files)
 	err := r.ParseMultipartForm(32 << 20)
 	if err != nil {
@@ -45,11 +44,13 @@ func (c *TrackController) TrackHandlerPost(w http.ResponseWriter, r *http.Reques
 	// Getting metadata
 	trackName := r.FormValue("name")
 	artistIdFloat := r.Context().Value(entities.ArtistIdKey).(float64)
+
 	parentIdStr := r.FormValue("parentId") // Optional
 	if trackName == "" {
 		http.Error(w, "Track name is required", http.StatusBadRequest)
 		return
 	}
+
 	parentIdInt := 0
 
 	// Converting parentId & artistId to integers
@@ -60,6 +61,7 @@ func (c *TrackController) TrackHandlerPost(w http.ResponseWriter, r *http.Reques
 			return
 		}
 	}
+
 	artistIdInt := int(artistIdFloat)
 	if err != nil {
 		http.Error(w, "Invalid artist id", http.StatusBadRequest)
@@ -95,7 +97,6 @@ func (c *TrackController) TrackHandlerPost(w http.ResponseWriter, r *http.Reques
 
 // GET request -- streams the audio for a given track id (GET /track/{id}/audio)
 func (c *TrackController) TrackAudioHandlerGet(w http.ResponseWriter, r *http.Request) {
-	
 	// Get trackId from request URL
 	trackIdStr := chi.URLParam(r, "id")
 	trackId, err := strconv.Atoi(trackIdStr)

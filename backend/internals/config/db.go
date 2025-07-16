@@ -9,10 +9,8 @@ import (
 )
 
 func CreatePSQLPoolConnection() *pgxpool.Pool {
-
 	// Create connection pool configuration
 	cfg, err := pgxpool.ParseConfig(os.Getenv("PSQL_DATABASE_URL"))
-
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -25,14 +23,12 @@ func CreatePSQLPoolConnection() *pgxpool.Pool {
 
 	// Create connection pool
 	pool, err := pgxpool.NewWithConfig(context.Background(), cfg)
-
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	// Check that connection works properly
 	err = pool.Ping(context.Background())
-
 	if err != nil {
 		log.Fatal(err)
 	}

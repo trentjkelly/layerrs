@@ -30,7 +30,6 @@ func (c *LikesController) LikesHandlerOptions(w http.ResponseWriter, r *http.Req
 
 // Adds a like for a given track from the given artist
 func (c *LikesController) LikesHandlerPost(w http.ResponseWriter, r *http.Request) {
-
 	// Get artistId & trackId
 	artistIdFloat := r.Context().Value(entities.ArtistIdKey).(float64)
 	artistId := int(artistIdFloat)
@@ -54,7 +53,6 @@ func (c *LikesController) LikesHandlerPost(w http.ResponseWriter, r *http.Reques
 
 // Returns whether the artist has liked a given track
 func (c *LikesController) LikesHandlerGet(w http.ResponseWriter, r *http.Request) {
-
 	// Get artistId & trackId
 	artistIdFloat := r.Context().Value(entities.ArtistIdKey).(float64)
 	artistId := int(artistIdFloat)
@@ -82,7 +80,6 @@ func (c *LikesController) LikesHandlerGet(w http.ResponseWriter, r *http.Request
 
 // Removes a like for a given track from the given artist
 func (c *LikesController) LikesHandlerDelete(w http.ResponseWriter, r *http.Request) {
-
 	// Get artistId & trackId
 	artistIdFloat := r.Context().Value(entities.ArtistIdKey).(float64)
 	artistId := int(artistIdFloat)
@@ -103,7 +100,6 @@ func (c *LikesController) LikesHandlerDelete(w http.ResponseWriter, r *http.Requ
 	}
 
 	w.WriteHeader(http.StatusOK)
-
 }
 
 

@@ -11,7 +11,6 @@ import (
 )
 
 func AuthJWTMiddleware(next http.Handler) http.Handler {
-
 	// Load the secret key once
 	secretKey := os.Getenv("AUTH_SECRET_KEY")
 

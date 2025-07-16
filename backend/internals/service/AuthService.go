@@ -8,16 +8,17 @@ import (
 	"log"
 
 	"github.com/trentjkelly/layerrs/internals/entities"
-	"github.com/trentjkelly/layerrs/internals/repository"
+	"github.com/trentjkelly/layerrs/internals/repository/auth"
+	"github.com/trentjkelly/layerrs/internals/repository/database"
 )
 
 type AuthService struct {
-	passwordRepository	 *repository.PasswordRepository
-	artistDbRepository 	*repository.ArtistDatabaseRepository
-	authRepository		*repository.AuthRepository
+	passwordRepository	 *authRepository.PasswordRepository
+	artistDbRepository 	*databaseRepository.ArtistDatabaseRepository
+	authRepository		*authRepository.AuthRepository
 }
 
-func NewAuthService(passwordRepository *repository.PasswordRepository, artistDbRepository *repository.ArtistDatabaseRepository, authRepository *repository.AuthRepository) *AuthService {
+func NewAuthService(passwordRepository *authRepository.PasswordRepository, artistDbRepository *databaseRepository.ArtistDatabaseRepository, authRepository *authRepository.AuthRepository) *AuthService {
 	authService := new(AuthService)
 	authService.passwordRepository = passwordRepository
 	authService.artistDbRepository = artistDbRepository
@@ -44,7 +45,6 @@ func (s *AuthService) CreateArtist(ctx context.Context, password string, usernam
 
 // Logs in an artist based on email and password
 func (s *AuthService) LoginArtist(ctx context.Context, email string, password string) (string, string, error) {
-
 	// Get username & password from artist
 	artist := new(entities.Artist)
 	err := s.artistDbRepository.GetArtistIdUsernamePassword(ctx, artist, email)
@@ -74,7 +74,6 @@ func (s *AuthService) LoginArtist(ctx context.Context, email string, password st
 }
 
 func (s *AuthService) RefreshJWT(ctx context.Context, refreshToken string) (string, error) {
-
 	// Check if the refresh token is valid still
 	log.Println(refreshToken)
 	token, err := s.authRepository.ValidateJWT(ctx, refreshToken)

@@ -1,19 +1,21 @@
 # Environment variables
 .env
 .env.*
-web/.env
-web/.env.*
+frontend/.env
+frontend/.env.*
+backend/.env
+backend/.env.*
 
 # A black hole
 frontend/node_modules
+node_modules
 
 # Stupid mac metadata
 .DS_Store
 
 # Any executable in bin/* or root directory
+*/bin/*
 bin/*
-
-node_modules
 
 # Output
 .output

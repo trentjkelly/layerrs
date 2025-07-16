@@ -1,19 +1,19 @@
 package service
 
 import (
-	"github.com/trentjkelly/layerrs/internals/repository"
+	"github.com/trentjkelly/layerrs/internals/repository/database"
 	"github.com/trentjkelly/layerrs/internals/entities"
 	"context"
 	"log"
 )
 
 type LikesService struct {
-	likesDatabaseRepository *repository.LikesDatabaseRepository
-	trackDatabaseRepository *repository.TrackDatabaseRepository
+	likesDatabaseRepository *databaseRepository.LikesDatabaseRepository
+	trackDatabaseRepository *databaseRepository.TrackDatabaseRepository
 }
 
 // Constructor for new LikesService
-func NewLikesService(likesDatabaseRepository *repository.LikesDatabaseRepository, trackDatabaseRepository *repository.TrackDatabaseRepository) *LikesService {
+func NewLikesService(likesDatabaseRepository *databaseRepository.LikesDatabaseRepository, trackDatabaseRepository *databaseRepository.TrackDatabaseRepository) *LikesService {
 	likesService := new(LikesService)
 	likesService.likesDatabaseRepository = likesDatabaseRepository
 	likesService.trackDatabaseRepository = trackDatabaseRepository
@@ -21,7 +21,6 @@ func NewLikesService(likesDatabaseRepository *repository.LikesDatabaseRepository
 }
 
 func (s *LikesService) AddLike(ctx context.Context, artistId int, trackId int) error {
-	
 	// Adds a row to the artist_likes_track table
 	like := new(entities.Like)
 	like.ArtistId = artistId
@@ -37,7 +36,6 @@ func (s *LikesService) AddLike(ctx context.Context, artistId int, trackId int) e
 	track.Id = trackId
 
 	err = s.trackDatabaseRepository.IncrementLikes(ctx, track)
-
 	if err != nil {
 		return err
 	}
@@ -57,7 +55,6 @@ func (s *LikesService) AddLike(ctx context.Context, artistId int, trackId int) e
 // }
 
 func (s *LikesService) CheckLike(ctx context.Context, artistId int, trackId int) error {
-	
 	like := new(entities.Like)
 	like.ArtistId = artistId
 	like.TrackId = trackId
@@ -71,7 +68,6 @@ func (s *LikesService) CheckLike(ctx context.Context, artistId int, trackId int)
 }
 
 func (s *LikesService) RemoveLike(ctx context.Context, artistId int, trackId int) error {
-
 	// Deletes the row from the artist_likes_track table
 	// s.likesDatabaseRepository.RemoveLike()
 	like := new(entities.Like)

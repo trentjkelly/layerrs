@@ -1,4 +1,4 @@
-package repository
+package authRepository
 
 import (
 	"github.com/golang-jwt/jwt/v5"

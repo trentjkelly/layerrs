@@ -1,4 +1,4 @@
-package repository
+package databaseRepository
 
 import (
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -27,8 +27,8 @@ func (r *TrackTreeDatabaseRepository) CloseDB() {
 func (r *TrackTreeDatabaseRepository) CreateTrackTree(ctx context.Context, trackTree *entities.TrackTree) error {
 	query := `INSERT INTO track_tree (root_id, child_id) VALUES ($1, $2) RETURNING root_id;`
 	row := r.db.QueryRow(ctx, query, trackTree.RootId, trackTree.ChildId)
+	
 	err := row.Scan(&trackTree.RootId)
-
 	if err != nil {
 		return err
 	}
@@ -50,8 +50,8 @@ func (r *TrackTreeDatabaseRepository) GetChildren(ctx context.Context, trackTree
 func (r *TrackTreeDatabaseRepository) DeleteTrackTree(ctx context.Context, trackTree *entities.TrackTree) error {
 	query := `DELETE FROM track_tree WHERE root_id=$1 AND child_id=$2 RETURNING root_id;`
 	row := r.db.QueryRow(ctx, query, trackTree.RootId, trackTree.ChildId)
+	
 	err := row.Scan(&trackTree.RootId)
-
 	if err != nil {
 		return err
 	}

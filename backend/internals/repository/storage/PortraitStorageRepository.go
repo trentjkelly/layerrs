@@ -1,4 +1,4 @@
-package repository
+package storageRepository
 
 import (
 	"github.com/trentjkelly/layerrs/internals/config"
@@ -27,7 +27,6 @@ func NewPortraitStorageRepository() *PortraitStorageRepository {
 
 // Uploads a portrait to storage
 func (r *PortraitStorageRepository) CreatePortrait(ctx context.Context, file multipart.File, filename *string) error {
-	
 	input := &s3.PutObjectInput{
 		Bucket:	r.portraitBucketName,
 		Key:	filename,
@@ -35,7 +34,6 @@ func (r *PortraitStorageRepository) CreatePortrait(ctx context.Context, file mul
 	}
 
 	_, err := r.r2Client.PutObject(ctx, input)
-
 	if err != nil {
 		return err
 	}

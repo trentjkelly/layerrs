@@ -21,7 +21,6 @@ func NewRecommendationsController(recService *service.RecommendationsService) *R
 // Sends a user what tracks to show on their homepage
 func (c *RecommendationsController) RecommendationsHandlerHomeGet(w http.ResponseWriter, r *http.Request) {
 	rec, err := c.recService.MostLikedAlgorithm(r.Context())
-
 	if err !=  nil {
 		http.Error(w, "Unable to get reccomendations", http.StatusInternalServerError)
 		return
@@ -35,7 +34,6 @@ func (c *RecommendationsController) RecommendationsHandlerHomeGet(w http.Respons
 
 // Sends a user what tracks to show on their likes page
 func (c *RecommendationsController) RecommendationsHandlerLibraryGet(w http.ResponseWriter, r *http.Request) {
-
 	artistIdFloat := r.Context().Value(entities.ArtistIdKey).(float64)
 	artistId := int(artistIdFloat)
 

@@ -6,7 +6,10 @@ import (
 	// Loads environment variables from local .env file
 	"github.com/trentjkelly/layerrs/internals/controller"
 	"github.com/trentjkelly/layerrs/internals/service"
-	"github.com/trentjkelly/layerrs/internals/repository"
+	"github.com/trentjkelly/layerrs/internals/repository/auth"
+	"github.com/trentjkelly/layerrs/internals/repository/computing"
+	"github.com/trentjkelly/layerrs/internals/repository/database"
+	"github.com/trentjkelly/layerrs/internals/repository/storage"
 
 	// -- DEV ONLY --
 	// "github.com/joho/godotenv"
@@ -27,19 +30,21 @@ func main() {
 	// 
 
 	// Repositories
-	passwordRepo := repository.NewPasswordRepository()
-	authRepo := repository.NewAuthRepository()
-	artistDatabaseRepo := repository.NewArtistDatabaseRepository()
-	likesDatabaseRepo := repository.NewLikesDatabaseRepository()
-	trackDatabaseRepo := repository.NewTrackDatabaseRepository()
-	trackTreeDatabaseRepo := repository.NewTrackTreeDatabaseRepository()
-	coverStorageRepo := repository.NewCoverStorageRepository()
+	trackConversionRepo := computingRepository.NewTrackConversionRepository()
+	waveformRepo := computingRepository.NewWaveformHeightsRepository()
+	passwordRepo := authRepository.NewPasswordRepository()
+	authRepo := authRepository.NewAuthRepository()
+	artistDatabaseRepo := databaseRepository.NewArtistDatabaseRepository()
+	likesDatabaseRepo := databaseRepository.NewLikesDatabaseRepository()
+	trackDatabaseRepo := databaseRepository.NewTrackDatabaseRepository()
+	trackTreeDatabaseRepo := databaseRepository.NewTrackTreeDatabaseRepository()
+	coverStorageRepo := storageRepository.NewCoverStorageRepository()
 	// portraitStorageRepo := repository.NewPortraitStorageRepository()
-	trackStorageRepo := repository.NewTrackStorageRepository()
+	trackStorageRepo := storageRepository.NewTrackStorageRepository()
 
 	// Services
 	authService := service.NewAuthService(passwordRepo, artistDatabaseRepo, authRepo)
-	trackService := service.NewTrackService(trackStorageRepo, coverStorageRepo, trackDatabaseRepo, trackTreeDatabaseRepo)
+	trackService := service.NewTrackService(trackStorageRepo, coverStorageRepo, trackDatabaseRepo, trackTreeDatabaseRepo, trackConversionRepo, waveformRepo)
 	recService := service.NewRecommendationsService(trackDatabaseRepo, likesDatabaseRepo)
 	artistService := service.NewArtistService(artistDatabaseRepo)
 	likesService := service.NewLikesService(likesDatabaseRepo, trackDatabaseRepo)

@@ -30,7 +30,6 @@ func (c *TrackController) AuthHandlerOptions(w http.ResponseWriter, r *http.Requ
 }
 
 func (c *AuthController) RegisterArtistHandler(w http.ResponseWriter, r *http.Request) {
-	
 	// Get inputs from the formdata
 	signupRequest := new(entities.SignupRequest)
 	err := json.NewDecoder(r.Body).Decode(signupRequest)
@@ -50,7 +49,6 @@ func (c *AuthController) RegisterArtistHandler(w http.ResponseWriter, r *http.Re
 }
 
 func (c *AuthController) LogInArtistHandler(w http.ResponseWriter, r *http.Request) {
-
 	// Get inputs from formdata
 	loginRequest := new(entities.LoginRequest)
 
@@ -76,7 +74,6 @@ func (c *AuthController) LogInArtistHandler(w http.ResponseWriter, r *http.Reque
 }
 
 func (c *AuthController) RefreshHandler(w http.ResponseWriter, r *http.Request) {
-	
 	// Get refresh token
 	request := new(entities.RefreshRequest)
 	json.NewDecoder(r.Body).Decode(&request.RefreshToken)

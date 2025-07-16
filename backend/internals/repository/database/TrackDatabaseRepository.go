@@ -1,4 +1,4 @@
-package repository
+package databaseRepository
 
 import (
 	"database/sql"
@@ -28,8 +28,8 @@ func (r *TrackDatabaseRepository) CloseDB() {
 func (r *TrackDatabaseRepository) CreateTrack(ctx context.Context, track *entities.Track) error {
 	query := `INSERT INTO track (name, artist_id) VALUES ($1, $2) RETURNING id`
 	row := r.db.QueryRow(ctx, query, track.Name, track.ArtistId)
+	
 	err := row.Scan(&track.Id)
-
 	if err != nil {
 		return err
 	}
@@ -71,8 +71,8 @@ func (r *TrackDatabaseRepository) ReadTrackById(ctx context.Context, track *enti
 func (r *TrackDatabaseRepository) UpdateTrack(ctx context.Context, track *entities.Track) error {
 	query := `UPDATE track SET name=$2, r2_track_key=$3, r2_cover_key=$4 WHERE id=$1 RETURNING name;`
 	row := r.db.QueryRow(ctx, query, track.Id, track.Name, track.R2TrackKey, track.R2CoverKey)
+	
 	err := row.Scan(&track.Name)
-
 	if err != nil {
 		return err
 	}
@@ -84,8 +84,8 @@ func (r *TrackDatabaseRepository) UpdateTrack(ctx context.Context, track *entiti
 func (r *TrackDatabaseRepository) DeleteTrack(ctx context.Context, track *entities.Track) error {
 	query := `DELETE FROM track WHERE id=$1 RETURNING id;`
 	row := r.db.QueryRow(ctx, query, track.Id)
+	
 	err := row.Scan(&track.Id)
-
 	if err != nil {
 		return err
 	}
@@ -97,8 +97,8 @@ func (r *TrackDatabaseRepository) DeleteTrack(ctx context.Context, track *entiti
 func (r *TrackDatabaseRepository) IncrementPlays(ctx context.Context, track *entities.Track) error {
 	query := `UPDATE track SET plays = plays + 1 WHERE id=$1 RETURNING plays;`
 	row := r.db.QueryRow(ctx, query, track.Id)
-	err := row.Scan(&track.Plays)
 	
+	err := row.Scan(&track.Plays)
 	if err != nil {
 		return err
 	}
@@ -110,8 +110,8 @@ func (r *TrackDatabaseRepository) IncrementPlays(ctx context.Context, track *ent
 func (r *TrackDatabaseRepository) IncrementLikes(ctx context.Context, track *entities.Track) error {
 	query := `UPDATE track SET likes = likes + 1 WHERE id=$1 RETURNING likes;`
 	row := r.db.QueryRow(ctx, query, track.Id)
-	err := row.Scan(&track.Likes)
 	
+	err := row.Scan(&track.Likes)
 	if err != nil {
 		return err
 	}
@@ -123,8 +123,8 @@ func (r *TrackDatabaseRepository) IncrementLikes(ctx context.Context, track *ent
 func (r *TrackDatabaseRepository) DecrementLikes(ctx context.Context, track *entities.Track) error {
 	query := `UPDATE track SET likes = likes - 1 WHERE id=$1 RETURNING likes;`
 	row := r.db.QueryRow(ctx, query, track.Id)
-	err := row.Scan(&track.Likes)
 	
+	err := row.Scan(&track.Likes)
 	if err != nil {
 		return err
 	}
@@ -134,8 +134,8 @@ func (r *TrackDatabaseRepository) DecrementLikes(ctx context.Context, track *ent
 
 // Gets the top N tracks by likes -- used for recommendations algorithm
 func (r *TrackDatabaseRepository) ReadNTracksByLikes(ctx context.Context, offset int) (*entities.Recommendation, error) {
-	
 	query := `SELECT id FROM track ORDER BY likes DESC LIMIT 8 OFFSET $1;`
+	
 	rows, err := r.db.Query(ctx, query, offset)
 	if err != nil {
 		return nil, err

@@ -1,4 +1,4 @@
-package repository
+package authRepository
 
 import (
 	"golang.org/x/crypto/bcrypt"

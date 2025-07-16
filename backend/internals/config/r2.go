@@ -14,7 +14,6 @@ import (
 )
 
 func CreateR2Config() *aws.Config {
-
 	accessKeyId := os.Getenv("R2_ACCESS_KEY_ID")
 	accessKeySecret := os.Getenv("R2_SECRET_ACCESS_KEY_ID")
 
@@ -22,7 +21,6 @@ func CreateR2Config() *aws.Config {
 		config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(accessKeyId, accessKeySecret, "")),
 		config.WithRegion("auto"),	
 	)
-
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -31,7 +29,6 @@ func CreateR2Config() *aws.Config {
 }
 
 func CreateR2Client(r2Config *aws.Config) *s3.Client {
-
 	accountId := os.Getenv("R2_ACCOUNT_ID")
 
 	r2Client := s3.NewFromConfig(*r2Config, func(o *s3.Options) {

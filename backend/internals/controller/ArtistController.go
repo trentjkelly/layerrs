@@ -39,7 +39,6 @@ func (c *ArtistController) ArtistHandlerPut(w http.ResponseWriter, r *http.Reque
 
 // GET request -- Sends the artists informaiton to frontend
 func (c *ArtistController) ArtistHandlerGet(w http.ResponseWriter, r *http.Request) {
-	
 	// Get artistId
 	artistStr := chi.URLParam(r, "artistId")
 	artistId, err := strconv.Atoi(artistStr)

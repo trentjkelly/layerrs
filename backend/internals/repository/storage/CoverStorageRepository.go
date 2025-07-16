@@ -1,4 +1,4 @@
-package repository
+package storageRepository
 
 import (
 	"github.com/trentjkelly/layerrs/internals/config"
@@ -28,7 +28,6 @@ func NewCoverStorageRepository() *CoverStorageRepository {
 
 // Uploads a cover to storage
 func (r *CoverStorageRepository) CreateCover(ctx context.Context, file multipart.File, filename *string) error {
-	
 	input := &s3.PutObjectInput{
 		Bucket:	r.coverBucketName,
 		Key:	filename,
@@ -36,7 +35,6 @@ func (r *CoverStorageRepository) CreateCover(ctx context.Context, file multipart
 	}
 
 	_, err := r.r2Client.PutObject(ctx, input)
-
 	if err != nil {
 		return err
 	}
@@ -45,14 +43,12 @@ func (r *CoverStorageRepository) CreateCover(ctx context.Context, file multipart
 }
 
 func (r *CoverStorageRepository) ReadCover(ctx context.Context, r2CoverKey *string) (io.ReadCloser, error) {
-
 	input := &s3.GetObjectInput{
 		Bucket: r.coverBucketName,
 		Key: r2CoverKey,
 	}
 
 	res, err := r.r2Client.GetObject(ctx, input)
-
 	if err != nil {
 		return nil, err
 	}
