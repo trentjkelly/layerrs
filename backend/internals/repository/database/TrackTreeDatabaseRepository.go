@@ -2,7 +2,6 @@ package databaseRepository
 
 import (
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/trentjkelly/layerrs/internals/config"
 	"github.com/trentjkelly/layerrs/internals/entities"
 	"context"
 )
@@ -12,9 +11,9 @@ type TrackTreeDatabaseRepository struct {
 }
 
 // Constructor for TrackTreeDatabaseRepository
-func NewTrackTreeDatabaseRepository() *TrackTreeDatabaseRepository {
+func NewTrackTreeDatabaseRepository(db *pgxpool.Pool) *TrackTreeDatabaseRepository {
 	trackTreeDatabaseRepository := new(TrackTreeDatabaseRepository)
-	trackTreeDatabaseRepository.db = config.CreatePSQLPoolConnection()
+	trackTreeDatabaseRepository.db = db
 	return trackTreeDatabaseRepository
 }
 

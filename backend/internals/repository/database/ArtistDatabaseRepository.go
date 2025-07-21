@@ -5,7 +5,6 @@ import (
 	"context"
 	"time"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/trentjkelly/layerrs/internals/config"
 	"github.com/trentjkelly/layerrs/internals/entities"
 	// "log"
 )
@@ -15,9 +14,9 @@ type ArtistDatabaseRepository struct {
 }
 
 // Constructor for ArtistDatabaseRepository
-func NewArtistDatabaseRepository() *ArtistDatabaseRepository {
+func NewArtistDatabaseRepository(db *pgxpool.Pool) *ArtistDatabaseRepository {
 	artistDatabaseRepository := new(ArtistDatabaseRepository)
-	artistDatabaseRepository.db = config.CreatePSQLPoolConnection()
+	artistDatabaseRepository.db = db
 	return artistDatabaseRepository
 }
 

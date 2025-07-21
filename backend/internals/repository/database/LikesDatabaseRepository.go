@@ -3,7 +3,6 @@ package databaseRepository
 import (
 	"context"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/trentjkelly/layerrs/internals/config"
 	"github.com/trentjkelly/layerrs/internals/entities"
 )
 
@@ -12,9 +11,9 @@ type LikesDatabaseRepository struct {
 }
 
 // Constructor for LikesDatabaseRepository
-func NewLikesDatabaseRepository() *LikesDatabaseRepository {
+func NewLikesDatabaseRepository(db *pgxpool.Pool) *LikesDatabaseRepository {
 	likesDatabaseRepository := new(LikesDatabaseRepository)
-	likesDatabaseRepository.db = config.CreatePSQLPoolConnection()
+	likesDatabaseRepository.db = db
 	return likesDatabaseRepository
 }
 
