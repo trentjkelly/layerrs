@@ -15,6 +15,7 @@ import (
 )
 
 func main() {
+	
 	// TODO: Replace with a conditional check for the environment, when moving to docker compose
 	// -- DEV ONLY --
 	err := godotenv.Load(".env.backend.dev")

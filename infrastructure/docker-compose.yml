@@ -1,12 +1,14 @@
 services:
   frontend:
-    build:
-      context: ~/layerrs/frontend #Path to frontend dockerfile
-      dockerfile: Dockerfile
-    env_file:
-      - ~/.env
-    image: layerrs-frontend:latest
     container_name: frontend
+    image: layerrs-frontend:latest
+    build:
+      context: ../frontend #Path to frontend dockerfile
+      dockerfile: deployments/Dockerfile.${ENV}
+    args:
+      - ENV=${ENV:-development}
+    env_file:
+      - ~/.env.${ENV}
     ports:
       - "3000:3000"
     networks:
@@ -14,13 +16,15 @@ services:
     restart: always
 
   backend:
-    build:
-      context: ~/layerrs/backend #Path to backend dockerfile
-      dockerfile: Dockerfile
-    env_file:
-      - ~/.env.backend.prod
-    image: layerrs-backend:latest
     container_name: backend
+    image: layerrs-backend:latest
+    build:
+      context: ../backend #Path to backend dockerfile
+      dockerfile: deployments/Dockerfile.${ENV}
+    args:
+      - ENV=${ENV:-development}
+    env_file:
+      - ~/.env.${ENV}
     ports:
       - "8080:8080"
     networks:

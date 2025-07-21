@@ -1,10 +1,7 @@
 # Environment variables
 .env
-.env.*
-frontend/.env
-frontend/.env.*
-backend/.env
-backend/.env.*
+.env.production
+.env.development
 
 # A black hole
 frontend/node_modules
@@ -28,12 +25,6 @@ bin/*
 # OS
 .DS_Store
 Thumbs.db
-
-# Env
-.env
-.env.*
-!.env.example
-!.env.test
 
 # Vite
 vite.config.js.timestamp-*
