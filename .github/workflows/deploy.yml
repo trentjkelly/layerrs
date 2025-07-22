@@ -24,4 +24,5 @@ jobs:
             ENV=PRODUCTION docker compose down
             git pull origin main
             ENV=PRODUCTION docker compose up --build -d 
+            docker system prune -f
             echo "Successful deployment"
