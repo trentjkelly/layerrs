@@ -13,6 +13,7 @@ node_modules
 # Any executable in bin/* or root directory
 */bin/*
 bin/*
+backend/bin/*
 
 # Output
 .output

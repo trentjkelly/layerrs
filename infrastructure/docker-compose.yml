@@ -5,8 +5,10 @@ services:
     build:
       context: ../frontend #Path to frontend dockerfile
       dockerfile: deployments/Dockerfile.${ENV}
-    args:
-      - ENV=${ENV:-development}
+      args:
+        - ENV=${ENV:-DEVELOPMENT}
+    environment:
+      - ENV=${ENV:-DEVELOPMENT}
     env_file:
       - ~/.env.${ENV}
     ports:
@@ -21,8 +23,10 @@ services:
     build:
       context: ../backend #Path to backend dockerfile
       dockerfile: deployments/Dockerfile.${ENV}
-    args:
-      - ENV=${ENV:-development}
+      args:
+        - ENV=${ENV:-DEVELOPMENT}
+    environment:
+      - ENV=${ENV:-DEVELOPMENT}
     env_file:
       - ~/.env.${ENV}
     ports:

@@ -3,6 +3,7 @@ package storageRepository
 import (
 	"github.com/trentjkelly/layerrs/internals/config"
 	"context"
+	"fmt"
 	"mime/multipart"
 	"os"
 
@@ -17,11 +18,11 @@ type PortraitStorageRepository struct {
 }
 
 // Constructor for new PortraitRepository
-func NewPortraitStorageRepository() *PortraitStorageRepository {
+func NewPortraitStorageRepository(env string) *PortraitStorageRepository {
 	portraitStorageRepository := new(PortraitStorageRepository)
 	portraitStorageRepository.r2Config = config.CreateR2Config()
 	portraitStorageRepository.r2Client = config.CreateR2Client(portraitStorageRepository.r2Config)
-	portraitStorageRepository.portraitBucketName = aws.String(os.Getenv("ARTIST_PORTRAIT_BUCKET_NAME"))
+	portraitStorageRepository.portraitBucketName = aws.String(os.Getenv(fmt.Sprintf("ARTIST_PORTRAIT_BUCKET_NAME_%s", env)))
 	return portraitStorageRepository
 }
 

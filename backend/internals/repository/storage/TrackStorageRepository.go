@@ -20,11 +20,11 @@ type TrackStorageRepository struct {
 }
 
 // Constructor for new TrackRepository
-func NewTrackStorageRepository() *TrackStorageRepository {
+func NewTrackStorageRepository(env string) *TrackStorageRepository {
 	trackStorageRepository := new(TrackStorageRepository)
 	trackStorageRepository.r2Config = config.CreateR2Config()
 	trackStorageRepository.r2Client = config.CreateR2Client(trackStorageRepository.r2Config)
-	trackStorageRepository.trackBucketName = aws.String(os.Getenv("TRACK_AUDIO_BUCKET_NAME"))
+	trackStorageRepository.trackBucketName = aws.String(os.Getenv(fmt.Sprintf("TRACK_AUDIO_BUCKET_NAME_%s", env)))
 	return trackStorageRepository
 }
 

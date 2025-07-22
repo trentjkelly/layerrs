@@ -47,5 +47,4 @@ require (
 	github.com/aws/smithy-go v1.22.1 // indirect
 	github.com/go-chi/cors v1.2.1
 	github.com/jackc/pgx/v5 v5.7.5
-	github.com/joho/godotenv v1.5.1
 )

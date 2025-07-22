@@ -2,30 +2,31 @@ package main
 
 import (
 	"log"
+	"os"
 
+	"github.com/trentjkelly/layerrs/internals/config"
 	"github.com/trentjkelly/layerrs/internals/controller"
-	"github.com/trentjkelly/layerrs/internals/service"
 	"github.com/trentjkelly/layerrs/internals/repository/auth"
 	"github.com/trentjkelly/layerrs/internals/repository/computing"
 	"github.com/trentjkelly/layerrs/internals/repository/database"
 	"github.com/trentjkelly/layerrs/internals/repository/storage"
-	"github.com/trentjkelly/layerrs/internals/config"
-	"github.com/joho/godotenv"
+	"github.com/trentjkelly/layerrs/internals/service"
+)
 
+const (
+	DEVELOPMENT = "development"
+	PRODUCTION = "production"
 )
 
 func main() {
-	
-	// TODO: Replace with a conditional check for the environment, when moving to docker compose
-	// -- DEV ONLY --
-	err := godotenv.Load(".env.backend.dev")
-	if err != nil {
-		log.Fatal(err)
+	// Get the environment
+	env := os.Getenv("ENV")
+	if env == "" {
+		log.Fatal("Could not find the environment variable ENV")
 	}
-	// -- END DEV ONLY --
 
 	// Database Connection
-	pool, err := config.InitDB()
+	pool, err := config.InitDB(env)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -47,9 +48,9 @@ func main() {
 	trackTreeDatabaseRepo := databaseRepository.NewTrackTreeDatabaseRepository(pool)
 
 	// Storage Repositories
-	coverStorageRepo := storageRepository.NewCoverStorageRepository()
-	// portraitStorageRepo := repository.NewPortraitStorageRepository()
-	trackStorageRepo := storageRepository.NewTrackStorageRepository()
+	coverStorageRepo := storageRepository.NewCoverStorageRepository(env)
+	// portraitStorageRepo := storageRepository.NewPortraitStorageRepository(env)
+	trackStorageRepo := storageRepository.NewTrackStorageRepository(env)
 
 	// -- SERVICES --
 	authService := service.NewAuthService(passwordRepo, artistDatabaseRepo, authRepo)

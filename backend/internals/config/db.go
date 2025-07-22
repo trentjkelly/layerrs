@@ -12,9 +12,57 @@ import (
 	_ "github.com/lib/pq"
 )
 
+type DBConfig struct {
+	Host string
+	Port string
+	Database string
+	User string
+	Password string
+	psqlURL string
+}
+
+// Creates a new database configuration
+func NewDBConfig(env string) (*DBConfig, error) {
+	dbConfig := new(DBConfig)
+
+	dbConfig.Host = os.Getenv(fmt.Sprintf("PSQL_HOST_%s", env))
+	if dbConfig.Host == "" {
+		return nil, fmt.Errorf("could not find the environment variable PSQL_HOST_%s", env)
+	}
+	
+	dbConfig.Port = os.Getenv(fmt.Sprintf("PSQL_PORT_%s", env))
+	if dbConfig.Port == "" {
+		return nil, fmt.Errorf("could not find the environment variable PSQL_PORT_%s", env)
+	}
+
+	dbConfig.Database = os.Getenv(fmt.Sprintf("PSQL_DB_%s", env))
+	if dbConfig.Database == "" {
+		return nil, fmt.Errorf("could not find the environment variable PSQL_DB_%s", env)
+	}
+
+	dbConfig.User = os.Getenv(fmt.Sprintf("PSQL_USER_%s", env))
+	if dbConfig.User == "" {
+		return nil, fmt.Errorf("could not find the environment variable PSQL_USER_%s", env)
+	}
+
+	dbConfig.Password = os.Getenv(fmt.Sprintf("PSQL_PASSWORD_%s", env))
+	if dbConfig.Password == "" {
+		return nil, fmt.Errorf("could not find the environment variable PSQL_PASSWORD_%s", env)
+	}
+
+	dbConfig.psqlURL = fmt.Sprintf("postgresql://%s:%s/%s?user=%s&password=%s&sslmode=disable", dbConfig.Host, dbConfig.Port, dbConfig.Database, dbConfig.User, dbConfig.Password)
+
+	return dbConfig, nil
+}
+
 // Initializes a database connection, applies migrations, and returns a connection pool
-func InitDB() (*pgxpool.Pool, error) {
-	db, err := CreatePSQLConnection()
+func InitDB(env string) (*pgxpool.Pool, error) {
+	dbConfig, err := NewDBConfig(env)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create database config: %w", err)
+	}
+
+	db, err := dbConfig.CreatePSQLConnection()
 	if err != nil {
 		return nil, fmt.Errorf("failed to create connection: %w", err)
 	}
@@ -29,7 +77,7 @@ func InitDB() (*pgxpool.Pool, error) {
 		return nil, fmt.Errorf("failed to close connection: %w", err)
 	}
 
-	pool, err := CreatePSQLPoolConnection()
+	pool, err := dbConfig.CreatePSQLPoolConnection()
 	if err != nil {
 		return nil, fmt.Errorf("failed to create connection pool: %w", err)
 	}
@@ -38,60 +86,41 @@ func InitDB() (*pgxpool.Pool, error) {
 }
 
 // Creates a connection pool to the PostgreSQL database
-func CreatePSQLPoolConnection() (*pgxpool.Pool, error) {
-	// Create connection pool configuration	
-	host := os.Getenv("PSQL_HOST")
-	port := os.Getenv("PSQL_PORT")
-	database := os.Getenv("PSQL_DB")
-	user := os.Getenv("PSQL_USER")
-	password := os.Getenv("PSQL_PASSWORD")
-	
-	psqlURL := fmt.Sprintf("postgresql://%s:%s/%s?user=%s&password=%s&sslmode=disable", host, port, database, user, password)
-
-	cfg, err := pgxpool.ParseConfig(psqlURL)
+func (dbConfig *DBConfig) CreatePSQLPoolConnection() (*pgxpool.Pool, error) {
+	cfg, err := pgxpool.ParseConfig(dbConfig.psqlURL)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse config: %w", err)
 	}
 
-	// Settings for DB connection pool
 	cfg.MaxConns = 10
 	cfg.MinConns = 2
 	cfg.MaxConnLifetime = 1 * time.Hour
 	cfg.MaxConnIdleTime = 30 * time.Minute
 
-	// Create connection pool
 	pool, err := pgxpool.NewWithConfig(context.Background(), cfg)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create connection pool: %w", err)
 	}
 
-	// Check that connection works properly
 	err = pool.Ping(context.Background())
 	if err != nil {
-		return nil, fmt.Errorf("failed to ping connection pool: %w", err)
+		return nil, fmt.Errorf("failed to ping connection pool using url: %s: %w", dbConfig.psqlURL, err)
 	}
 
 	return pool, nil
 }
 
 // Creates a connection to the PostgreSQL database -- only used for migrations
-func CreatePSQLConnection() (*sql.DB, error) {
-	host := os.Getenv("PSQL_HOST")
-	port := os.Getenv("PSQL_PORT")
-	database := os.Getenv("PSQL_DB")
-	user := os.Getenv("PSQL_USER")
-	password := os.Getenv("PSQL_PASSWORD")
+func (dbConfig *DBConfig) CreatePSQLConnection() (*sql.DB, error) {
 
-	psqlURL := fmt.Sprintf("postgresql://%s:%s/%s?user=%s&password=%s&sslmode=disable", host, port, database, user, password)
-
-	db, err := sql.Open("postgres", psqlURL)
+	db, err := sql.Open("postgres", dbConfig.psqlURL)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open connection: %w", err)
 	}
 
 	err = db.Ping()
 	if err != nil {
-		return nil, fmt.Errorf("failed to ping database: %w", err)
+		return nil, fmt.Errorf("failed to ping database for migrations using url: %s: %w", dbConfig.psqlURL, err)
 	}
 
 	return db, nil

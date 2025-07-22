@@ -23,5 +23,5 @@ jobs:
             cd ~/layerrs/infrastructure
             docker compose down
             git pull origin main
-            docker compose up --build -d 
+            ENV=production docker compose up --build -d 
             echo "Successful deployment"

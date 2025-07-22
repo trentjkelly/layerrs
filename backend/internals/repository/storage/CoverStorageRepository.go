@@ -3,6 +3,7 @@ package storageRepository
 import (
 	"github.com/trentjkelly/layerrs/internals/config"
 	"context"
+	"fmt"
 	"mime/multipart"
 	"io"
 	"os"
@@ -18,11 +19,11 @@ type CoverStorageRepository struct {
 }
 
 // Constructor for new CoverRepository
-func NewCoverStorageRepository() *CoverStorageRepository {
+func NewCoverStorageRepository(env string) *CoverStorageRepository {
 	coverStorageRepository := new(CoverStorageRepository)
 	coverStorageRepository.r2Config = config.CreateR2Config()
 	coverStorageRepository.r2Client = config.CreateR2Client(coverStorageRepository.r2Config)
-	coverStorageRepository.coverBucketName = aws.String(os.Getenv("TRACK_COVER_BUCKET_NAME"))
+	coverStorageRepository.coverBucketName = aws.String(os.Getenv(fmt.Sprintf("TRACK_COVER_BUCKET_NAME_%s", env)))
 	return coverStorageRepository
 }
 
