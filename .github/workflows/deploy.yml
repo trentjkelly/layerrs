@@ -21,7 +21,7 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           script: |
             cd ~/layerrs/infrastructure
-            docker compose down
+            ENV=PRODUCTION docker compose down
             git pull origin main
             ENV=PRODUCTION docker compose up --build -d 
             echo "Successful deployment"
