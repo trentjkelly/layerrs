@@ -3,6 +3,16 @@ FROM node:20-alpine
 WORKDIR /app
 COPY package*.json ./
 RUN npm install -g pnpm
-RUN pnpm install
 
+# Remove the store and lock file to avoid conflicts
+RUN pnpm store prune
+RUN rm -f pnpm-lock.yaml package-lock.json yarn.lock
+RUN rm -rf node_modules
+RUN rm -rf ~/.local/share/pnpm
+RUN rm -rf /root/.local/share/pnpm
+RUN pnpm install --no-frozen-lockfile
+
+COPY . . 
+
+EXPOSE 3000
 CMD ["pnpm", "run", "dev"]
