@@ -3,7 +3,7 @@
     import TopHeader from "../components/TopHeader.svelte";
     import TrackCard from "../components/TrackCard.svelte";
     import { isSidebarOpen } from "../stores/player";
-    import { jwt, refreshToken } from "../stores/auth";
+    import { urlBase } from "../stores/environment";
 
     // Each of the songs to be loaded in
     let artistId = 1 // Static for now
@@ -15,8 +15,7 @@
 
 
     async function fetchData() {
-        // const backendURL = import.meta.env.VITE_BACKEND_URL;
-        const response = await fetch(`https://layerrs.com/api/recommendations/home`)
+        const response = await fetch(`${$urlBase}/api/recommendations/home`)
         const data = await response.json();
         trackIds = Object.keys(data).map(key => data[key])
     }

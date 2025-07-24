@@ -2,6 +2,8 @@
     import TopHeader from "../../components/TopHeader.svelte";
     import { isSidebarOpen } from "../../stores/player";
     import { goto } from "$app/navigation";
+    import { urlBase } from "../../stores/environment";
+    import { logger } from "../../lib/logger/logger";
 
     let email = $state('')
     let password = $state('')
@@ -12,8 +14,7 @@
     async function signup() {
         if ((email !== '') && (password !== '') && (name !== '') && (username !== '')) {
             try {
-                // const backendURL = import.meta.env.VITE_BACKEND_URL;
-                const res = await fetch(`https://layerrs.com/api/authentication/signup`, {
+                const res = await fetch(`${$urlBase}/api/authentication/signup`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json"
@@ -26,7 +27,7 @@
                     })
                 })
             } catch (err) {
-                console.error(err)
+                logger.error(err)
             }
         }
     }
@@ -34,6 +35,7 @@
     function navigateLogIn() {
         goto('/login')
     }
+    
 </script>
 
 <main class={`transition-all duration-300 h-full w-full ${$isSidebarOpen ? 'ml-64' : 'ml-0'} bg-gradient-to-b from-gray-800 to-gray-900`}>

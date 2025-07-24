@@ -3,6 +3,8 @@
     import { jwt } from "../stores/auth";
     import { goto } from "$app/navigation";
     import { onMount } from "svelte";
+    import { urlBase } from "../stores/environment";
+    import { logger } from "../lib/logger/logger";
     
     let { trackId, numLikes } = $props()
     let isTrackLiked = $state(false)
@@ -20,8 +22,7 @@
                     trackId: trackId
                 })
 
-                // const backendURL = import.meta.env.VITE_BACKEND_URL;
-                const response = await fetch(`https://layerrs.com/api/likes?${params}`, {
+                const response = await fetch(`${$urlBase}/api/likes?${params}`, {
                     method: 'GET',
                     headers: {
                         'Authorization': `Bearer ${$jwt}`
@@ -32,7 +33,7 @@
                     isTrackLiked = data.isLiked
                 }
             } catch (error) {
-                console.log(error)
+                logger.error(error)
             }
         }
     }
@@ -56,8 +57,7 @@
         formData.append('trackId', trackId)
 
         try {
-            // const backendURL = import.meta.env.VITE_BACKEND_URL;
-            const res = await fetch(`https://layerrs.com/api/likes`, {
+            const res = await fetch(`${$urlBase}/api/likes`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${$jwt}`
@@ -70,7 +70,7 @@
             }
 
         } catch (error) {
-            console.error("Could not like track")
+            logger.error("Could not like track")
         }
     }
     
@@ -81,8 +81,7 @@
         })
 
         try {
-            // const backendURL = import.meta.env.VITE_BACKEND_URL;
-            const res = await fetch(`https://layerrs.com/api/likes?${params}`, {
+            const res = await fetch(`${$urlBase}/api/likes?${params}`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${$jwt}`
@@ -94,7 +93,7 @@
             }
 
         } catch (error) {
-            console.error("Could not unlike track")
+            logger.error("Could not unlike track")
         }
     }
 

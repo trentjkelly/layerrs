@@ -21,31 +21,39 @@ type DBConfig struct {
 	psqlURL string
 }
 
+const (
+	PSQL_HOST = "PSQL_HOST_%s"
+	PSQL_PORT = "PSQL_PORT_%s"
+	PSQL_DB = "PSQL_DB_%s"
+	PSQL_USER = "PSQL_USER_%s"
+	PSQL_PASSWORD = "PSQL_PASSWORD_%s"
+)
+
 // Creates a new database configuration
 func NewDBConfig(env string) (*DBConfig, error) {
 	dbConfig := new(DBConfig)
 
-	dbConfig.Host = os.Getenv(fmt.Sprintf("PSQL_HOST_%s", env))
+	dbConfig.Host = os.Getenv(fmt.Sprintf(PSQL_HOST, env))
 	if dbConfig.Host == "" {
 		return nil, fmt.Errorf("could not find the environment variable PSQL_HOST_%s", env)
 	}
 	
-	dbConfig.Port = os.Getenv(fmt.Sprintf("PSQL_PORT_%s", env))
+	dbConfig.Port = os.Getenv(fmt.Sprintf(PSQL_PORT, env))
 	if dbConfig.Port == "" {
 		return nil, fmt.Errorf("could not find the environment variable PSQL_PORT_%s", env)
 	}
 
-	dbConfig.Database = os.Getenv(fmt.Sprintf("PSQL_DB_%s", env))
+	dbConfig.Database = os.Getenv(fmt.Sprintf(PSQL_DB, env))
 	if dbConfig.Database == "" {
 		return nil, fmt.Errorf("could not find the environment variable PSQL_DB_%s", env)
 	}
 
-	dbConfig.User = os.Getenv(fmt.Sprintf("PSQL_USER_%s", env))
+	dbConfig.User = os.Getenv(fmt.Sprintf(PSQL_USER, env))
 	if dbConfig.User == "" {
 		return nil, fmt.Errorf("could not find the environment variable PSQL_USER_%s", env)
 	}
 
-	dbConfig.Password = os.Getenv(fmt.Sprintf("PSQL_PASSWORD_%s", env))
+	dbConfig.Password = os.Getenv(fmt.Sprintf(PSQL_PASSWORD, env))
 	if dbConfig.Password == "" {
 		return nil, fmt.Errorf("could not find the environment variable PSQL_PASSWORD_%s", env)
 	}

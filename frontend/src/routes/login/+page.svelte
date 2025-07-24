@@ -3,6 +3,8 @@
     import { isSidebarOpen } from "../../stores/player";
     import { goto } from "$app/navigation";
     import { isLoggedIn, jwt, refreshToken } from "../../stores/auth";
+    import { urlBase } from "../../stores/environment";
+    import { logger } from "../../lib/logger/logger";
 
     let email = $state('')
     let password = $state('')
@@ -10,8 +12,7 @@
     async function login() {
         if ((email !== '') && (password !== '')) {
             try {
-                // const backendURL = import.meta.env.VITE_BACKEND_URL;
-                const res = await fetch(`https://layerrs.com/api/authentication/login`, {
+                const res = await fetch(`${$urlBase}/api/authentication/login`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json"
@@ -35,10 +36,10 @@
                         })
                     })
                     if (!res.ok) {
-                        console.error("Failed to set the JWT and refresh tokens", res.statusText);
+                        logger.error(`Failed to set the JWT and refresh tokens: ${res.statusText}`);
                     }
                 } catch (error) {
-                    console.error("Failed to set the JWT")
+                    logger.error(`Failed to set the JWT: ${error}`);
                 }
 
                 // Set cookies locally to stores as well
@@ -52,7 +53,7 @@
                 }
 
             } catch (err) {
-                console.error(err)
+                logger.error(err)
             }
         }
     }

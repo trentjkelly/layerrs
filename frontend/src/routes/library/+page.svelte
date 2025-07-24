@@ -6,6 +6,8 @@
     import { jwt } from "../../stores/auth";
     import { isLoggedIn } from "../../stores/auth";
     import LogInPopup from "../../components/LogInPopup.svelte";
+    import { urlBase } from "../../stores/environment";
+    import { logger } from "../../lib/logger/logger";
 
     /**
      * @type {any[]}
@@ -13,10 +15,9 @@
     let trackIds = [];
 
     async function fetchData() {
-        console.log("jwt" + $jwt)
+        logger.debug("jwt" + $jwt)
 
-        // const backendURL = import.meta.env.VITE_BACKEND_URL;
-        const response = await fetch(`https://layerrs.com/api/recommendations/library`, {
+        const response = await fetch(`${$urlBase}/api/recommendations/library`, {
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${$jwt}`
@@ -24,17 +25,17 @@
         })
 
         if (response.status == 401) {
-            console.log("unauthorized request for library")
+            logger.debug("unauthorized request for library")
             return
         }
 
         const data = await response.json();
-        console.log(data)
+        logger.debug(data)
         trackIds = Object.keys(data).map(key => data[key])
     }
 
     onMount(async () => {
-        console.log()
+        logger.debug("fetching data")
         await fetchData()
     })
 

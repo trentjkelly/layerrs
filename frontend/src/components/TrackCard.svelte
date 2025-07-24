@@ -6,8 +6,9 @@
     import LikeButton from './LikeButton.svelte';
     import LayerrButton from './LayerrButton.svelte';
     import ParentTrackButton from './ParentTrackButton.svelte';
-
-
+    import { logger } from '../lib/logger/logger';
+    import { urlBase } from '../stores/environment';
+    
     // Inherits the trackId from the page
     let { trackId } = $props();
 
@@ -48,7 +49,7 @@
                 try {
                     mediaSource.removeSourceBuffer(sourceBuffer);
                 } catch (error) {
-                    console.warn("Error removing the source buffer", error);
+                    logger.error(`Error removing the source buffer: ${error}`);
                 }
             }
             mediaSource = null;
@@ -62,8 +63,7 @@
     // Requests the metadata for the track
     async function getTrackData() {
         try {
-            // const backendURL = import.meta.env.VITE_BACKEND_URL;
-            const response = await fetch(`https://layerrs.com/api/track/${trackId}/data`, { method: "GET"});
+            const response = await fetch(`${$urlBase}/api/track/${trackId}/data`, { method: "GET"});
             if (!response.ok) {
                 throw new Error("Failed to get track data");
             }
@@ -75,15 +75,14 @@
 
             // previousTrackName = ""
         } catch (error) {
-            console.error("Error catching track data", error)
+            logger.error(`Error catching track data: ${error}`);
         }
     }
 
     // Gets the name of the artist
     async function getArtistName() {
         try {
-            // const backendURL = import.meta.env.VITE_BACKEND_URL;
-            const response = await fetch(`https://layerrs.com/api/artist/${artistId}`, {
+            const response = await fetch(`${$urlBase}/api/artist/${artistId}`, {
                 method: "GET"
             })
             if(!response.ok) {
@@ -93,15 +92,14 @@
             const artistData = await response.json();
             artistName = artistData.name
         } catch (error) {
-            console.error("Could not retrieve artist data")
+            logger.error(`Could not retrieve artist data: ${error}`);
         }
     }
 
     // Requests the cover art for the track
     async function getCover() {
         try {
-            // const backendURL = import.meta.env.VITE_BACKEND_URL;
-            const response = await fetch(`https://layerrs.com/api/track/${trackId}/cover`, { method: "GET"});
+            const response = await fetch(`${$urlBase}/api/track/${trackId}/cover`, { method: "GET"});
             if (!response.ok) {
                 throw new Error("Failed to catch cover art");
             }
@@ -109,7 +107,7 @@
             coverURL = URL.createObjectURL(blob);
 
         } catch (error) {
-            console.error("Error catching cover art", error)
+            logger.error(`Error catching cover art: ${error}`);
         }
     }
 
@@ -146,7 +144,7 @@
                     }
                     await loadNextChunk();
                 } catch (error) {
-                    console.error("Error setting up media source", error);
+                    logger.error(`Error setting up media source: ${error}`);
                 }
             });
 
@@ -154,7 +152,7 @@
             newAudioURL = sourceURL;
 
         } catch (error) {
-            console.error("Error setting up audio stream", error);
+            logger.error(`Error setting up audio stream: ${error}`);
         }
     }
 
@@ -165,8 +163,7 @@
 
         try {
             isLoading = true;
-            // const backendURL = import.meta.env.VITE_BACKEND_URL;
-            const response = await fetch(`https://layerrs.com/api/track/${trackId}/audio`,
+            const response = await fetch(`${$urlBase}/api/track/${trackId}/audio`,
             {
                 headers: {
                     'Range': `bytes=${currentOffset}-${currentOffset + CHUNK_SIZE - 1}`
@@ -189,7 +186,7 @@
             }
 
         } catch (error) {
-            console.error('Error loading chunk:', error);
+            logger.error(`Error loading chunk: ${error}`);
         } finally {
             isLoading = false;
         }
@@ -222,7 +219,7 @@
                         try {
                             mediaSource.removeSourceBuffer(sourceBuffer);
                         } catch (error) {
-                            console.warn("Error removing source buffer", error);
+                            logger.error(`Error removing source buffer: ${error}`);
                         }
                     }
                     mediaSource = null;
@@ -241,7 +238,7 @@
                 try {
                     await $audio.play()
                 } catch (error) {
-                    console.error("Failed to play audio", error)
+                    logger.error(`Failed to play audio: ${error}`);
                 }
             }
         }

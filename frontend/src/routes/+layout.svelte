@@ -3,51 +3,44 @@
 	import '../app.css';
     import AudioPlayer from '../components/AudioPlayer.svelte';
     import SideBar from '../components/SideBar.svelte';
-    import { audio } from '../stores/player';
+    import { initializeAudio } from '../stores/player';
 	import { jwt, refreshToken, isLoggedIn } from '../stores/auth';
+	import { handleEnvironment, urlBase } from '../stores/environment';
+	import { logger } from '../lib/logger/logger';
 
 	let { data, children } = $props();
 
 	// Initialize audio component across the entire session
 	onMount(async () => {
-		audio.set(new Audio())
-
-    	// Load tokens from cookies to session variables
+		await handleEnvironment()
+		initializeAudio()
 		await loadCookies()
-		console.log("jwt: " + $jwt)
-		console.log("refreshToken: " + $refreshToken)
-
-		const sessionKey = 'sessionStarted';
-
 		await handleSessionStart()
-
-		// Checking if this is the first page load for the session
-		// if (!sessionStorage.getItem(sessionKey)) {
-		// 	sessionStorage.setItem(sessionKey, 'true');
-		// 	await handleSessionStart();
-		// }
 	});
 
 	async function loadCookies() {
-		console.log("loading cookies initially")
+		logger.debug("loading cookies initially")
 		if (data.newJWT) {
-			console.log("Setting JWT")
+			logger.debug("Setting JWT")
         	jwt.set(data.newJWT)
 			isLoggedIn.set(true)
     	}
     	if (data.newRefreshToken) {
-			console.log("Setting refresh token")
+			logger.debug("Setting refresh token")
         	refreshToken.set(data.newRefreshToken)
     	}
+
+		logger.debug("jwt: " + $jwt)
+		logger.debug("refreshToken: " + $refreshToken)
 	}
 
 	async function handleSessionStart() {
-		console.log('Session started!');
-		console.log($refreshToken)
+		logger.debug('Session started!');
+		logger.debug($refreshToken)
 
 		// Refresh token doesn't exist (already loaded from cookies in page.server.ts), then logout:
 		if($refreshToken == "") {
-			console.log("no refresh token")
+			logger.debug("no refresh token")
 			await deleteTokens()
 			isLoggedIn.set(false)
 			return
@@ -60,14 +53,14 @@
 
 		// Refresh token was invalid, so log out
 		if (status == 401 || status == 500) {
-			console.log("invalid refresh token, logging out")
+			logger.debug("invalid refresh token, logging out")
 			await deleteTokens()
 			isLoggedIn.set(false)
 		} // Refresh token was valid, so stay logged in
 		else {
-			console.log("refresh token is valid, so staying logged in")
+			logger.debug("refresh token is valid, so staying logged in")
 			if (typeof newJWT !== 'string') {
-				console.error("newJWT is not a string")
+				logger.error("newJWT is not a string")
 			} else {
 				await writeTokensToCookies(newJWT, $refreshToken)
 				isLoggedIn.set(true)
@@ -86,7 +79,7 @@
 				})
 			})
 		} catch (error) {
-			console.error("Failed to set the JWT");
+			logger.error("Failed to set the JWT");
 		}
 	}
 
@@ -96,8 +89,7 @@
 		let status = 0
 
 		try {
-			// const backendURL = import.meta.env.VITE_BACKEND_URL;
-			const res = await fetch(`https://layerrs.com/api/authentication/refresh`, {
+			const res = await fetch(`${$urlBase}/api/authentication/refresh`, {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json"
@@ -108,7 +100,7 @@
 			const resJson = await res.json()
 			newJWT = resJson.token
 		} catch (error) {
-			console.log("Request for refresh denied")
+			logger.error("Request for refresh denied")
 		}
 
 		return [status, newJWT]
@@ -121,11 +113,7 @@
 </script>
 
 <div class="h-screen w-screen flex flex-row bg-gray-900 text-white font-body">
-
 	<SideBar></SideBar>
-
 	{@render children()}
-
 	<AudioPlayer></AudioPlayer>
-    
 </div>

@@ -14,13 +14,14 @@ import (
 )
 
 const (
-	DEVELOPMENT = "development"
-	PRODUCTION = "production"
+	ENVIRONMENT = "ENV"
+	DEVELOPMENT = "DEVELOPMENT"
+	PRODUCTION = "PRODUCTION"
 )
 
 func main() {
 	// Get the environment
-	env := os.Getenv("ENV")
+	env := os.Getenv(ENVIRONMENT)
 	if env == "" {
 		log.Fatal("Could not find the environment variable ENV")
 	}

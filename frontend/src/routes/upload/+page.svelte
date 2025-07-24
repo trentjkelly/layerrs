@@ -1,17 +1,15 @@
 <script>
     import { goto } from "$app/navigation";
-
-
     import TopHeader from "../../components/TopHeader.svelte";
     import { jwt } from "../../stores/auth";
     import { isSidebarOpen } from "../../stores/player";
+    import { urlBase } from "../../stores/environment";
+    import { logger } from "../../lib/logger/logger";
 
     let audioFiles = $state();
     let coverArtFiles = $state();
     let title = $state();
     let isUploaded = $state(false)
-
-    // let data = $props();
 
     function removeAudioFile() {
         audioFiles = null
@@ -26,27 +24,25 @@
         let coverArtFile = coverArtFiles[0];
 
         if (audioFile && coverArtFile) {
-            console.log("audioFile and coverArtFile are valid")
+            logger.debug("audioFile and coverArtFile are valid")
             const form = new FormData();
             form.append('audioFile', audioFile)
             form.append('coverArtFile', coverArtFile)
             form.append('name', title)
 
-            // const backendURL = import.meta.env.VITE_BACKEND_URL;
-            const res = await fetch(`https://layerrs.com/api/track/`, { 
+            const res = await fetch(`${$urlBase}/api/track/`, { 
                 method: "POST", 
                 headers: {
                     'Authorization': `Bearer ${$jwt}`
                 },
                 body: form
             });
-            
             if (res.status == 201) {
                 isUploaded = true
             }
 
         } else {
-            console.log("audioFile and coverArtFile are not valid")
+            logger.error("audioFile and coverArtFile are not valid")
         }
     }
 

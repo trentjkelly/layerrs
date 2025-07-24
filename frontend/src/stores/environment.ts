@@ -1,9 +1,21 @@
-import { readable } from "svelte/store"
+import { get, writable } from "svelte/store"
 
-// Comment / uncomment line based on dev & prod environments
+// Defaults to production values
+export const environment = writable('PRODUCTION')
+export const urlBase = writable('https://layerrs.com')
 
-// Production
-export const urlBase = readable('https://layerrs.com')
+// Changes the environment based on the .env file
+export async function handleEnvironment(): Promise<void> {
+	const environment = import.meta.env.ENV
+	if (environment == 'DEVELOPMENT') {
+		urlBase.set('http://localhost:8080')
+		environment.set('DEVELOPMENT')
+	} else {
+		urlBase.set('https://layerrs.com')
+		environment.set('PRODUCTION')
+	}
+}
 
-// Development
-// export const urlBase = readable('http://localhost:8080')
+export function getEnvironment(): string {
+	return get(environment)
+}

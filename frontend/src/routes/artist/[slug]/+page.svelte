@@ -3,14 +3,14 @@
     import TopHeader from "../../../components/TopHeader.svelte";
     import TrackCard from "../../../components/TrackCard.svelte";
     import TrackRow from "../../../components/TrackRow.svelte";
-
+    import { urlBase } from "../../../stores/environment";
+    
     let artistName = "Trent Kelly"
     let artistUsername = "trentjkelly"
     let artistBio = "Insert some corny ass drake quote as your bio ig"
 
     async function getArtistData() {
-        // const backendURL = import.meta.env.VITE_BACKEND_URL;
-        await fetch(`https://layerrs.com/api/artist/`)
+        await fetch(`${$urlBase}/api/artist/`)
     }
 
 </script>

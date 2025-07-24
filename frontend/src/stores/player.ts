@@ -10,3 +10,6 @@ export const isSidebarOpen = writable(true);
 // export const isSongSelected = writable(true);
 export const audio = writable<HTMLAudioElement | null>(null);
 
+export function initializeAudio() {
+    audio.set(new Audio())
+}
