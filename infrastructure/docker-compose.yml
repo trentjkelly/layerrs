@@ -4,13 +4,13 @@ services:
     image: layerrs-frontend:latest
     build:
       context: ../frontend #Path to frontend dockerfile
-      dockerfile: deployments/Dockerfile.${ENV}
+      dockerfile: deployments/Dockerfile.${ENV:-DEVELOPMENT}
       args:
         - ENV=${ENV:-DEVELOPMENT}
     environment:
       - ENV=${ENV:-DEVELOPMENT}
     env_file:
-      - ~/.env.${ENV}
+      - ~/.env.${ENV:-DEVELOPMENT}
     ports:
       - "3000:3000"
     networks:
@@ -22,13 +22,13 @@ services:
     image: layerrs-backend:latest
     build:
       context: ../backend #Path to backend dockerfile
-      dockerfile: deployments/Dockerfile.${ENV}
+      dockerfile: deployments/Dockerfile.${ENV:-DEVELOPMENT}
       args:
         - ENV=${ENV:-DEVELOPMENT}
     environment:
       - ENV=${ENV:-DEVELOPMENT}
     env_file:
-      - ~/.env.${ENV}
+      - ~/.env.${ENV:-DEVELOPMENT}
     ports:
       - "8080:8080"
     networks:
