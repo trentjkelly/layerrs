@@ -1,6 +1,9 @@
 # Build stage, use node.js 18 image (bionic) based on Ubuntu
 FROM node:20-alpine AS builder
 WORKDIR /app
+
+ENV VITE_ENVIRONMENT=PRODUCTION
+
 COPY package*.json ./
 RUN npm install -g pnpm
 RUN pnpm install
