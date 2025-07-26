@@ -7,15 +7,11 @@ ENV VITE_ENVIRONMENT=DEVELOPMENT
 
 RUN npm install -g pnpm
 
-# Remove the store and lock file to avoid conflicts
-RUN pnpm store prune
-RUN rm -f pnpm-lock.yaml package-lock.json yarn.lock
+# Handle node_modules  
 RUN rm -rf node_modules
-RUN rm -rf ~/.local/share/pnpm
-RUN rm -rf /root/.local/share/pnpm
-RUN pnpm install --no-frozen-lockfile
+RUN pnpm install  --no-frozen-lockfile
 
 COPY . . 
 
 EXPOSE 3000
-CMD ["pnpm", "run", "dev"]
+CMD ["pnpm", "run", "dev", "--host", "0.0.0.0"]

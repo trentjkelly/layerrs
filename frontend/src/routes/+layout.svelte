@@ -5,18 +5,16 @@
     import SideBar from '../components/SideBar.svelte';
     import { initializeAudio } from '../stores/player';
 	import { jwt, refreshToken, isLoggedIn } from '../stores/auth';
-	import { handleEnvironment, urlBase } from '../stores/environment';
+	import { getEnvironment, handleEnvironment, urlBase } from '../stores/environment';
 	import { logger } from '../lib/logger/logger';
 
 	let { data, children } = $props();
 
-	console.log("IS THIS EUNNING")
-
 	// Initialize audio component across the entire session
 	onMount(async () => {
-		console.log("WE HERE THO")
 		await handleEnvironment()
-		logger.debug(`urlBase: ${$urlBase}`)
+		let environment = getEnvironment()
+		console.log(`environment: ${environment}`)
 		initializeAudio()
 		await loadCookies()
 		await handleSessionStart()
@@ -34,6 +32,7 @@
         	refreshToken.set(data.newRefreshToken)
     	}
 
+		console.log("RELOAD")
 		logger.debug("jwt: " + $jwt)
 		logger.debug("refreshToken: " + $refreshToken)
 	}

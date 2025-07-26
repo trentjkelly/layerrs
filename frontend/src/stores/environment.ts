@@ -14,9 +14,6 @@ export async function handleEnvironment(): Promise<void> {
 		urlBase.set('https://layerrs.com')
 		environment.set('PRODUCTION')
 	}
-
-	console.log(environment)
-	console.log(urlBase)
 }
 
 export function getEnvironment(): string {
