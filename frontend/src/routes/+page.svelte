@@ -13,6 +13,7 @@
      */
     let trackIds = [];
 
+    console.log("Does anything work")
 
     async function fetchData() {
         const response = await fetch(`${$urlBase}/api/recommendations/home`)

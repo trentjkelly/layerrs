@@ -10,9 +10,13 @@
 
 	let { data, children } = $props();
 
+	console.log("IS THIS EUNNING")
+
 	// Initialize audio component across the entire session
 	onMount(async () => {
+		console.log("WE HERE THO")
 		await handleEnvironment()
+		logger.debug(`urlBase: ${$urlBase}`)
 		initializeAudio()
 		await loadCookies()
 		await handleSessionStart()

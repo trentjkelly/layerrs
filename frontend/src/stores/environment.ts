@@ -6,14 +6,17 @@ export const urlBase = writable('https://layerrs.com')
 
 // Changes the environment based on the .env file
 export async function handleEnvironment(): Promise<void> {
-	const environment = import.meta.env.VITE_ENVIRONMENT
-	if (environment === 'DEVELOPMENT') {
+	const envValue = import.meta.env.VITE_ENVIRONMENT
+	if (envValue === 'DEVELOPMENT') {
 		urlBase.set('http://localhost:8080')
 		environment.set('DEVELOPMENT')
 	} else {
 		urlBase.set('https://layerrs.com')
 		environment.set('PRODUCTION')
 	}
+
+	console.log(environment)
+	console.log(urlBase)
 }
 
 export function getEnvironment(): string {
