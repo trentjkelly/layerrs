@@ -1,0 +1,22 @@
+# Build stage, use node.js 18 image (bionic) based on Ubuntu
+FROM node:20-alpine AS builder
+WORKDIR /app
+
+ENV VITE_ENVIRONMENT=PRODUCTION
+
+COPY package*.json ./
+RUN npm install -g pnpm
+RUN pnpm install
+COPY . .
+RUN pnpm run build
+
+# Smaller image for final stage
+FROM node:20-alpine
+WORKDIR /app
+COPY --from=builder /app/package*.json ./
+COPY --from=builder /app/build ./build
+COPY --from=builder /app/node_modules ./node_modules
+
+#Expose and run the app
+EXPOSE 3000
+CMD ["node", "build"]

@@ -42,19 +42,33 @@ func (r *TrackDatabaseRepository) ReadTrackById(ctx context.Context, track *enti
 	row := r.db.QueryRow(ctx, query, track.Id)
 	
 	// Potential NULL Values
-	var r2TrackKey sql.NullString
+	var flacR2TrackKey sql.NullString
+	var opusR2TrackKey sql.NullString
+	var aacR2TrackKey sql.NullString
 	var r2CoverKey sql.NullString
 
-	err := row.Scan(&track.Id, &track.Name, &track.ArtistId, &r2TrackKey, &r2CoverKey, &track.CreatedAt, &track.Plays, &track.Likes, &track.Layerrs)
+	err := row.Scan(&track.Id, &track.Name, &track.ArtistId, &r2CoverKey, &track.CreatedAt, &track.Plays, &track.Likes, &track.Layerrs, &track.FlacR2TrackKey, &track.OpusR2TrackKey, &track.AacR2TrackKey)
 	if err != nil {
 		return err
 	}
 
 	// Potential NULL values converted to empty strings
-	if r2TrackKey.Valid {
-		track.R2TrackKey = r2TrackKey.String
+	if flacR2TrackKey.Valid {
+		track.FlacR2TrackKey = flacR2TrackKey.String
 	} else {
-		track.R2TrackKey = ""
+		track.FlacR2TrackKey = ""
+	}
+
+	if opusR2TrackKey.Valid {
+		track.OpusR2TrackKey = opusR2TrackKey.String
+	} else {
+		track.OpusR2TrackKey = ""
+	}
+
+	if aacR2TrackKey.Valid {
+		track.AacR2TrackKey = aacR2TrackKey.String
+	} else {
+		track.AacR2TrackKey = ""
 	}
 
 	if r2CoverKey.Valid {
@@ -68,8 +82,8 @@ func (r *TrackDatabaseRepository) ReadTrackById(ctx context.Context, track *enti
 
 // Updates the information for a Track in the database
 func (r *TrackDatabaseRepository) UpdateTrack(ctx context.Context, track *entities.Track) error {
-	query := `UPDATE track SET name=$2, r2_track_key=$3, r2_cover_key=$4 WHERE id=$1 RETURNING name;`
-	row := r.db.QueryRow(ctx, query, track.Id, track.Name, track.R2TrackKey, track.R2CoverKey)
+	query := `UPDATE track SET name=$2, flac_r2_track_key=$3, opus_r2_track_key=$4, aac_r2_track_key=$5, r2_cover_key=$6 WHERE id=$1 RETURNING name;`
+	row := r.db.QueryRow(ctx, query, track.Id, track.Name, track.FlacR2TrackKey, track.OpusR2TrackKey, track.AacR2TrackKey, track.R2CoverKey)
 	
 	err := row.Scan(&track.Name)
 	if err != nil {

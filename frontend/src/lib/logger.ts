@@ -1,4 +1,4 @@
-import { getEnvironment } from "../../stores/environment"
+import { getEnvironment } from "../stores/environment"
 
 // Logger class for logging messages if in development environment
 class Logger {

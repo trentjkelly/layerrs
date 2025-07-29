@@ -1,4 +1,5 @@
 import { get, writable } from "svelte/store"
+import { logger } from "../lib/logger"
 
 // Defaults to production values
 export const environment = writable('PRODUCTION')
@@ -10,9 +11,11 @@ export async function handleEnvironment(): Promise<void> {
 	if (envValue === 'DEVELOPMENT') {
 		urlBase.set('http://localhost:8080')
 		environment.set('DEVELOPMENT')
-	} else {
+	} else if (envValue === 'PRODUCTION') {
 		urlBase.set('https://layerrs.com')
 		environment.set('PRODUCTION')
+	} else {
+		logger.error('Could not set environment')
 	}
 }
 

@@ -5,36 +5,27 @@
     import SideBar from '../components/SideBar.svelte';
     import { initializeAudio } from '../stores/player';
 	import { jwt, refreshToken, isLoggedIn } from '../stores/auth';
-	import { getEnvironment, handleEnvironment, urlBase } from '../stores/environment';
+	import { environment, getEnvironment, handleEnvironment, urlBase } from '../stores/environment';
 	import { logger } from '../lib/logger/logger';
-
+	
 	let { data, children } = $props();
-
+	
 	// Initialize audio component across the entire session
 	onMount(async () => {
 		await handleEnvironment()
-		let environment = getEnvironment()
-		console.log(`environment: ${environment}`)
 		initializeAudio()
 		await loadCookies()
 		await handleSessionStart()
 	});
 
 	async function loadCookies() {
-		logger.debug("loading cookies initially")
 		if (data.newJWT) {
-			logger.debug("Setting JWT")
         	jwt.set(data.newJWT)
 			isLoggedIn.set(true)
     	}
     	if (data.newRefreshToken) {
-			logger.debug("Setting refresh token")
         	refreshToken.set(data.newRefreshToken)
     	}
-
-		console.log("RELOAD")
-		logger.debug("jwt: " + $jwt)
-		logger.debug("refreshToken: " + $refreshToken)
 	}
 
 	async function handleSessionStart() {
@@ -43,7 +34,6 @@
 
 		// Refresh token doesn't exist (already loaded from cookies in page.server.ts), then logout:
 		if($refreshToken == "") {
-			logger.debug("no refresh token")
 			await deleteTokens()
 			isLoggedIn.set(false)
 			return
@@ -59,7 +49,8 @@
 			logger.debug("invalid refresh token, logging out")
 			await deleteTokens()
 			isLoggedIn.set(false)
-		} // Refresh token was valid, so stay logged in
+		} 
+		// Refresh token was valid, so stay logged in
 		else {
 			logger.debug("refresh token is valid, so staying logged in")
 			if (typeof newJWT !== 'string') {

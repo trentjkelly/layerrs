@@ -3,7 +3,7 @@
     import TopHeader from "../components/TopHeader.svelte";
     import TrackCard from "../components/TrackCard.svelte";
     import { isSidebarOpen } from "../stores/player";
-    import { urlBase } from "../stores/environment";
+    import { handleEnvironment, urlBase } from "../stores/environment";
 
     // Each of the songs to be loaded in
     let artistId = 1 // Static for now
@@ -14,12 +14,15 @@
     let trackIds = [];
 
     async function fetchData() {
+        console.log("fetching data")
+        console.log($urlBase)
         const response = await fetch(`${$urlBase}/api/recommendations/home`)
         const data = await response.json();
         trackIds = Object.keys(data).map(key => data[key])
     }
 
     onMount(async () => {
+        await handleEnvironment()
         await fetchData()
     })
 

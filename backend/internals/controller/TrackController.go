@@ -2,11 +2,11 @@ package controller
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"log"
 	"net/http"
 	"strconv"
+	"bytes"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/trentjkelly/layerrs/internals/service"
@@ -105,33 +105,27 @@ func (c *TrackController) TrackAudioHandlerGet(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	// Getting the byte range from the request
-	byteRange := r.Header.Get("Range")
-	var startByte int
-	var endByte int
-	_, err = fmt.Sscanf(byteRange, "bytes=%d-%d", &startByte, &endByte)
-	if err != nil {
-		http.Error(w, "Could not parse byte range", http.StatusBadRequest)
-		return 
-	}
-
 	// Get audio from storage
-	file, err := c.trackService.StreamTrack(r.Context(), trackId, startByte, endByte)
+	url, expiresAt, err := c.trackService.GetSignedTrackURL(r.Context(), trackId)
 	if err != nil {
 		http.Error(w, "Failed to stream track", http.StatusInternalServerError)
 		return
 	}
-	defer file.Close()
-
-	// Send audio to frontend
-	w.Header().Set("Content-Type", "audio/*")
-	w.Header().Set("Content-Disposition", "inline")
-	_, err = io.Copy(w, file)
+	
+	// Encode response
+	var buffer bytes.Buffer
+	err = json.NewEncoder(&buffer).Encode(map[string]string{
+		"url": url,
+		"expiresAt": expiresAt,
+	})
 	if err != nil {
-		http.Error(w, "Error while streaming audio", http.StatusPartialContent)
+		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+		return
 	}
 
-	w.WriteHeader(http.StatusOK)
+	// Set headers and send response
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(buffer.Bytes())
 }
 
 func (c *TrackController) TrackCoverHandlerGet(w http.ResponseWriter, r *http.Request) {

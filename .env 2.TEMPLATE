@@ -1,4 +1,5 @@
 # Frontend URL
+VITE_ENVIRONMENT=placeholder
 VITE_BACKEND_URL_PRODUCTION=placeholder1
 VITE_BACKEND_URL_DEVELOPMENT=placeholder2
 

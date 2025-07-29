@@ -1,0 +1,17 @@
+FROM node:20-alpine
+
+WORKDIR /app
+COPY package*.json ./
+
+ENV VITE_ENVIRONMENT=DEVELOPMENT
+
+RUN npm install -g pnpm
+
+# Handle node_modules  
+RUN rm -rf node_modules
+RUN pnpm install  --no-frozen-lockfile
+
+COPY . . 
+
+EXPOSE 3000
+CMD ["pnpm", "run", "dev", "--host", "0.0.0.0"]

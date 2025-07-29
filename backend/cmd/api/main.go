@@ -4,6 +4,8 @@ import (
 	"log"
 	"os"
 
+	"github.com/joho/godotenv"
+
 	"github.com/trentjkelly/layerrs/internals/config"
 	"github.com/trentjkelly/layerrs/internals/controller"
 	"github.com/trentjkelly/layerrs/internals/repository/auth"
@@ -21,10 +23,22 @@ const (
 
 func main() {
 	// Get the environment
+	home, err := os.UserHomeDir()
+	if err != nil {
+		log.Fatalf("Error getting user home directory: %v", err)
+	}
+
+	err = godotenv.Load(home + "/.env.layerrs")
+	if err != nil {
+		log.Fatalf("Error loading .env file: %v", err)
+	}
+
 	env := os.Getenv(ENVIRONMENT)
 	if env == "" {
-		log.Fatal("Could not find the environment variable ENV")
+		log.Fatalf("Could not find the environment variable %s", ENVIRONMENT)
 	}
+
+	log.Println(env)
 
 	// Database Connection
 	pool, err := config.InitDB(env)
@@ -36,7 +50,7 @@ func main() {
 	// -- REPOSITORIES --
 	// Computing Repositories
 	trackConversionRepo := computingRepository.NewTrackConversionRepository()
-	waveformRepo := computingRepository.NewWaveformHeightsRepository()
+	waveformRepo := computingRepository.NewWaveformComputingRepository()
 
 	// Auth Repositories
 	passwordRepo := authRepository.NewPasswordRepository()
@@ -47,6 +61,7 @@ func main() {
 	likesDatabaseRepo := databaseRepository.NewLikesDatabaseRepository(pool)
 	trackDatabaseRepo := databaseRepository.NewTrackDatabaseRepository(pool)
 	trackTreeDatabaseRepo := databaseRepository.NewTrackTreeDatabaseRepository(pool)
+	waveformDatabaseRepo := databaseRepository.NewWaveformDatabaseRepository(pool)
 
 	// Storage Repositories
 	coverStorageRepo := storageRepository.NewCoverStorageRepository(env)
@@ -55,7 +70,7 @@ func main() {
 
 	// -- SERVICES --
 	authService := service.NewAuthService(passwordRepo, artistDatabaseRepo, authRepo)
-	trackService := service.NewTrackService(trackStorageRepo, coverStorageRepo, trackDatabaseRepo, trackTreeDatabaseRepo, trackConversionRepo, waveformRepo)
+	trackService := service.NewTrackService(trackStorageRepo, coverStorageRepo, trackDatabaseRepo, trackTreeDatabaseRepo, trackConversionRepo, waveformRepo, waveformDatabaseRepo, env)
 	recService := service.NewRecommendationsService(trackDatabaseRepo, likesDatabaseRepo)
 	artistService := service.NewArtistService(artistDatabaseRepo)
 	likesService := service.NewLikesService(likesDatabaseRepo, trackDatabaseRepo)

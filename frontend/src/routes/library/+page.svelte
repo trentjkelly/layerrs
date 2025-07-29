@@ -8,15 +8,13 @@
     import LogInPopup from "../../components/LogInPopup.svelte";
     import { urlBase } from "../../stores/environment";
     import { logger } from "../../lib/logger/logger";
-
+    import { handleEnvironment } from "../../stores/environment";
     /**
      * @type {any[]}
      */
     let trackIds = [];
 
     async function fetchData() {
-        logger.debug("jwt" + $jwt)
-
         const response = await fetch(`${$urlBase}/api/recommendations/library`, {
             method: 'GET',
             headers: {
@@ -35,7 +33,7 @@
     }
 
     onMount(async () => {
-        logger.debug("fetching data")
+        await handleEnvironment()
         await fetchData()
     })
 

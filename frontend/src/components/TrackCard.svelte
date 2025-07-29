@@ -232,9 +232,6 @@
                 currentTrack.set(newAudioURL)
                 currentTrackId.set(trackId)
 
-                // if ($currentTrack) {
-                //     $audio.src = $currentTrack
-                // }
                 try {
                     await $audio.play()
                 } catch (error) {

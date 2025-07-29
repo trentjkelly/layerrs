@@ -3,27 +3,22 @@ package computingRepository
 import (
 	"fmt"
 	"math"
-	"os"
+	"context"
+	"mime/multipart"
 
 	"github.com/faiface/beep"
 	"github.com/faiface/beep/mp3"
 )
 
-type WaveformHeightsRepository struct {}
+type WaveformComputingRepository struct {}
 
-func NewWaveformHeightsRepository() *WaveformHeightsRepository {
-	waveformHeightsRepository := new(WaveformHeightsRepository)
-	return waveformHeightsRepository
+func NewWaveformComputingRepository() *WaveformComputingRepository {
+	waveformComputingRepository := new(WaveformComputingRepository)
+	return waveformComputingRepository
 }
 
-func (r *WaveformHeightsRepository) CreateWaveform(filename string) ([]int, error) {
-	file, err := os.Open(filename)
-	if err != nil {
-		return nil, fmt.Errorf("could not open the audio file: %w", err)
-	}
-	defer file.Close()
-
-	streamer, _, err := mp3.Decode(file)
+func (r *WaveformComputingRepository) CreateWaveform(ctx context.Context, audio multipart.File) ([]int, error) {
+	streamer, _, err := mp3.Decode(audio)
 	if err != nil {
 		return nil, fmt.Errorf("could not decode the mp3 file: %w", err)
 	}
@@ -37,7 +32,7 @@ func (r *WaveformHeightsRepository) CreateWaveform(filename string) ([]int, erro
 	return barsSlice, nil
 }
 
-func (r *WaveformHeightsRepository) getBars(streamer beep.StreamSeekCloser) ([]int, error) {
+func (r *WaveformComputingRepository) getBars(streamer beep.StreamSeekCloser) ([]int, error) {
 	numSamples := streamer.Len()
 	sampleSlice := make([][2]float64, numSamples)
 
@@ -66,7 +61,7 @@ func (r *WaveformHeightsRepository) getBars(streamer beep.StreamSeekCloser) ([]i
 	return barsSlice, nil
 }
 
-func (r *WaveformHeightsRepository) getSampleAmplitude(sample [2]float64) float64 {
+func (r *WaveformComputingRepository) getSampleAmplitude(sample [2]float64) float64 {
 	left, right := sample[0], sample[1]
 	leftPercent := math.Abs(left) * 100
 	rightPercent := math.Abs(right) * 100
@@ -74,7 +69,7 @@ func (r *WaveformHeightsRepository) getSampleAmplitude(sample [2]float64) float6
 	return math.Max(leftPercent, rightPercent)
 }
 
-func (r *WaveformHeightsRepository) getMaxFromSlice(slice []float64) float64 {
+func (r *WaveformComputingRepository) getMaxFromSlice(slice []float64) float64 {
 	max := slice[0]
 	for _, v := range slice {
 		if v > max {
@@ -84,7 +79,7 @@ func (r *WaveformHeightsRepository) getMaxFromSlice(slice []float64) float64 {
 	return max
 }
 
-func (r *WaveformHeightsRepository) floatsToInts(floats []float64) []int {
+func (r *WaveformComputingRepository) floatsToInts(floats []float64) []int {
 	ints := make([]int, len(floats))
 	for i, f := range floats {
 		ints[i] = int(math.Round(f))
@@ -92,7 +87,7 @@ func (r *WaveformHeightsRepository) floatsToInts(floats []float64) []int {
 	return ints
 }
 
-func (r *WaveformHeightsRepository) cleanBars(bars *[]int) {
+func (r *WaveformComputingRepository) cleanBars(bars *[]int) {
 	for i, value := range *bars {
 		if value < 1 {
 			(*bars)[i] = 1

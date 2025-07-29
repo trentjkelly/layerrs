@@ -37,3 +37,7 @@ func CreateR2Client(r2Config *aws.Config) *s3.Client {
 
 	return r2Client
 }
+
+func CreateR2Presigner(r2Client *s3.Client) *s3.PresignClient {
+	return s3.NewPresignClient(r2Client)
+}

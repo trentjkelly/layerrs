@@ -6,34 +6,86 @@ import (
 	"io"
 	"mime/multipart"
 	"os"
+	"strings"
+	"time"
 
 	"github.com/trentjkelly/layerrs/internals/config"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	_ "github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 )
 
 type TrackStorageRepository struct {
 	r2Config		*aws.Config
 	r2Client		*s3.Client
+	r2Presigner		*s3.PresignClient
 	trackBucketName *string
+	environment		string
 }
 
 // Constructor for new TrackRepository
-func NewTrackStorageRepository(env string) *TrackStorageRepository {
+func NewTrackStorageRepository(environment string) *TrackStorageRepository {
 	trackStorageRepository := new(TrackStorageRepository)
 	trackStorageRepository.r2Config = config.CreateR2Config()
 	trackStorageRepository.r2Client = config.CreateR2Client(trackStorageRepository.r2Config)
-	trackStorageRepository.trackBucketName = aws.String(os.Getenv(fmt.Sprintf("TRACK_AUDIO_BUCKET_NAME_%s", env)))
+	trackStorageRepository.r2Presigner = config.CreateR2Presigner(trackStorageRepository.r2Client)
+	trackStorageRepository.trackBucketName = aws.String(os.Getenv(fmt.Sprintf("TRACK_AUDIO_BUCKET_NAME_%s", environment)))
+	trackStorageRepository.environment = environment
 	return trackStorageRepository
 }
 
-// Uploads a track to storage
-func (r *TrackStorageRepository) CreateTrack(ctx context.Context, file multipart.File, filename *string) error {
+// Uploads all tracks to R2
+func (r *TrackStorageRepository) CreateAllTracks(ctx context.Context, flacPath string, opusPath string, aacPath string) error {
+	envName := strings.ToLower(r.environment)
 	
+	// Upload FLAC file
+	file, err := os.Open(flacPath)
+	if err != nil {
+		return fmt.Errorf("could not open the flac file: %w", err)
+	}
+
+	flacBucketName := fmt.Sprintf("track-audio-flac-%s", envName)
+	err = r.CreateTrack(ctx, file, flacPath, flacBucketName)
+	if err != nil {
+		return fmt.Errorf("failed to upload flac file to R2: %w", err)
+	}
+	file.Close()
+
+	// Upload AAC file
+	file, err = os.Open(aacPath)
+	if err != nil {
+		return fmt.Errorf("could not open the aac file: %w", err)
+	}
+
+	aacBucketName := fmt.Sprintf("track-audio-aac-%s", envName)
+	err = r.CreateTrack(ctx, file, aacPath, aacBucketName)
+	if err != nil {
+		return fmt.Errorf("failed to upload flac file to R2: %w", err)
+	}
+	file.Close()
+
+	// Upload OPUS file
+	file, err = os.Open(opusPath)
+	if err != nil {
+		return fmt.Errorf("could not open the aac file: %w", err)
+	}
+
+	opusBucketName := fmt.Sprintf("track-audio-opus-%s", envName)
+	err = r.CreateTrack(ctx, file, opusPath, opusBucketName)
+	if err != nil {
+		return fmt.Errorf("failed to upload flac file to R2: %w", err)
+	}
+	file.Close()
+
+	return nil
+}
+
+// Uploads a single track to R2
+func (r *TrackStorageRepository) CreateTrack(ctx context.Context, file multipart.File, filename string, bucketName string) error {
 	input := &s3.PutObjectInput{
-		Bucket:	r.trackBucketName,
-		Key:	filename,
+		Bucket:	&bucketName,
+		Key:	&filename,
 		Body:	file,
 	}
 
@@ -63,6 +115,23 @@ func (r *TrackStorageRepository) ReadTrack(ctx context.Context, trackName *strin
 	}
 
 	return res.Body, nil
+}
+
+// Gets a signed url for a track
+func ( r*TrackStorageRepository) GetSignedURL(ctx context.Context, objectKey *string, expirationTime time.Duration) (string, time.Duration, error) {
+	input := &s3.GetObjectInput{
+		Bucket: r.trackBucketName,
+		Key: objectKey,
+	}
+
+	req, err := r.r2Presigner.PresignGetObject(ctx, input, func(opts *s3.PresignOptions) {
+		opts.Expires = expirationTime
+	})
+	if err != nil {
+		return "", 0, fmt.Errorf("failed to get presigned url: %w", err)
+	}
+
+	return req.URL, expirationTime, nil
 }
 
 // Updates the track in storage
