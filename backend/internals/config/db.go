@@ -1,12 +1,14 @@
 package config
 
 import (
-	"fmt"
-	"path/filepath"
-	"time"
-	"os"
 	"context"
 	"database/sql"
+	"fmt"
+	"log"
+	"os"
+	"path/filepath"
+	"time"
+
 	"github.com/pressly/goose/v3"
 	"github.com/jackc/pgx/v5/pgxpool"
 	_ "github.com/lib/pq"
@@ -22,7 +24,8 @@ type DBConfig struct {
 }
 
 const (
-	PSQL_HOST = "PSQL_HOST_%s"
+	PSQL_HOST_DOCKER = "PSQL_HOST_DOCKER"
+	PSQL_HOST_LOCAL = "PSQL_HOST_LOCAL"
 	PSQL_PORT = "PSQL_PORT_%s"
 	PSQL_DB = "PSQL_DB_%s"
 	PSQL_USER = "PSQL_USER_%s"
@@ -30,10 +33,14 @@ const (
 )
 
 // Creates a new database configuration
-func NewDBConfig(env string) (*DBConfig, error) {
+func NewDBConfig(env string, isDocker bool) (*DBConfig, error) {
 	dbConfig := new(DBConfig)
 
-	dbConfig.Host = os.Getenv(fmt.Sprintf(PSQL_HOST, env))
+	if isDocker {
+		dbConfig.Host = os.Getenv(PSQL_HOST_DOCKER)
+	} else {
+		dbConfig.Host = os.Getenv(PSQL_HOST_LOCAL)
+	}
 	if dbConfig.Host == "" {
 		return nil, fmt.Errorf("could not find the environment variable PSQL_HOST_%s", env)
 	}
@@ -58,14 +65,14 @@ func NewDBConfig(env string) (*DBConfig, error) {
 		return nil, fmt.Errorf("could not find the environment variable PSQL_PASSWORD_%s", env)
 	}
 
-	dbConfig.psqlURL = fmt.Sprintf("postgresql://%s:%s/%s?user=%s&password=%s&sslmode=disable", dbConfig.Host, dbConfig.Port, dbConfig.Database, dbConfig.User, dbConfig.Password)
+	dbConfig.psqlURL = fmt.Sprintf("postgresql://%s:%s@%s:%s/%s?sslmode=disable", dbConfig.User, dbConfig.Password, dbConfig.Host, dbConfig.Port, dbConfig.Database)
 
 	return dbConfig, nil
 }
 
 // Initializes a database connection, applies migrations, and returns a connection pool
-func InitDB(env string) (*pgxpool.Pool, error) {
-	dbConfig, err := NewDBConfig(env)
+func InitDB(env string, isDocker bool) (*pgxpool.Pool, error) {
+	dbConfig, err := NewDBConfig(env, isDocker)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create database config: %w", err)
 	}
@@ -125,6 +132,8 @@ func (dbConfig *DBConfig) CreatePSQLConnection() (*sql.DB, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to open connection: %w", err)
 	}
+
+	log.Println(dbConfig.psqlURL)
 
 	err = db.Ping()
 	if err != nil {

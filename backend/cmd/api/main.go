@@ -2,9 +2,6 @@ package main
 
 import (
 	"log"
-	"os"
-
-	"github.com/joho/godotenv"
 
 	"github.com/trentjkelly/layerrs/internals/config"
 	"github.com/trentjkelly/layerrs/internals/controller"
@@ -23,25 +20,13 @@ const (
 
 func main() {
 	// Get the environment
-	home, err := os.UserHomeDir()
+	env, isDocker, err := config.GetEnvironment()
 	if err != nil {
-		log.Fatalf("Error getting user home directory: %v", err)
+		log.Fatalf("Could not get the environment: %v", err)
 	}
-
-	err = godotenv.Load(home + "/.env.layerrs")
-	if err != nil {
-		log.Fatalf("Error loading .env file: %v", err)
-	}
-
-	env := os.Getenv(ENVIRONMENT)
-	if env == "" {
-		log.Fatalf("Could not find the environment variable %s", ENVIRONMENT)
-	}
-
-	log.Println(env)
 
 	// Database Connection
-	pool, err := config.InitDB(env)
+	pool, err := config.InitDB(env, isDocker)
 	if err != nil {
 		log.Fatal(err)
 	}

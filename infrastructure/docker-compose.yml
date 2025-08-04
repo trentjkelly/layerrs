@@ -10,7 +10,7 @@ services:
     environment:
       - ENV=${ENV:-DEVELOPMENT}
     env_file:
-      - ~/.env.${ENV:-DEVELOPMENT}
+      - ~/.env.layerrs
     ports:
       - "3000:3000"
     networks:
@@ -28,7 +28,7 @@ services:
     environment:
       - ENV=${ENV:-DEVELOPMENT}
     env_file:
-      - ~/.env.${ENV:-DEVELOPMENT}
+      - ~/.env.layerrs
     ports:
       - "8080:8080"
     networks:
