@@ -4,7 +4,7 @@
     import { goto } from "$app/navigation";
     import { isLoggedIn, jwt, refreshToken } from "../../stores/auth";
     import { urlBase } from "../../stores/environment";
-    import { logger } from "../../lib/logger/logger";
+    import { logger } from "../../lib/logger";
 
     let email = $state('')
     let password = $state('')

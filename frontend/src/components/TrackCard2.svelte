@@ -7,7 +7,7 @@
     import LayerrButton from './LayerrButton.svelte';
     import ParentTrackButton from './ParentTrackButton.svelte';
     import { urlBase } from '../stores/environment';
-    import { logger } from '../lib/logger/logger';
+    import { logger } from '../lib/logger';
     // Inherits the trackId from the page
     let { trackId } = $props();
 

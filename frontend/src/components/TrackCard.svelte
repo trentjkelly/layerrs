@@ -6,7 +6,7 @@
     import LikeButton from './LikeButton.svelte';
     import LayerrButton from './LayerrButton.svelte';
     import ParentTrackButton from './ParentTrackButton.svelte';
-    import { logger } from '../lib/logger/logger';
+    import { logger } from '../lib/logger';
     import { urlBase } from '../stores/environment';
     
     // Inherits the trackId from the page

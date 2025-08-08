@@ -4,7 +4,7 @@
     import { jwt } from "../../stores/auth";
     import { isSidebarOpen } from "../../stores/player";
     import { urlBase } from "../../stores/environment";
-    import { logger } from "../../lib/logger/logger";
+    import { logger } from "../../lib/logger";
 
     let audioFiles = $state();
     let coverArtFiles = $state();

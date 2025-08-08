@@ -3,7 +3,7 @@
     import { isSidebarOpen } from "../../stores/player";
     import { goto } from "$app/navigation";
     import { urlBase } from "../../stores/environment";
-    import { logger } from "../../lib/logger/logger";
+    import { logger } from "../../lib/logger";
 
     let email = $state('')
     let password = $state('')

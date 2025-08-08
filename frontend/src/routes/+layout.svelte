@@ -6,7 +6,7 @@
     import { initializeAudio } from '../stores/player';
 	import { jwt, refreshToken, isLoggedIn } from '../stores/auth';
 	import { environment, getEnvironment, handleEnvironment, urlBase } from '../stores/environment';
-	import { logger } from '../lib/logger/logger';
+	import { logger } from '../lib/logger';
 	
 	let { data, children } = $props();
 	
