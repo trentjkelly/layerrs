@@ -26,17 +26,16 @@
 </script>
   
 <div class="flex">
-    <div
-      class={`fixed top-0 left-0 h-full bg-gradient-to-b from-gray-950 to-gray-900 text-white w-64 transform transition-transform duration-300 ${
-        $isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-        <div class="flex flex-row items-center justify-between">
+    <div class={`fixed top-0 left-0 h-full bg-gradient-to-b from-gray-950 to-gray-900 text-white w-64 transform transition-transform duration-300 
+        ${$isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+        <div class="h-20 flex flex-row items-center justify-between">
             <button onclick={navigateHome} class="flex flex-row items-center ml-4 p-4">
                 <img class="h-8 w-8" src="/vinyls.png" alt="Layerr Logo">
-                <h2 class="text-xl font-bold ml-2">Layerrs</h2>
+                <h2 class="text-2xl font-bold ml-2 tracking-wide">Layerrs</h2>
             </button>
             {#if $isSidebarOpen}
-                <button class="mr-4 h-8 w-8 hover:h-9 hover:w-9 text-white rounded rounded-xl shadow hover:bg-gray-800 transform flex flex-row items-center justify-center" onclick={toggleSidebar}>
-                    <img src="/left-arrow.png" alt="Close sidebar"/>
+                <button class="mr-4 h-8 w-8 text-white rounded rounded-xl shadow hover:bg-gray-600 transform flex flex-row items-center justify-center" onclick={toggleSidebar}>
+                    <img src="/sidebar-in.png" alt="Close sidebar"/>
                 </button>
             {/if}
         </div>
@@ -65,8 +64,6 @@
                     <button class="w-full h-full flex flex-row items-center justify-center p-2 " onclick={navigateSignIn}>Log In</button>
                 </li>
             {/if}
-        </ul>
-  
+        </ul>  
     </div>
 </div>
-  
