@@ -10,6 +10,14 @@ export const isSidebarOpen = writable(true);
 // export const isSongSelected = writable(true);
 export const audio = writable<HTMLAudioElement | null>(null);
 
+export const currentTime = writable(0);
+
 export function initializeAudio() {
     audio.set(new Audio())
+}
+
+export function updateCurrentTime() {
+    $effect(() => {
+        currentTime.set($audio?.currentTime || 0);
+    })
 }

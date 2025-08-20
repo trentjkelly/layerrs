@@ -41,19 +41,19 @@
         </div>
         
         <ul class="space-y-2 px-4">
-            <li class="hover:bg-slate-500 rounded">
+            <li class="hover:bg-slate-700 rounded">
                 <button class="flex flex-row w-full h-full p-2" onclick={navigateHome}>
                     <img class="h-6 w-6" src="/home.png" alt="Home" />
                     <p class="pl-3 text-lg">Home</p>
                 </button>
             </li>
-            <li class="hover:bg-slate-500 rounded">
+            <li class="hover:bg-slate-700 rounded">
                 <button class="flex flex-row w-full h-full p-2" onclick={navigateLibrary}>
                     <img class="h-6 w-6" src="/vinyl.png" alt="Library" />
                     <p class="pl-3 text-lg">Library</p>
                 </button>
             </li>
-            <li class="hover:bg-slate-500 rounded">
+            <li class="hover:bg-slate-700 rounded">
                 <button class="flex flex-row w-full h-full p-2" onclick={navigateUpload}>
                     <img class="h-6 w-6" src="/upload.png" alt="Upload" />
                     <p class="pl-3 text-lg">Upload</p>

@@ -5,6 +5,7 @@ import (
 	"context"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/trentjkelly/layerrs/internals/entities"
+	"fmt"
 )
 
 type TrackDatabaseRepository struct {
@@ -30,7 +31,7 @@ func (r *TrackDatabaseRepository) CreateTrack(ctx context.Context, track *entiti
 	
 	err := row.Scan(&track.Id)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to scan rows in CreateTrack: %w", err)
 	}
 
 	return nil
@@ -38,7 +39,7 @@ func (r *TrackDatabaseRepository) CreateTrack(ctx context.Context, track *entiti
 
 // Gets a Track from the database based on their id
 func (r *TrackDatabaseRepository) ReadTrackById(ctx context.Context, track *entities.Track) error {
-	query := `SELECT * FROM track WHERE id=$1;`
+	query := `SELECT id, name, artist_id, flac_r2_track_key, opus_r2_track_key, aac_r2_track_key, r2_cover_key, created_at, plays, likes, layerrs, is_valid, duration FROM track WHERE id=$1;`
 	row := r.db.QueryRow(ctx, query, track.Id)
 	
 	// Potential NULL Values
@@ -47,9 +48,9 @@ func (r *TrackDatabaseRepository) ReadTrackById(ctx context.Context, track *enti
 	var aacR2TrackKey sql.NullString
 	var r2CoverKey sql.NullString
 
-	err := row.Scan(&track.Id, &track.Name, &track.ArtistId, &r2CoverKey, &track.CreatedAt, &track.Plays, &track.Likes, &track.Layerrs, &track.FlacR2TrackKey, &track.OpusR2TrackKey, &track.AacR2TrackKey)
+	err := row.Scan(&track.Id, &track.Name, &track.ArtistId, &flacR2TrackKey, &opusR2TrackKey, &aacR2TrackKey, &r2CoverKey, &track.CreatedAt, &track.Plays, &track.Likes, &track.Layerrs, &track.IsValid, &track.TrackDuration)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to scan rows in ReadTrackByID: %w", err)
 	}
 
 	// Potential NULL values converted to empty strings
@@ -82,12 +83,12 @@ func (r *TrackDatabaseRepository) ReadTrackById(ctx context.Context, track *enti
 
 // Updates the information for a Track in the database
 func (r *TrackDatabaseRepository) UpdateTrack(ctx context.Context, track *entities.Track) error {
-	query := `UPDATE track SET name=$2, flac_r2_track_key=$3, opus_r2_track_key=$4, aac_r2_track_key=$5, r2_cover_key=$6 WHERE id=$1 RETURNING name;`
-	row := r.db.QueryRow(ctx, query, track.Id, track.Name, track.FlacR2TrackKey, track.OpusR2TrackKey, track.AacR2TrackKey, track.R2CoverKey)
+	query := `UPDATE track SET name=$2, flac_r2_track_key=$3, opus_r2_track_key=$4, aac_r2_track_key=$5, r2_cover_key=$6, is_valid=$7, duration=$8 WHERE id=$1 RETURNING name;`
+	row := r.db.QueryRow(ctx, query, track.Id, track.Name, track.FlacR2TrackKey, track.OpusR2TrackKey, track.AacR2TrackKey, track.R2CoverKey, track.IsValid, track.TrackDuration)
 	
 	err := row.Scan(&track.Name)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to scan rows in UpdateTrack: %w", err)
 	}
 
 	return nil
@@ -100,7 +101,7 @@ func (r *TrackDatabaseRepository) DeleteTrack(ctx context.Context, track *entiti
 	
 	err := row.Scan(&track.Id)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to scan rows in DeleteTrack: %w", err)
 	}
 
 	return nil
@@ -113,7 +114,7 @@ func (r *TrackDatabaseRepository) IncrementPlays(ctx context.Context, track *ent
 	
 	err := row.Scan(&track.Plays)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to scan rows in IncrementPlays: %w", err)
 	}
 
 	return nil
@@ -126,7 +127,7 @@ func (r *TrackDatabaseRepository) IncrementLikes(ctx context.Context, track *ent
 	
 	err := row.Scan(&track.Likes)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to scan rows in IncrementLikes: %w", err)
 	}
 
 	return nil
@@ -139,7 +140,7 @@ func (r *TrackDatabaseRepository) DecrementLikes(ctx context.Context, track *ent
 	
 	err := row.Scan(&track.Likes)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to scan rows in DecrementLikes: %w", err)
 	}
 
 	return nil
@@ -151,7 +152,7 @@ func (r *TrackDatabaseRepository) ReadNTracksByLikes(ctx context.Context, offset
 	
 	rows, err := r.db.Query(ctx, query, offset)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to query rows in ReadNTracksByLikes: %w", err)
 	}
 	defer rows.Close()
 
@@ -161,7 +162,7 @@ func (r *TrackDatabaseRepository) ReadNTracksByLikes(ctx context.Context, offset
 	for rows.Next() {
 		err = rows.Scan(&trackIds[count])
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("failed to scan rows in ReadNTracksByLikes: %w", err)
 		}
 		count++
 	}

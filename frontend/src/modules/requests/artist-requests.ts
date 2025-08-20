@@ -2,7 +2,7 @@ import { logger } from "../../lib/logger";
 import type { ArtistData } from "../../models/types";
 
 // Gets the name of the artist
-export async function getArtistName(urlBase: string, artistId: string): Promise<ArtistData | null> {
+export async function getArtistName(urlBase: string, artistId: number): Promise<ArtistData | null> {
     try {
         const baseUrl = `${urlBase}/api/artist/${artistId}`;
         const response = await fetch(baseUrl, {

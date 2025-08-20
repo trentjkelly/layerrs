@@ -16,6 +16,9 @@ type Track struct {
 	Plays			int			`json:"plays"`
 	Likes			int 		`json:"likes"`
 	Layerrs			int			`json:"layerrs"`
+	IsValid			bool		`json:"isValid"`
+	WaveformData	[]int		`json:"waveformData"`
+	TrackDuration 	float64		`json:"trackDuration"`
 }
 
 // Constructor for a new track

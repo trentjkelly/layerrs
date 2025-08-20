@@ -35,7 +35,7 @@ func main() {
 	// -- REPOSITORIES --
 	// Computing Repositories
 	trackConversionRepo := computingRepository.NewTrackConversionRepository()
-	waveformRepo := computingRepository.NewWaveformComputingRepository()
+	waveformRepo := computingRepository.NewWaveformHeightsRepository()
 
 	// Auth Repositories
 	passwordRepo := authRepository.NewPasswordRepository()

@@ -20,14 +20,14 @@ const (
 	NO_PARENT = 0
 )
 type TrackService struct {
-	trackStorageRepo 	*storageRepository.TrackStorageRepository
-	coverStorageRepo 	*storageRepository.CoverStorageRepository
-	trackDatabaseRepo 	*databaseRepository.TrackDatabaseRepository
-	treeDatabaseRepo 	*databaseRepository.TrackTreeDatabaseRepository
-	trackConversionRepo *computingRepository.TrackConversionRepository
-	waveformComputingRepo 		*computingRepository.WaveformComputingRepository
-	waveformDatabaseRepo *databaseRepository.WaveformDatabaseRepository
-	environment			string
+	trackStorageRepo 		*storageRepository.TrackStorageRepository
+	coverStorageRepo 		*storageRepository.CoverStorageRepository
+	trackDatabaseRepo 		*databaseRepository.TrackDatabaseRepository
+	treeDatabaseRepo 		*databaseRepository.TrackTreeDatabaseRepository
+	trackConversionRepo 	*computingRepository.TrackConversionRepository
+	waveformHeightsRepo 	*computingRepository.WaveformHeightsRepository
+	waveformDatabaseRepo 	*databaseRepository.WaveformDatabaseRepository
+	environment				string
 }
 
 // Constructor for a new TrackService
@@ -37,7 +37,7 @@ func NewTrackService(
 	trackDatabaseRepo 		*databaseRepository.TrackDatabaseRepository, 
 	treeDatabaseRepo 		*databaseRepository.TrackTreeDatabaseRepository,
 	trackConversionRepo 	*computingRepository.TrackConversionRepository,
-	waveformComputingRepo 	*computingRepository.WaveformComputingRepository,
+	waveformHeightsRepo 	*computingRepository.WaveformHeightsRepository,
 	waveformDatabaseRepo 	*databaseRepository.WaveformDatabaseRepository,
 	environment				string,
 ) *TrackService {
@@ -47,7 +47,7 @@ func NewTrackService(
 	trackService.trackDatabaseRepo = trackDatabaseRepo
 	trackService.treeDatabaseRepo = treeDatabaseRepo
 	trackService.trackConversionRepo = trackConversionRepo
-	trackService.waveformComputingRepo = waveformComputingRepo
+	trackService.waveformHeightsRepo = waveformHeightsRepo
 	trackService.waveformDatabaseRepo = waveformDatabaseRepo
 	trackService.environment = environment
 	return trackService
@@ -77,25 +77,25 @@ func (s *TrackService) AddAndUploadTrack(ctx context.Context, coverArt multipart
 	}
 
 	// Add all tracks to R2
-	err = s.trackStorageRepo.CreateAllTracks(ctx, flacPath, opusPath, aacPath)
+	err = s.trackStorageRepo.CreateAllTracks(ctx, flacPath, opusPath, aacPath, flacName, opusName, aacName)
 	if err != nil {
 		return fmt.Errorf("failed to create all tracks in the storage bucket: %w", err)
+	}
+
+	duration, err := s.trackConversionRepo.GetAACTrackDuration(aacPath)
+	if err != nil {
+		return fmt.Errorf("failed to get the OPUS Track duration: %w", err)
 	}
 
 	track.AacR2TrackKey = aacName
 	track.FlacR2TrackKey = flacName
 	track.OpusR2TrackKey = opusName
+	track.TrackDuration = duration
 
 	err = s.trackDatabaseRepo.UpdateTrack(ctx, track)
 	if err != nil {
 		return fmt.Errorf("failed to update the track in the db: %w", err)
 	}
-
-	// Add cover art to cover-art bucket in R2
-	// err = s.coverStorageRepo.CreateCover(ctx, coverArt, &track.R2CoverKey)
-	// if err != nil {
-	// 	return fmt.Errorf("failed to create the cover art in the storage bucket: %w", err)
-	// }
 
 	// Waveform generation
 	audioFile, err := os.Open(flacPath)
@@ -130,6 +130,13 @@ func (s *TrackService) AddAndUploadTrack(ctx context.Context, coverArt multipart
 		}
 	}
 
+	// Set is valid flag to true, meaning the track can be served
+	track.IsValid = true
+	err = s.trackDatabaseRepo.UpdateTrack(ctx, track)
+	if err != nil {
+		return fmt.Errorf("failed to update the track in the db: %w", err)
+	}
+
 	return nil
 }
 
@@ -139,10 +146,24 @@ func (s *TrackService) GetTrackInfo(ctx context.Context, trackId int) (*entities
 	track := new(entities.Track)
 	track.Id = trackId
 
+	waveform := new(entities.Waveform)
+	waveform.TrackId = trackId
+
 	// Get the track's info from the database
 	err := s.trackDatabaseRepo.ReadTrackById(ctx, track)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read track from database: %w", err)
+	}
+
+	err = s.waveformDatabaseRepo.GetWaveform(ctx, waveform)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read waveform from database: %w", err)
+	}
+
+	track.WaveformData = waveform.WaveformData
+
+	if !track.IsValid {
+		return nil, fmt.Errorf("track is not valid")
 	}
 
 	return track, nil
@@ -158,7 +179,11 @@ func (s *TrackService) GetSignedTrackURL(ctx context.Context, trackId int) (stri
 		return "", "", fmt.Errorf("failed to read track from database: %w", err)
 	}
 
-	url, expiresAt, err := s.trackStorageRepo.GetSignedURL(ctx, &track.FlacR2TrackKey, 10*time.Minute)
+	if !track.IsValid {
+		return "", "", fmt.Errorf("track is not valid")
+	}
+
+	url, expiresAt, err := s.trackStorageRepo.GetSignedURL(ctx, track.OpusR2TrackKey, 10*time.Minute)
 	if err != nil {
 		return "", "", fmt.Errorf("failed to get signed url for track: %w", err)
 	}
@@ -174,6 +199,10 @@ func (s *TrackService) StreamCoverArt(ctx context.Context, trackId int) (io.Read
 	err := s.trackDatabaseRepo.ReadTrackById(ctx, track)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read cover art from storage bucket: %w", err)
+	}
+
+	if !track.IsValid {
+		return nil, fmt.Errorf("track is not valid")
 	}
 
 	file, err := s.coverStorageRepo.ReadCover(ctx, &track.R2CoverKey)

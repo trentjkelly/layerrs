@@ -22,3 +22,7 @@ export async function handleEnvironment(): Promise<void> {
 export function getEnvironment(): string {
 	return get(environment)
 }
+
+export function getUrlBase(): string {
+	return get(urlBase)
+}

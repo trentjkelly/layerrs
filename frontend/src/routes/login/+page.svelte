@@ -64,26 +64,60 @@
 
 </script>
 
-<main class={`transition-all duration-300 h-full w-full ${$isSidebarOpen ? 'ml-64' : 'ml-0'} bg-gradient-to-b from-gray-800 to-gray-900`}>
+<main class={`transition-all duration-300 min-h-screen w-full ${$isSidebarOpen ? 'ml-64' : 'ml-0'} bg-gradient-to-b from-gray-800 to-gray-900`}>
 
     <TopHeader pageName="Log in" pageIcon=""></TopHeader>
 
-    <section class="w-full flex flex-row justify-center">
+    <section class="w-full flex flex-row justify-center pb-32">
+        <div class="outline outline-gray-600 rounded-3xl w-2/3 max-w-2xl flex flex-col items-center p-8">
+            <h2 class="mb-8 text-3xl font-bold text-white">Log In</h2>
+            
+            <div class="w-full space-y-6">
+                <!-- Email Input -->
+                <div class="w-full">
+                    <label for="email" class="block text-xl font-semibold text-white mb-3">Email</label>
+                    <input 
+                        id="email" 
+                        class="w-full px-4 py-3 rounded-lg bg-gray-700 text-white placeholder-gray-400 border border-gray-600 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" 
+                        type="email" 
+                        bind:value={email}
+                        placeholder="Enter your email..."
+                    />
+                </div>
 
-        <div class="outline outline-gray-600 rounded-3xl w-1/2 flex flex-col items-center mt-24">
-            <h2 class="my-8 text-4xl">Log In</h2>
-            <div class="flex flex-col">
-                <label for="email">Email:</label>
-                <input id="email" class="text-black mb-4" type="text" bind:value={email}>
-
-                <label for="password">Password:</label>
-                <input id="password" class="text-black" type="text" bind:value={password}>
-                <div class="w-full h-auto flex flex-row items-center justify-center mt-8">
-                    <button onclick={login} class="h-12 w-32 bg-indigo-500 hover:bg-indigo-400 rounded rounded-full">Log in!</button>
+                <!-- Password Input -->
+                <div class="w-full">
+                    <label for="password" class="block text-xl font-semibold text-white mb-3">Password</label>
+                    <input 
+                        id="password" 
+                        class="w-full px-4 py-3 rounded-lg bg-gray-700 text-white placeholder-gray-400 border border-gray-600 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" 
+                        type="password" 
+                        bind:value={password}
+                        placeholder="Enter your password..."
+                    />
+                </div>
+                
+                <!-- Login Button -->
+                <div class="w-full flex justify-center pt-4">
+                    <button 
+                        class="px-8 py-4 bg-indigo-600 hover:bg-indigo-700 rounded-full text-white font-semibold text-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed" 
+                        onclick={login}
+                        disabled={!email || !password}
+                    >
+                        Log In
+                    </button>
+                </div>
+                
+                <!-- Sign Up Link -->
+                <div class="w-full flex justify-center pt-4">
+                    <button 
+                        class="text-gray-400 hover:text-white transition-colors underline" 
+                        onclick={navigateSignUp}
+                    >
+                        Don't have an account? Sign up instead
+                    </button>
                 </div>
             </div>
-            <button onclick={navigateSignUp} class="h-20 w-32 hover:underline mt-8 text-gray-400">Sign up instead....</button>
         </div>
-        
     </section>
 </main>

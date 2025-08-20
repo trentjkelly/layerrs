@@ -1,9 +1,11 @@
 package service
 
 import (
+	"context"
+	"fmt"
+
 	"github.com/trentjkelly/layerrs/internals/entities"
 	"github.com/trentjkelly/layerrs/internals/repository/database"
-	"context"	
 )
 
 type ArtistService struct {
@@ -23,7 +25,7 @@ func (s *ArtistService) GetArtistData(ctx context.Context, artistId int) (*entit
 
 	err := s.artistDatabaseRepository.ReadArtistById(ctx, artist)
 	if err != nil {
-		return artist, err
+		return artist, fmt.Errorf("failed to read artist from database: %w", err)
 	}
 
 	return artist, nil

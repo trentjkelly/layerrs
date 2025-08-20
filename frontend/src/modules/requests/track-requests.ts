@@ -4,7 +4,7 @@ import { audio } from "../../stores/player";
 
 // Requests the metadata for the track
 export async function getTrackData(urlBase: string, trackId: string): Promise<TrackData | null> {
-    try {
+    try {        
         const baseUrl = `${urlBase}/api/track/${trackId}/data`;
         const response = await fetch(baseUrl, { method: "GET"});
         if (!response.ok) {
@@ -16,10 +16,15 @@ export async function getTrackData(urlBase: string, trackId: string): Promise<Tr
             name: responseData.name,
             artistId: responseData.artistId,
             likes: responseData.likes,
-            layerrs: responseData.layerrs
+            layerrs: responseData.layerrs,
+            waveformData: responseData.waveformData,
+            duration: responseData.trackDuration
         }
 
+        console.log("duration: ", trackData.duration)
+
         return trackData;
+
     } catch (error) {
         logger.error(`Error catching track data: ${error}`);
         return null;
@@ -78,5 +83,22 @@ export async function getCover(urlBase: string, trackId: string): Promise<string
     //         logger.error(`Error setting up audio stream: ${error}`);
     //     }
     // }
+
+    export async function getAudio(urlBase: string, trackId: string) {
+        try {
+            const baseUrl = `${urlBase}/api/track/${trackId}/audio`;
+            const response = await fetch(baseUrl, { method: "GET"});
+            if (!response.ok) {
+                throw new Error("Failed to get audio");
+            }
+            const responseData = await response.json();
+            const url = responseData.url;
+            return url;
+
+        } catch (error) {
+            logger.error(`Error getting audio: ${error}`);
+            return null;
+        }
+    }
 
  

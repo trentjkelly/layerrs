@@ -1,11 +1,13 @@
 package controller
 
 import (
-	"net/http"
-	"github.com/trentjkelly/layerrs/internals/service"
-	"strconv"
 	"encoding/json"
+	"log"
+	"net/http"
+	"strconv"
+
 	"github.com/go-chi/chi/v5"
+	"github.com/trentjkelly/layerrs/internals/service"
 )
 
 type ArtistController struct {
@@ -43,6 +45,7 @@ func (c *ArtistController) ArtistHandlerGet(w http.ResponseWriter, r *http.Reque
 	artistStr := chi.URLParam(r, "artistId")
 	artistId, err := strconv.Atoi(artistStr)
 	if err != nil {
+		log.Println("[ERROR] ArtistHandlerGet: ", err)
 		http.Error(w, "Invalid artist id", http.StatusBadRequest)
 		return
 	}
@@ -50,6 +53,7 @@ func (c *ArtistController) ArtistHandlerGet(w http.ResponseWriter, r *http.Reque
 	// Get the rest of the artist data
 	artist, err := c.artistService.GetArtistData(r.Context(), artistId)
 	if err != nil {
+		log.Println("[ERROR] ArtistHandlerGet: ", err)
 		http.Error(w, "Could not get artist data", http.StatusInternalServerError)
 		return
 	}
@@ -57,6 +61,7 @@ func (c *ArtistController) ArtistHandlerGet(w http.ResponseWriter, r *http.Reque
 	// Send the data
 	err = json.NewEncoder(w).Encode(artist)
 	if err != nil {
+		log.Println("[ERROR] ArtistHandlerGet: ", err)
 		http.Error(w, "Could not send artist data", http.StatusInternalServerError)
 	}
 }

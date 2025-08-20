@@ -1,14 +1,32 @@
 <script lang="ts">
-    import { onMount } from 'svelte';
 	import '../app.css';
+    import { onMount } from 'svelte';
     import AudioPlayer from '../components/AudioPlayer.svelte';
     import SideBar from '../components/SideBar.svelte';
-    import { initializeAudio } from '../stores/player';
+    import { initializeAudio, audio } from '../stores/player';
 	import { jwt, refreshToken, isLoggedIn } from '../stores/auth';
-	import { environment, getEnvironment, handleEnvironment, urlBase } from '../stores/environment';
+	import { handleEnvironment, urlBase } from '../stores/environment';
 	import { logger } from '../lib/logger';
 	
 	let { data, children } = $props();
+
+	function togglePlayPause() {
+		if ($audio) {
+			$audio.paused ? $audio.play() : $audio.pause()
+		}
+	}
+
+	function rewindTrack(seconds: number) {
+		if ($audio) {
+			$audio.currentTime -= seconds
+		}
+	}
+
+	function fastForwardTrack(seconds: number) {
+		if ($audio) {
+			$audio.currentTime += seconds
+		}
+	}
 	
 	// Initialize audio component across the entire session
 	onMount(async () => {
@@ -16,6 +34,7 @@
 		initializeAudio()
 		await loadCookies()
 		await handleSessionStart()
+		// handleHotkeys()
 	});
 
 	async function loadCookies() {
@@ -27,6 +46,60 @@
         	refreshToken.set(data.newRefreshToken)
     	}
 	}
+
+	// function handleHotkeys() {
+	// 	const spaceDown = (e: KeyboardEvent) => {
+	// 		if (e.key === ' ' || e.key === 'Space') {
+	// 			e.preventDefault()
+	// 			togglePlayPause()
+	// 		}
+	// 	}
+
+	// 	const leftArrowDown = (e: KeyboardEvent) => {
+	// 		if (e.key === 'ArrowLeft') {
+	// 			e.preventDefault()
+	// 			rewindTrack(5)
+	// 		}
+	// 	}
+
+	// 	const rightArrowDown = (e: KeyboardEvent) => {
+	// 		if (e.key === 'ArrowRight') {
+	// 			e.preventDefault()
+	// 			fastForwardTrack(5)
+	// 		}
+	// 	}
+
+	// 	const letterKeyDown = (e: KeyboardEvent) => {
+	// 		// Only handle single letter keys (a-z)
+	// 		if (e.key.length === 1 && /^[a-z]$/i.test(e.key)) {
+	// 			e.preventDefault()
+	// 			jumpToSample(e.key.toLowerCase())
+	// 		}
+	// 	}
+
+	// 	document.addEventListener('keydown', spaceDown)
+	// 	document.addEventListener('keydown', leftArrowDown)
+	// 	document.addEventListener('keydown', rightArrowDown)
+	// 	document.addEventListener('keydown', letterKeyDown)
+	// }
+
+	// function jumpToSample(letter: string) {
+	// 	if (!$audio || !$audio.duration) return
+		
+	// 	// Create a mapping for qwerty keyboard layout
+	// 	const keyMap: { [key: string]: number } = {
+	// 		'q': 0, 'w': 1, 'e': 2, 'r': 3, 't': 4, 'y': 5, 'u': 6, 'i': 7, 'o': 8, 'p': 9,
+	// 		'a': 10, 's': 11, 'd': 12, 'f': 13, 'g': 14, 'h': 15, 'j': 16, 'k': 17, 'l': 18,
+	// 		'z': 19, 'x': 20, 'c': 21, 'v': 22, 'b': 23, 'n': 24, 'm': 25
+	// 	}
+		
+	// 	const letterIndex = keyMap[letter]
+	// 	if (letterIndex === undefined) return
+		
+	// 	const position = letterIndex / 26
+		
+	// 	$audio.currentTime = $audio.duration * position
+	// }
 
 	async function handleSessionStart() {
 		logger.debug('Session started!');

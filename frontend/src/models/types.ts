@@ -3,6 +3,8 @@ export type TrackData = {
     artistId: string;
     likes: number;
     layerrs: number;
+    waveformData: number[];
+    duration: number;
 }
 
 export type ArtistData = {

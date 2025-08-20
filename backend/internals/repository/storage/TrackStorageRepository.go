@@ -6,6 +6,7 @@ import (
 	"io"
 	"mime/multipart"
 	"os"
+	"log"
 	"strings"
 	"time"
 
@@ -36,7 +37,7 @@ func NewTrackStorageRepository(environment string) *TrackStorageRepository {
 }
 
 // Uploads all tracks to R2
-func (r *TrackStorageRepository) CreateAllTracks(ctx context.Context, flacPath string, opusPath string, aacPath string) error {
+func (r *TrackStorageRepository) CreateAllTracks(ctx context.Context, flacPath string, opusPath string, aacPath string, flacKey string, opusKey string, aacKey string) error {
 	envName := strings.ToLower(r.environment)
 	
 	// Upload FLAC file
@@ -46,7 +47,7 @@ func (r *TrackStorageRepository) CreateAllTracks(ctx context.Context, flacPath s
 	}
 
 	flacBucketName := fmt.Sprintf("track-audio-flac-%s", envName)
-	err = r.CreateTrack(ctx, file, flacPath, flacBucketName)
+	err = r.CreateTrack(ctx, file, flacKey, flacBucketName)
 	if err != nil {
 		return fmt.Errorf("failed to upload flac file to R2: %w", err)
 	}
@@ -59,7 +60,7 @@ func (r *TrackStorageRepository) CreateAllTracks(ctx context.Context, flacPath s
 	}
 
 	aacBucketName := fmt.Sprintf("track-audio-aac-%s", envName)
-	err = r.CreateTrack(ctx, file, aacPath, aacBucketName)
+	err = r.CreateTrack(ctx, file, aacKey, aacBucketName)
 	if err != nil {
 		return fmt.Errorf("failed to upload flac file to R2: %w", err)
 	}
@@ -72,7 +73,7 @@ func (r *TrackStorageRepository) CreateAllTracks(ctx context.Context, flacPath s
 	}
 
 	opusBucketName := fmt.Sprintf("track-audio-opus-%s", envName)
-	err = r.CreateTrack(ctx, file, opusPath, opusBucketName)
+	err = r.CreateTrack(ctx, file, opusKey, opusBucketName)
 	if err != nil {
 		return fmt.Errorf("failed to upload flac file to R2: %w", err)
 	}
@@ -118,10 +119,12 @@ func (r *TrackStorageRepository) ReadTrack(ctx context.Context, trackName *strin
 }
 
 // Gets a signed url for a track
-func ( r*TrackStorageRepository) GetSignedURL(ctx context.Context, objectKey *string, expirationTime time.Duration) (string, time.Duration, error) {
+func ( r*TrackStorageRepository) GetSignedURL(ctx context.Context, objectKey string, expirationTime time.Duration) (string, time.Duration, error) {
+
+	log.Println("[DEBUG] Getting signed url for track: ", objectKey)
 	input := &s3.GetObjectInput{
 		Bucket: r.trackBucketName,
-		Key: objectKey,
+		Key: &objectKey,
 	}
 
 	req, err := r.r2Presigner.PresignGetObject(ctx, input, func(opts *s3.PresignOptions) {

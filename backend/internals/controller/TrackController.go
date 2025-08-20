@@ -44,7 +44,6 @@ func (c *TrackController) TrackHandlerPost(w http.ResponseWriter, r *http.Reques
 	// Getting metadata
 	trackName := r.FormValue("name")
 	artistIdFloat := r.Context().Value(entities.ArtistIdKey).(float64)
-
 	parentIdStr := r.FormValue("parentId") // Optional
 	if trackName == "" {
 		http.Error(w, "Track name is required", http.StatusBadRequest)
@@ -76,6 +75,13 @@ func (c *TrackController) TrackHandlerPost(w http.ResponseWriter, r *http.Reques
 	}
 	defer audioFile.Close()
 
+	// Validate that the audio file is in WAV or FLAC format
+	audioType := audioHeader.Header.Get("Content-Type")
+	if audioType != "audio/wav" && audioType != "audio/flac" {
+		http.Error(w, "Audio file must be in WAV or FLAC format", http.StatusBadRequest)
+		return
+	}
+
 	// Getting cover art file
 	coverArtFile, coverArtHeader, err := r.FormFile("coverArtFile")
 	if err != nil {
@@ -101,6 +107,7 @@ func (c *TrackController) TrackAudioHandlerGet(w http.ResponseWriter, r *http.Re
 	trackIdStr := chi.URLParam(r, "id")
 	trackId, err := strconv.Atoi(trackIdStr)
 	if err != nil {
+		log.Println("[ERROR] TrackAudioHandlerGet: ", err)
 		http.Error(w, "Invalid track id", http.StatusBadRequest)
 		return
 	}
@@ -108,6 +115,7 @@ func (c *TrackController) TrackAudioHandlerGet(w http.ResponseWriter, r *http.Re
 	// Get audio from storage
 	url, expiresAt, err := c.trackService.GetSignedTrackURL(r.Context(), trackId)
 	if err != nil {
+		log.Println("[ERROR] TrackAudioHandlerGet: ", err)
 		http.Error(w, "Failed to stream track", http.StatusInternalServerError)
 		return
 	}
@@ -119,6 +127,7 @@ func (c *TrackController) TrackAudioHandlerGet(w http.ResponseWriter, r *http.Re
 		"expiresAt": expiresAt,
 	})
 	if err != nil {
+		log.Println("[ERROR] TrackAudioHandlerGet: ", err)
 		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
 		return
 	}
@@ -163,6 +172,7 @@ func (c *TrackController) TrackerDataHandlerGet(w http.ResponseWriter, r *http.R
 	trackIdStr := chi.URLParam(r, "id")
 	trackId, err := strconv.Atoi(trackIdStr)
 	if err != nil {
+		log.Println("[ERROR] TrackerDataHandlerGet: ", err)
 		http.Error(w, "Invalid track id", http.StatusBadRequest)
 		return
 	}
@@ -170,6 +180,7 @@ func (c *TrackController) TrackerDataHandlerGet(w http.ResponseWriter, r *http.R
 	// Get track data from database
 	track, err := c.trackService.GetTrackInfo(r.Context(), trackId)
 	if err != nil {
+		log.Println("[ERROR] TrackerDataHandlerGet: ", err)
 		http.Error(w, "Error while getting track data", http.StatusInternalServerError)
 		return
 	}
@@ -177,6 +188,7 @@ func (c *TrackController) TrackerDataHandlerGet(w http.ResponseWriter, r *http.R
 	// Encode track and send json 
 	err = json.NewEncoder(w).Encode(track)
 	if err != nil {
+		log.Println("[ERROR] TrackerDataHandlerGet: ", err)
 		http.Error(w, "Failed at encoding json", http.StatusInternalServerError)
 	}
 }

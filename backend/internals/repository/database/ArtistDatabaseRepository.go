@@ -3,7 +3,9 @@ package databaseRepository
 import (
 	"database/sql"
 	"context"
+	"fmt"
 	"time"
+
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/trentjkelly/layerrs/internals/entities"
 	// "log"
@@ -33,7 +35,7 @@ func (r *ArtistDatabaseRepository) CreateArtist(ctx context.Context, username st
 	var artistId int
 	err := row.Scan(&artistId)
 	if err != nil {
-		return 0, err
+		return 0, fmt.Errorf("failed to create artist in database: %w", err)
 	}
 
 	return artistId, nil
@@ -45,7 +47,7 @@ func (r *ArtistDatabaseRepository) GetArtistIdUsernamePassword(ctx context.Conte
 
 	err := row.Scan(&artist.Id, &artist.Username, &artist.Password)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to query artist from database: %w", err)
 	}
 
 	return nil
@@ -53,7 +55,7 @@ func (r *ArtistDatabaseRepository) GetArtistIdUsernamePassword(ctx context.Conte
 
 // Gets an Artist from the database based on their id
 func (r *ArtistDatabaseRepository) ReadArtistById(ctx context.Context, artist *entities.Artist) error {
-	query := `SELECT * FROM artist WHERE id=$1;`
+	query := `SELECT id, name, username, email, bio, r2_image_key, created_at, updated_at, password FROM artist WHERE id=$1;`
 	row := r.db.QueryRow(ctx, query, artist.Id)
 
 	// Potential NULL Values
@@ -63,7 +65,7 @@ func (r *ArtistDatabaseRepository) ReadArtistById(ctx context.Context, artist *e
 	err := row.Scan(&artist.Id, &artist.Name, &artist.Username, &artist.Email, &bio, &r2ImageKey, &artist.CreatedAt, &artist.UpdatedAt, &artist.Password)
 
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to query artist from database: %w", err)
 	}
 
 	// Potential NULL values converted to empty strings
@@ -89,7 +91,7 @@ func (r *ArtistDatabaseRepository) UpdateArtist(ctx context.Context, artist *ent
 	err := row.Scan(&artist.UpdatedAt)
 	
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to update artist in database: %w", err)
 	}
 
 	return nil
@@ -102,7 +104,7 @@ func (r *ArtistDatabaseRepository) DeleteArtist(ctx context.Context, artist *ent
 	err := row.Scan(&artist.Id)
 
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to delete artist from database: %w", err)
 	}
 
 	return nil 

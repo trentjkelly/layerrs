@@ -15,10 +15,15 @@ require (
 )
 
 require (
+	github.com/dhowden/tag v0.0.0-20240417053706-3d75831295e8 // indirect
 	github.com/hajimehoshi/go-mp3 v0.3.0 // indirect
+	github.com/hraban/opus v0.0.0-20230925203106-0188a62cb302 // indirect
+	github.com/icza/bitio v1.0.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
 	github.com/jackc/puddle/v2 v2.2.2 // indirect
+	github.com/mewkiz/flac v1.0.7 // indirect
+	github.com/mewkiz/pkg v0.0.0-20190919212034-518ade7978e2 // indirect
 	github.com/mfridman/interpolate v0.0.2 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/sethvargo/go-retry v0.3.0 // indirect
