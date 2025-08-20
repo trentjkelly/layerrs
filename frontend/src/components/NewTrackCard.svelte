@@ -1,7 +1,7 @@
 <script lang="ts">
     import { onMount, onDestroy, untrack } from 'svelte';
     import { goto } from '$app/navigation';
-    import { logger } from '../lib/logger';
+    import { logger } from '../modules/lib/logger';
     import { getTrackData } from '../modules/requests/track-requests';
     import { getArtistName } from '../modules/requests/artist-requests';
     import { getUrlBase, handleEnvironment } from '../stores/environment';
@@ -10,7 +10,6 @@
     import WaveformBar from './WaveformBar.svelte';
     import LikeButton from './LikeButton.svelte';
     import LayerrButton from './LayerrButton.svelte';
-    import CommentButton from './CommentButton.svelte';
     
     // Inherits the trackId from the page
     let { trackId } = $props();
@@ -36,7 +35,6 @@
     let numLikes = $state(0);
     let numLayerrs = $state(0);
     let urlBase = $state('');
-    const CHUNK_SIZE = 1024 * 1024; // 1 MB
 
     // Waveform container width
     let waveformWidth = $state(0);
@@ -239,7 +237,6 @@
 
     function handleMouseEnter(event: MouseEvent) {
         isCursorHovered = true
-        console.log($isPlaying)
     }
 
     async function handleClick(event: MouseEvent) {
@@ -303,8 +300,6 @@
     <div class="w-full h-12 flex flex-row items-center px-4">
         <!-- Like Button -->
         <LikeButton trackId={trackId} numLikes={numLikes}></LikeButton>
-        <CommentButton trackId={trackId}></CommentButton>
-        <!-- <CommentButton trackId={trackId}></CommentButton> -->
         <LayerrButton trackId={trackId} numLayerrs={numLayerrs}></LayerrButton>
         <!-- Download Button -->
     </div>

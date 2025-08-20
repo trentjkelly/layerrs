@@ -2,59 +2,29 @@
     import TopHeader from "../../components/TopHeader.svelte";
     import { isSidebarOpen } from "../../stores/player";
     import { goto } from "$app/navigation";
-    import { isLoggedIn, jwt, refreshToken } from "../../stores/auth";
-    import { urlBase } from "../../stores/environment";
-    import { logger } from "../../lib/logger";
+    import { logger } from "../../modules/lib/logger";
+    import { handleBrowserLogin } from "../../modules/lib/session";
+    import { loginServerRequest } from "../../modules/requests/auth-requests";
 
     let email = $state('')
     let password = $state('')
 
-    async function login() {
-        if ((email !== '') && (password !== '')) {
-            try {
-                const res = await fetch(`${$urlBase}/api/authentication/login`, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({
-                        email: email,
-                        password: password
-                    })
-                })
+    async function handleLogin() {
+        // Backend authentication request for logging in
+        const res = await loginServerRequest(email, password)
+        if (res === null) {
+            logger.error('Failed to login')
+            return
+        }
 
-                const jsonData = await res.json()
+        console.log(res)
 
-                // Set cookies for the refresh and jwt tokens
-                try {
-                    const res  = await fetch('/cookies', { 
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({ 
-                            refreshToken: jsonData.refreshToken,
-                            jwtToken: jsonData.token
-                        })
-                    })
-                    if (!res.ok) {
-                        logger.error(`Failed to set the JWT and refresh tokens: ${res.statusText}`);
-                    }
-                } catch (error) {
-                    logger.error(`Failed to set the JWT: ${error}`);
-                }
-
-                // Set cookies locally to stores as well
-                jwt.set(jsonData.token)
-                refreshToken.set(jsonData.refreshToken)
-                isLoggedIn.set(true)
-
-                // Go to homepage when logged in
-                if (res.status == 200) {
-                    goto('/')
-                }
-
-            } catch (err) {
-                logger.error(err)
-            }
+        // Set cookies for the refresh and jwt tokens
+        const success = await handleBrowserLogin(res.token, res.refreshToken)
+        if (success) {
+            goto('/')
+        } else {
+            logger.error('Failed to login')
         }
     }
 
@@ -101,7 +71,7 @@
                 <div class="w-full flex justify-center pt-4">
                     <button 
                         class="px-8 py-4 bg-indigo-600 hover:bg-indigo-700 rounded-full text-white font-semibold text-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed" 
-                        onclick={login}
+                        onclick={handleLogin}
                         disabled={!email || !password}
                     >
                         Log In

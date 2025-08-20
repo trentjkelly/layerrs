@@ -7,7 +7,7 @@
     import { isLoggedIn } from "../../stores/auth";
     import LogInPopup from "../../components/LogInPopup.svelte";
     import { urlBase } from "../../stores/environment";
-    import { logger } from "../../lib/logger";
+    import { logger } from "../../modules/lib/logger";
     import { handleEnvironment } from "../../stores/environment";
     /**
      * @type {any[]}

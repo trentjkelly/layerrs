@@ -1,5 +1,5 @@
 import { get, writable } from "svelte/store"
-import { logger } from "../lib/logger"
+import { logger } from "../modules/lib/logger"
 
 // Defaults to production values
 export const environment = writable('PRODUCTION')

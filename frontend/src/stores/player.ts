@@ -15,9 +15,3 @@ export const currentTime = writable(0);
 export function initializeAudio() {
     audio.set(new Audio())
 }
-
-export function updateCurrentTime() {
-    $effect(() => {
-        currentTime.set($audio?.currentTime || 0);
-    })
-}

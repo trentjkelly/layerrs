@@ -2,7 +2,6 @@
 export const POST = async ({ cookies, request }) => {
     try {
         const body = await request.json()
-
         const { jwtToken, refreshToken } = body
         
         cookies.set('refresh', refreshToken, {
@@ -19,8 +18,7 @@ export const POST = async ({ cookies, request }) => {
             sameSite: 'strict' 
         })
 
-        return new Response('JWT Cookie set successfully', { status: 200 })
-
+        return new Response('JWT & Refresh Token cookie set successfully', { status: 200 })
     } catch (error) {
         return new Response('Failed to process request', { status: 400 })
     }
@@ -43,8 +41,7 @@ export const DELETE = async ({ cookies }) => {
             sameSite: 'strict' 
         })
 
-        return new Response('JWT & Refresh Token cookie set successfully', { status: 200 })
-
+        return new Response('JWT & Refresh Token cookie deleted successfully', { status: 200 })
     } catch (error) {
         return new Response('Failed to delete JWT & Refresh Token cookie', { status : 400 })
     }

@@ -1,4 +1,4 @@
-import { logger } from "../../lib/logger";
+import { logger } from "../lib/logger";
 import type { TrackData } from "../../models/types";
 import { audio } from "../../stores/player";
 
@@ -20,9 +20,7 @@ export async function getTrackData(urlBase: string, trackId: string): Promise<Tr
             waveformData: responseData.waveformData,
             duration: responseData.trackDuration
         }
-
-        console.log("duration: ", trackData.duration)
-
+        
         return trackData;
 
     } catch (error) {

@@ -1,4 +1,4 @@
-import { logger } from "../../lib/logger";
+import { logger } from "../lib/logger";
 import type { ArtistData } from "../../models/types";
 
 // Gets the name of the artist

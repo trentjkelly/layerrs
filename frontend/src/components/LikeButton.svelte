@@ -4,7 +4,7 @@
     import { goto } from "$app/navigation";
     import { onMount } from "svelte";
     import { urlBase } from "../stores/environment";
-    import { logger } from "../lib/logger";
+    import { logger } from "../modules/lib/logger";
     
     let { trackId, numLikes } = $props()
     let isTrackLiked = $state(false)

@@ -4,7 +4,7 @@
     import { isLoggedIn, jwt } from "../../stores/auth";
     import { isSidebarOpen } from "../../stores/player";
     import { handleEnvironment, urlBase } from "../../stores/environment";
-    import { logger } from "../../lib/logger";
+    import { logger } from "../../modules/lib/logger";
     import { onMount } from "svelte";
     import LogInPopup from "../../components/LogInPopup.svelte";
 

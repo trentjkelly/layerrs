@@ -1,21 +1,17 @@
 <script>
-    import { jwt, isLoggedIn } from "../stores/auth";
-    import { browser } from "$app/environment";
+    import { isLoggedIn } from "../stores/auth";
     import { goto } from "$app/navigation";
+    import { handleBrowserLogout } from "../modules/lib/session";
+    import { logger } from "../modules/lib/logger";
+    
     let showDropdown = false;
 
-    function handleLogout() {
-        $jwt = '';
-        $isLoggedIn = false;
-        
-        if (browser) {
-            document.cookie = "jwt=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-            document.cookie = "refreshToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-        }
-        
-        // Redirect to login page
-        if (browser) {
-            window.location.href = '/login';
+    async function handleLogout() {
+        const success = await handleBrowserLogout();
+        if (success) {
+            goto('/login');
+        } else {
+            logger.error('Failed to logout');
         }
     }
 
@@ -31,6 +27,8 @@
         class="relative"
         onmouseenter={() => showDropdown = true}
         onmouseleave={() => showDropdown = false}
+        role="button"
+        tabindex="0"
     >
         {#if showDropdown}
             <!-- Expanded dropdown with circle integrated -->
