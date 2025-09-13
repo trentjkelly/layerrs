@@ -9,6 +9,6 @@
 
 </script>
 
-<button class="w-12 h-12 flex flex-row items-center justify-center ml-4" onclick={navigateLayerr}>
-    <img class="h-6 w-6 hover:h-7 hover:w-7" src="/vinyl.png" alt="Layerr Button"/>
+<button class="py-1 px-2 ml-4 flex flex-row items-center justify-center hover:bg-white transition-all duration-300 text-white hover:text-violet-500" onclick={navigateLayerr}>
+    <p class="text-md">FLIP THIS</p>
 </button>

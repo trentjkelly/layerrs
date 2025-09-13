@@ -99,11 +99,11 @@
 
 </script>
 
-<button class="w-12 h-12 flex flex-row items-center justify-center" onclick={toggleLikedTrack}>
+<button class="px-2 py-1 ml-2 flex flex-row items-center justify-center hover:bg-white transition-all duration-300 text-white hover:text-violet-500" onclick={toggleLikedTrack}>
     {#if isTrackLiked}
-        <img class="h-6 w-6 hover:h-7 hover:w-7" src="/heart-checked.png" alt="Like Button"/>                       
+        <p>LIKED</p>                   
     {:else}
-        <img class="h-6 w-6 hover:h-7 hover:w-7" src="/heart-unchecked.png" alt="Like Button"/>
+        <p>LIKE</p>
     {/if}
 
     {#if numLikes > 0}

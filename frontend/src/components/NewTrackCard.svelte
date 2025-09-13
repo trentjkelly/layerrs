@@ -296,14 +296,8 @@
     </div>
 
     <!-- Track Information -->
-    <div class="w-full h-12 flex flex-row items-center px-4">
-        <!-- Like Button -->
-         <div class="flex flex-row items-center">
-
-            <p class="text-gray-100 text-sm">100</p>
-         </div>
+    <div class="w-full h-12 flex flex-row items-center">
         <LikeButton trackId={trackId} numLikes={numLikes}></LikeButton>
         <LayerrButton trackId={trackId} numLayerrs={numLayerrs}></LayerrButton>
-        <!-- Download Button -->
     </div>
 </div>
