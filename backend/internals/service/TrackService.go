@@ -27,6 +27,7 @@ type TrackService struct {
 	trackConversionRepo 	*computingRepository.TrackConversionRepository
 	waveformHeightsRepo 	*computingRepository.WaveformHeightsRepository
 	waveformDatabaseRepo 	*databaseRepository.WaveformDatabaseRepository
+	layerrsDatabaseRepo 	*databaseRepository.LayerrsDatabaseRepository
 	environment				string
 }
 
@@ -39,6 +40,7 @@ func NewTrackService(
 	trackConversionRepo 	*computingRepository.TrackConversionRepository,
 	waveformHeightsRepo 	*computingRepository.WaveformHeightsRepository,
 	waveformDatabaseRepo 	*databaseRepository.WaveformDatabaseRepository,
+	layerrsDatabaseRepo 	*databaseRepository.LayerrsDatabaseRepository,
 	environment				string,
 ) *TrackService {
 	trackService := new(TrackService)
@@ -49,6 +51,7 @@ func NewTrackService(
 	trackService.trackConversionRepo = trackConversionRepo
 	trackService.waveformHeightsRepo = waveformHeightsRepo
 	trackService.waveformDatabaseRepo = waveformDatabaseRepo
+	trackService.layerrsDatabaseRepo = layerrsDatabaseRepo
 	trackService.environment = environment
 	return trackService
 }
@@ -185,25 +188,34 @@ func (s *TrackService) GetStreamingSignedTrackURL(ctx context.Context, trackId i
 }
 
 // Streams a track by its track id
-func (s *TrackService) GetDownloadSignedTrackURL(ctx context.Context, trackId int) (string, string, error) {
+func (s *TrackService) GetDownloadSignedTrackURL(ctx context.Context, trackId int, artistId int) (string, string, error) {
 	track := new(entities.Track)
 	track.Id = trackId
 
+	// Get track from database
 	err := s.trackDatabaseRepo.ReadTrackById(ctx, track)
 	if err != nil {
 		return "", "", fmt.Errorf("failed to read track from database: %w", err)
 	}
-
+	
 	if !track.IsValid {
 		return "", "", fmt.Errorf("track is not valid")
+	}
+
+	// Add track to layerrs list for artist
+	layerr := new(entities.Layerr)
+	layerr.ArtistId = artistId
+	layerr.TrackId = track.Id
+
+	err = s.layerrsDatabaseRepo.CreateLayerr(ctx, layerr)
+	if err != nil {
+		return "", "", fmt.Errorf("failed to create layerr in the db: %w", err)
 	}
 
 	url, expiresAt, err := s.trackStorageRepo.GetSignedFlacURL(ctx, track.FlacR2TrackKey, 1*time.Minute)
 	if err != nil {
 		return "", "", fmt.Errorf("failed to get signed url for track: %w", err)
 	}
-
-	fmt.Println("[DEBUG] Getting signed url for track: ", url)
 
 	return url, expiresAt.String(), nil
 }

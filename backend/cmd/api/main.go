@@ -47,6 +47,7 @@ func main() {
 	trackDatabaseRepo := databaseRepository.NewTrackDatabaseRepository(pool)
 	trackTreeDatabaseRepo := databaseRepository.NewTrackTreeDatabaseRepository(pool)
 	waveformDatabaseRepo := databaseRepository.NewWaveformDatabaseRepository(pool)
+	layerrsDatabaseRepo := databaseRepository.NewLayerrsDatabaseRepository(pool)
 
 	// Storage Repositories
 	coverStorageRepo := storageRepository.NewCoverStorageRepository(env)
@@ -55,7 +56,7 @@ func main() {
 
 	// -- SERVICES --
 	authService := service.NewAuthService(passwordRepo, artistDatabaseRepo, authRepo)
-	trackService := service.NewTrackService(trackStorageRepo, coverStorageRepo, trackDatabaseRepo, trackTreeDatabaseRepo, trackConversionRepo, waveformRepo, waveformDatabaseRepo, env)
+	trackService := service.NewTrackService(trackStorageRepo, coverStorageRepo, trackDatabaseRepo, trackTreeDatabaseRepo, trackConversionRepo, waveformRepo, waveformDatabaseRepo, layerrsDatabaseRepo, env)
 	recService := service.NewRecommendationsService(trackDatabaseRepo, likesDatabaseRepo)
 	artistService := service.NewArtistService(artistDatabaseRepo)
 	likesService := service.NewLikesService(likesDatabaseRepo, trackDatabaseRepo)

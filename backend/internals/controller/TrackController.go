@@ -147,9 +147,13 @@ func (c *TrackController) TrackDownloadHandlerGet(w http.ResponseWriter, r *http
 			http.Error(w, "Invalid track id", http.StatusBadRequest)
 			return
 		}
+
+		// Get artistId from context
+		artistIdFloat := r.Context().Value(entities.ArtistIdKey).(float64)
+		artistIdInt := int(artistIdFloat)
 	
 		// Get audio from storage
-		url, expiresAt, err := c.trackService.GetDownloadSignedTrackURL(r.Context(), trackId)
+		url, expiresAt, err := c.trackService.GetDownloadSignedTrackURL(r.Context(), trackId, artistIdInt)
 		if err != nil {
 			log.Println("[ERROR] TrackAudioHandlerGet: ", err)
 			http.Error(w, "Failed to stream track", http.StatusInternalServerError)
