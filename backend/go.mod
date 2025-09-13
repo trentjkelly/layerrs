@@ -15,9 +15,6 @@ require (
 )
 
 require (
-	github.com/dhowden/tag v0.0.0-20240417053706-3d75831295e8 // indirect
-	github.com/hajimehoshi/go-mp3 v0.3.0 // indirect
-	github.com/hraban/opus v0.0.0-20230925203106-0188a62cb302 // indirect
 	github.com/icza/bitio v1.0.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect

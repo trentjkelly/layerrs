@@ -6,7 +6,7 @@ import (
 	"os"
 
 	"github.com/faiface/beep"
-	"github.com/faiface/beep/mp3"
+	"github.com/faiface/beep/flac"
 )
 
 type WaveformHeightsRepository struct {}
@@ -16,16 +16,16 @@ func NewWaveformHeightsRepository() *WaveformHeightsRepository {
 	return waveformHeightsRepository
 }
 
-func (r *WaveformHeightsRepository) CreateWaveform(filename string) ([]int, error) {
-	file, err := os.Open(filename)
+func (r *WaveformHeightsRepository) CreateWaveform(flacPath string) ([]int, error) {
+	file, err := os.Open(flacPath)
 	if err != nil {
 		return nil, fmt.Errorf("could not open the audio file: %w", err)
 	}
 	defer file.Close()
 
-	streamer, _, err := mp3.Decode(file)
+	streamer, _, err := flac.Decode(file)
 	if err != nil {
-		return nil, fmt.Errorf("could not decode the mp3 file: %w", err)
+		return nil, fmt.Errorf("could not decode the flac file: %w", err)
 	}
 	defer streamer.Close()
 

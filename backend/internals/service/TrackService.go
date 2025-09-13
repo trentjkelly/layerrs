@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"mime/multipart"
-	"os"
 	"path/filepath"
 	"strconv"
 	"time"
@@ -19,6 +18,7 @@ import (
 const (
 	NO_PARENT = 0
 )
+
 type TrackService struct {
 	trackStorageRepo 		*storageRepository.TrackStorageRepository
 	coverStorageRepo 		*storageRepository.CoverStorageRepository
@@ -67,11 +67,10 @@ func (s *TrackService) AddAndUploadTrack(ctx context.Context, coverArt multipart
 	audiofileExtension := filepath.Ext(audioHeader.Filename)
 	trackIdStr := strconv.Itoa(track.Id)
 	track.R2CoverKey = trackIdStr + coverFileExtension
-	artistIdStr := strconv.Itoa(artistId)
 
 	// Audio file type conversions
 	// TODO: Remove filepaths after being done
-	flacPath, opusPath, aacPath, flacName, opusName, aacName, err := s.trackConversionRepo.ConvertAllFormats(audio, audiofileExtension, artistIdStr, trackIdStr)
+	flacPath, opusPath, aacPath, flacName, opusName, aacName, err := s.trackConversionRepo.ConvertAllTracks(audio, trackIdStr, audiofileExtension)
 	if err != nil {
 		return fmt.Errorf("failed to convert audio file to all formats: %w", err)
 	}
@@ -98,14 +97,8 @@ func (s *TrackService) AddAndUploadTrack(ctx context.Context, coverArt multipart
 	}
 
 	// Waveform generation
-	audioFile, err := os.Open(flacPath)
-	if err != nil {
-		return fmt.Errorf("failed to open flac file for creating a waveform: %w", err)
-	}
-	defer audioFile.Close()
-
 	waveformEntity := new(entities.Waveform)
-	waveform, err := s.waveformComputingRepo.CreateWaveform(ctx, audioFile)
+	waveform, err := s.waveformHeightsRepo.CreateWaveform(flacPath)
 	if err != nil {
 		return fmt.Errorf("failed to create the waveform for the audio file: %w", err)
 	}
