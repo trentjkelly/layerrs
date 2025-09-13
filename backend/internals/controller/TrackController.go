@@ -113,7 +113,7 @@ func (c *TrackController) TrackAudioHandlerGet(w http.ResponseWriter, r *http.Re
 	}
 
 	// Get audio from storage
-	url, expiresAt, err := c.trackService.GetSignedTrackURL(r.Context(), trackId)
+	url, expiresAt, err := c.trackService.GetStreamingSignedTrackURL(r.Context(), trackId)
 	if err != nil {
 		log.Println("[ERROR] TrackAudioHandlerGet: ", err)
 		http.Error(w, "Failed to stream track", http.StatusInternalServerError)
@@ -135,6 +135,42 @@ func (c *TrackController) TrackAudioHandlerGet(w http.ResponseWriter, r *http.Re
 	// Set headers and send response
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(buffer.Bytes())
+}
+
+// GET request -- streams the audio for a given track id (GET /track/{id}/download)
+func (c *TrackController) TrackDownloadHandlerGet(w http.ResponseWriter, r *http.Request) {
+		// Get trackId from request URL
+		trackIdStr := chi.URLParam(r, "id")
+		trackId, err := strconv.Atoi(trackIdStr)
+		if err != nil {
+			log.Println("[ERROR] TrackAudioHandlerGet: ", err)
+			http.Error(w, "Invalid track id", http.StatusBadRequest)
+			return
+		}
+	
+		// Get audio from storage
+		url, expiresAt, err := c.trackService.GetDownloadSignedTrackURL(r.Context(), trackId)
+		if err != nil {
+			log.Println("[ERROR] TrackAudioHandlerGet: ", err)
+			http.Error(w, "Failed to stream track", http.StatusInternalServerError)
+			return
+		}
+		
+		// Encode response
+		var buffer bytes.Buffer
+		err = json.NewEncoder(&buffer).Encode(map[string]string{
+			"url": url,
+			"expiresAt": expiresAt,
+		})
+		if err != nil {
+			log.Println("[ERROR] TrackAudioHandlerGet: ", err)
+			http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+			return
+		}
+	
+		// Set headers and send response
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(buffer.Bytes())
 }
 
 func (c *TrackController) TrackCoverHandlerGet(w http.ResponseWriter, r *http.Request) {

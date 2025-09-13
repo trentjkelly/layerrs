@@ -163,7 +163,7 @@ func (s *TrackService) GetTrackInfo(ctx context.Context, trackId int) (*entities
 }
 
 // Streams a track by its track id
-func (s *TrackService) GetSignedTrackURL(ctx context.Context, trackId int) (string, string, error) {
+func (s *TrackService) GetStreamingSignedTrackURL(ctx context.Context, trackId int) (string, string, error) {
 	track := new(entities.Track)
 	track.Id = trackId
 
@@ -176,10 +176,34 @@ func (s *TrackService) GetSignedTrackURL(ctx context.Context, trackId int) (stri
 		return "", "", fmt.Errorf("track is not valid")
 	}
 
-	url, expiresAt, err := s.trackStorageRepo.GetSignedURL(ctx, track.OpusR2TrackKey, 10*time.Minute)
+	url, expiresAt, err := s.trackStorageRepo.GetSignedOpusURL(ctx, track.OpusR2TrackKey, 10*time.Minute)
 	if err != nil {
 		return "", "", fmt.Errorf("failed to get signed url for track: %w", err)
 	}
+
+	return url, expiresAt.String(), nil
+}
+
+// Streams a track by its track id
+func (s *TrackService) GetDownloadSignedTrackURL(ctx context.Context, trackId int) (string, string, error) {
+	track := new(entities.Track)
+	track.Id = trackId
+
+	err := s.trackDatabaseRepo.ReadTrackById(ctx, track)
+	if err != nil {
+		return "", "", fmt.Errorf("failed to read track from database: %w", err)
+	}
+
+	if !track.IsValid {
+		return "", "", fmt.Errorf("track is not valid")
+	}
+
+	url, expiresAt, err := s.trackStorageRepo.GetSignedFlacURL(ctx, track.FlacR2TrackKey, 1*time.Minute)
+	if err != nil {
+		return "", "", fmt.Errorf("failed to get signed url for track: %w", err)
+	}
+
+	fmt.Println("[DEBUG] Getting signed url for track: ", url)
 
 	return url, expiresAt.String(), nil
 }

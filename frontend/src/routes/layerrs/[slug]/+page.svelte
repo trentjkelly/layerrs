@@ -3,15 +3,17 @@
     import { isSidebarOpen } from "../../../stores/player";
     import NewTrackCard from "../../../components/NewTrackCard.svelte";
 
-    import { page } from '$app/stores';
+    import { page } from '$app/state';
+    import { urlBase } from "../../../stores/environment";
+    import { jwt } from "../../../stores/auth";
 
-    let slug = $page.params.slug;
+    let slug = page.params.slug;
     let creditAgreement = $state(false);
     let noStealingAgreement = $state(false);
     let banAgreement = $state(false);
     let isSubmitting = $state(false);
 
-    function handleSubmit(event: Event) {
+    async function handleSubmit(event: Event) {
         event.preventDefault();
         
         if (!creditAgreement || !noStealingAgreement || !banAgreement) {
@@ -20,16 +22,32 @@
         }
         
         isSubmitting = true;
-        
-        // Add your form submission logic here
-        console.log('Form submitted with agreements:', { creditAgreement, noStealingAgreement, banAgreement });
-        
-        // Simulate form submission
-        setTimeout(() => {
-            isSubmitting = false;
-            alert('Form submitted successfully!');
-        }, 1000);
+        await handleDownload();
+        isSubmitting = false;
+        console.log("DONE")
     }
+
+    async function handleDownload() {
+        const response = await fetch(`${$urlBase}/api/track/${slug}/download`, {
+            headers: {
+                'Authorization': `Bearer ${$jwt}`
+            }
+        });
+
+        if (!response.ok) {
+            alert('Failed to download track');
+            return;
+        }
+
+        const res = await response.json();
+
+        if (res.url) {
+            console.log(res.url);
+            window.open(res.url);
+        } else {
+            alert('Failed to download track');
+        }
+    };
 
 </script>
 

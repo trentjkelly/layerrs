@@ -118,16 +118,18 @@ func (r *TrackConversionRepository) GetAACTrackDuration(aacPath string) (float64
 }
 
 func (r *TrackConversionRepository) ConvertTrackToAAC(inputPath string, outputPath string) error {
+
+	fmt.Println(inputPath)
+	fmt.Println(outputPath)
+
 	cmd := exec.Command(
 		"ffmpeg", 
 		"-i", 
 		inputPath, 
 		"-codec:a", 
-		"libfdk_aac", 
+		"aac", 
 		"-b:a", 
 		"256k", 
-		"-profile:a", 
-		"aac_low", 
 		outputPath,
 	)
 

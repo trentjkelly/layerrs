@@ -21,7 +21,8 @@ type TrackStorageRepository struct {
 	r2Config		*aws.Config
 	r2Client		*s3.Client
 	r2Presigner		*s3.PresignClient
-	trackBucketName *string
+	trackOpusBucketName *string
+	trackFlacBucketName *string
 	environment		string
 }
 
@@ -31,7 +32,8 @@ func NewTrackStorageRepository(environment string) *TrackStorageRepository {
 	trackStorageRepository.r2Config = config.CreateR2Config()
 	trackStorageRepository.r2Client = config.CreateR2Client(trackStorageRepository.r2Config)
 	trackStorageRepository.r2Presigner = config.CreateR2Presigner(trackStorageRepository.r2Client)
-	trackStorageRepository.trackBucketName = aws.String(os.Getenv(fmt.Sprintf("TRACK_AUDIO_BUCKET_NAME_%s", environment)))
+	trackStorageRepository.trackOpusBucketName = aws.String(os.Getenv(fmt.Sprintf("TRACK_AUDIO_OPUS_BUCKET_NAME_%s", environment)))
+	trackStorageRepository.trackFlacBucketName = aws.String(os.Getenv(fmt.Sprintf("TRACK_AUDIO_FLAC_BUCKET_NAME_%s", environment)))
 	trackStorageRepository.environment = environment
 	return trackStorageRepository
 }
@@ -100,11 +102,30 @@ func (r *TrackStorageRepository) CreateTrack(ctx context.Context, file multipart
 }
 
 // Gets a track from storage (to be streamed)
-func (r *TrackStorageRepository) ReadTrack(ctx context.Context, trackName *string, startByte int, endByte int) (io.ReadCloser, error) {
+func (r *TrackStorageRepository) ReadOpusTrack(ctx context.Context, trackName *string, startByte int, endByte int) (io.ReadCloser, error) {
 	rangeString := fmt.Sprintf("bytes=%d-%d", startByte, endByte)
 
 	input := &s3.GetObjectInput{
-		Bucket: r.trackBucketName,
+		Bucket: r.trackOpusBucketName,
+		Key: trackName,
+		Range: aws.String(rangeString),
+	}
+
+	res, err := r.r2Client.GetObject(ctx, input)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return res.Body, nil
+}
+
+// Gets a track from storage (to be streamed)
+func (r *TrackStorageRepository) ReadFlacTrack(ctx context.Context, trackName *string, startByte int, endByte int) (io.ReadCloser, error) {
+	rangeString := fmt.Sprintf("bytes=%d-%d", startByte, endByte)
+
+	input := &s3.GetObjectInput{
+		Bucket: r.trackFlacBucketName,
 		Key: trackName,
 		Range: aws.String(rangeString),
 	}
@@ -119,11 +140,30 @@ func (r *TrackStorageRepository) ReadTrack(ctx context.Context, trackName *strin
 }
 
 // Gets a signed url for a track
-func ( r*TrackStorageRepository) GetSignedURL(ctx context.Context, objectKey string, expirationTime time.Duration) (string, time.Duration, error) {
+func ( r*TrackStorageRepository) GetSignedOpusURL(ctx context.Context, objectKey string, expirationTime time.Duration) (string, time.Duration, error) {
 
 	log.Println("[DEBUG] Getting signed url for track: ", objectKey)
 	input := &s3.GetObjectInput{
-		Bucket: r.trackBucketName,
+		Bucket: r.trackOpusBucketName,
+		Key: &objectKey,
+	}
+
+	req, err := r.r2Presigner.PresignGetObject(ctx, input, func(opts *s3.PresignOptions) {
+		opts.Expires = expirationTime
+	})
+	if err != nil {
+		return "", 0, fmt.Errorf("failed to get presigned url: %w", err)
+	}
+
+	return req.URL, expirationTime, nil
+}
+
+// Gets a signed url for a track
+func ( r*TrackStorageRepository) GetSignedFlacURL(ctx context.Context, objectKey string, expirationTime time.Duration) (string, time.Duration, error) {
+
+	log.Println("[DEBUG] Getting signed url for track: ", objectKey)
+	input := &s3.GetObjectInput{
+		Bucket: r.trackFlacBucketName,
 		Key: &objectKey,
 	}
 
