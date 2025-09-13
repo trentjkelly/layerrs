@@ -61,7 +61,7 @@
                         class="mt-1 w-5 h-5 text-violet-600 bg-zinc-700 border-zinc-600 rounded focus:ring-violet-500 hover:cursor-pointer focus:ring-2"
                     />
                     <label for="credit-checkbox" class="text-zinc-300 text-base leading-relaxed cursor-pointer">
-                        When uploading a track that uses this one, I will <strong class="text-white">give proper credit in the upload track form</strong>.
+                        When uploading a track that uses any part of this one, I will <strong class="text-white">give proper credit in the upload track form</strong>.
                     </label>
                 </div>
 
