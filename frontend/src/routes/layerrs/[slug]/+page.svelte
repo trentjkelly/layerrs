@@ -52,7 +52,7 @@
                 </p>
             </div>
 
-            <div class="mb-6 space-y-4">
+            <div class="mb-6 ml-2 space-y-4">
                 <div class="flex items-start space-x-3">
                     <input 
                         type="checkbox" 
