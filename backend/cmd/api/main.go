@@ -60,6 +60,7 @@ func main() {
 	recService := service.NewRecommendationsService(trackDatabaseRepo, likesDatabaseRepo)
 	artistService := service.NewArtistService(artistDatabaseRepo)
 	likesService := service.NewLikesService(likesDatabaseRepo, trackDatabaseRepo)
+	layerrsService := service.NewLayerrsService(layerrsDatabaseRepo)
 
 	// -- CONTROLLERS --
 	authController := controller.NewAuthController(authService)
@@ -67,7 +68,7 @@ func main() {
 	recController := controller.NewRecommendationsController(recService)
 	likesController := controller.NewLikesController(likesService)
 	artistController := controller.NewArtistController(artistService)
-
+	layerrsController := controller.NewLayerrsController(layerrsService)
 	// -- CONFIGURATION --
 	cfg := appConfig{
 		addr : ":8080",
@@ -80,6 +81,7 @@ func main() {
 		authController: authController,
 		likesController: likesController,
 		artistController: artistController,
+		layerrsController: layerrsController,
 	}
 
 	// Mount and run the application

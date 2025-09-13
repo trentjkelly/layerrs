@@ -24,6 +24,7 @@ type application struct {
 	recommendationsController 	*controller.RecommendationsController
 	likesController				*controller.LikesController
 	artistController 			*controller.ArtistController
+	layerrsController 			*controller.LayerrsController
 }
 
 func (app *application) mount() http.Handler {
@@ -101,6 +102,12 @@ func (app *application) mount() http.Handler {
 			r.Post("/", app.likesController.LikesHandlerPost)
 			r.Get("/", app.likesController.LikesHandlerGet)
 			r.Delete("/", app.likesController.LikesHandlerDelete)
+		})
+
+		r.Route("/layerrs", func(r chi.Router) {
+			r.Use(AuthJWTMiddleware)
+			r.Options("/", app.layerrsController.LayerrsHandlerOptions)
+			r.Get("/", app.layerrsController.LayerrsHandlerGet)
 		})
 	})
 
