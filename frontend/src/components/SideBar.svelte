@@ -26,7 +26,7 @@
 </script>
   
 <div class="flex">
-    <div class={`fixed top-0 left-0 h-full bg-gradient-to-b from-gray-950 to-gray-900 text-white w-64 transform transition-transform duration-300 
+    <div class={`fixed top-0 left-0 h-full bg-zinc-950 text-white w-64 transform transition-transform duration-300 
         ${$isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div class="h-20 flex flex-row items-center justify-between">
             <button onclick={navigateHome} class="flex flex-row items-center ml-4 p-4">

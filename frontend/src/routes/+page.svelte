@@ -105,7 +105,7 @@
 
 </script>
 
-<main class={`transition-all duration-300 h-auto w-full ${$isSidebarOpen ? 'ml-64' : 'ml-0'} bg-gradient-to-br from-gray-900 to-gray-800`}>
+<main class={`transition-all duration-300 h-auto w-full ${$isSidebarOpen ? 'ml-64' : 'ml-0'} bg-zinc-900`}>
 
     <TopHeader pageName="Home" pageIcon="home.png"></TopHeader>
 
@@ -117,7 +117,6 @@
         <!-- {#each trackIds as id}
             <NewTrackCard trackId={id}></NewTrackCard>
         {/each} -->
-        <NewTrackCard trackId={artistId}></NewTrackCard>
         <NewTrackCard trackId={artistId}></NewTrackCard>
     </section>
 </main>

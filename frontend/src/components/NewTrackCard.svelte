@@ -264,17 +264,16 @@
 
 </script>
 
-<div class="w-3/4 max-w-[1200px] py-2 hover:cursor-pointer">
+<div class="w-3/4 max-w-[1200px] py-2">
 
-    <div class="w-full h-16 flex flex-row items-center">
-        <div class="w-10 h-10 ml-4 rounded rounded-xl bg-gray-400"></div>
-        <a class="ml-2 text-violet-400 hover:text-violet-500 hover:underline font-bold text-lg" href={`/artist/${artistId}`}>{artistName}</a>
-        <p class="ml-2 text-violet-400">•</p>
-        <a class="ml-2 text-white hover:text-violet-500 hover:underline text-md" href={`/track/${trackId}`}>{trackName}</a>
+    <div class="w-full h-8 mb-1 flex flex-row items-center">
+            <a class="ml-2 px-1 text-violet-500 hover:bg-white text-lg transition-all duration-300" href={`/artist/${artistId}`}>{artistName}</a>
+            <p class="ml-2 text-violet-400">•</p>
+            <a class="ml-2 px-1 text-gray-100 hover:text-violet-500 hover:bg-white text-lg transition-all duration-300" href={`/track/${trackId}`}>{trackName}</a>
     </div>
     <!-- Waveform -->
     <div 
-        class="relative h-36 w-full hover:cursor-pointer flex flex-row items-center rounded-2xl py-1 px-1 border     border-violet-700"
+        class="relative h-24 w-full hover:cursor-pointer flex flex-row items-center rounded-2xl py-1 px-1 border-2 border-violet-700"
         bind:clientWidth={waveformWidth}
         onmousemove={handleMouseMove}
         onmouseleave={handleMouseLeave}
@@ -299,6 +298,10 @@
     <!-- Track Information -->
     <div class="w-full h-12 flex flex-row items-center px-4">
         <!-- Like Button -->
+         <div class="flex flex-row items-center">
+
+            <p class="text-gray-100 text-sm">100</p>
+         </div>
         <LikeButton trackId={trackId} numLikes={numLikes}></LikeButton>
         <LayerrButton trackId={trackId} numLayerrs={numLayerrs}></LayerrButton>
         <!-- Download Button -->

@@ -106,8 +106,8 @@
 
 </script>
 
-<div class="h-screen w-screen flex flex-row bg-gray-900 text-white font-body">
+<div class="h-screen w-screen flex flex-row bg-zinc-900 text-white font-body">
 	<SideBar></SideBar>
 	{@render children()}
-	<AudioPlayer></AudioPlayer>
+	<!-- <AudioPlayer></AudioPlayer> -->
 </div>
