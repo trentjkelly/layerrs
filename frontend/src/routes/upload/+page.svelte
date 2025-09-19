@@ -11,8 +11,8 @@
     let audioFiles = $state<FileList | null>(null);
     let coverArtFiles = $state<FileList | null>(null);
     let artistLayerrs = $state<Array<string>>([]);
-    let connections = $state<Array<string>>([]);
-    let isConnectionsDropdownOpen = $state(false);
+    let layerrs = $state<Array<string>>([]);
+    let islayerrsDropdownOpen = $state(false);
     let title = $state<string>('');
     let isUploaded = $state(false);
     let isDragOver = $state(false);
@@ -46,19 +46,19 @@
         coverArtFiles = null;
     }
 
-    function toggleConnectionsDropdown() {
-        isConnectionsDropdownOpen = !isConnectionsDropdownOpen;
+    function togglelayerrsDropdown() {
+        islayerrsDropdownOpen = !islayerrsDropdownOpen;
     }
 
-    function addConnection(trackId: string) {
-        if (!connections.includes(trackId)) {
-            connections = [...connections, trackId];
+    function addlayerr(trackId: string) {
+        if (!layerrs.includes(trackId)) {
+            layerrs = [...layerrs, trackId];
         }
-        isConnectionsDropdownOpen = false;
+        islayerrsDropdownOpen = false;
     }
 
-    function removeConnection(trackId: string) {
-        connections = connections.filter(id => id !== trackId);
+    function removelayerr(trackId: string) {
+        layerrs = layerrs.filter(id => id !== trackId);
     }
 
     function handleDragOver(event: DragEvent) {
@@ -119,7 +119,7 @@
             form.append('audioFile', audioFile)
             form.append('coverArtFile', coverArtFile)
             form.append('name', title)
-            form.append('connections', JSON.stringify(connections))
+            form.append('layerrIDs', JSON.stringify(layerrs))
 
             const res = await fetch(`${$urlBase}/api/track/`, { 
                 method: "POST", 
@@ -131,7 +131,6 @@
             if (res.status == 201) {
                 isUploaded = true
             }
-
         } else {
             logger.error("audioFile and coverArtFile are not valid")
         }
@@ -164,7 +163,7 @@
                     />
                 </div>
 
-                <!-- Add Connections Section -->
+                <!-- Add layerrs Section -->
                 <div class="w-full mb-4">
                     <h3 class="text-xl font-semibold text-white mb-3">Add Layerrs</h3>
                     <div class="bg-gray-700 rounded-lg p-4 mb-4">
@@ -173,15 +172,15 @@
                         </p>
                     </div>
                     
-                    <!-- Selected Connections -->
-                    {#if connections.length > 0}
+                    <!-- Selected layerrs -->
+                    {#if layerrs.length > 0}
                         <div class="mb-3 space-y-2">
-                            {#each connections as trackId}
+                            {#each layerrs as trackId}
                                 <div class="flex items-center justify-between px-3 bg-gray-600 rounded-lg">
                                     <span class="text-white text-md">{trackId}</span>
                                     <button 
                                         type="button"
-                                        onclick={() => removeConnection(trackId)}
+                                        onclick={() => removelayerr(trackId)}
                                         class="text-red-400 hover:text-red-300 text-2xl font-bold"
                                     >
                                         ×
@@ -194,13 +193,13 @@
                     <div class="relative flex justify-center">
                         <button 
                             type="button"
-                            onclick={toggleConnectionsDropdown}
+                            onclick={togglelayerrsDropdown}
                             class="px-6 py-3 rounded-full bg-violet-600 text-white hover:bg-violet-700 focus:outline-none focus:ring-2 focus:ring-violet-500/20 flex items-center justify-center transition-colors"
                         >
                             <span class="text-lg font-semibold">Add Layerrs +</span>
                         </button>
                         
-                        {#if isConnectionsDropdownOpen}
+                        {#if islayerrsDropdownOpen}
                             <div class="absolute top-full left-0 right-0 mt-1 bg-gray-700 border border-gray-600 rounded-lg shadow-lg z-10 max-h-48 overflow-y-auto">
                                 {#if artistLayerrs.length === 0}
                                     <div class="px-4 py-3 text-gray-400 text-center">
@@ -210,7 +209,7 @@
                                     {#each artistLayerrs as trackId}
                                         <button 
                                             type="button"
-                                            onclick={() => addConnection(trackId)}
+                                            onclick={() => addlayerr(trackId)}
                                             class="w-full px-4 py-3 text-left text-white hover:bg-gray-600 border-b border-gray-600 last:border-b-0"
                                         >
                                             {trackId}

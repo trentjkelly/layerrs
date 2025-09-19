@@ -34,6 +34,8 @@ func (c *TrackController) TrackHandlerOptions(w http.ResponseWriter, r *http.Req
 
 // POST request -- creating a new track (POST /track)
 func (c *TrackController) TrackHandlerPost(w http.ResponseWriter, r *http.Request) {
+	var layerrsIdArr []int
+
 	// Parse form (for trackAudio and coverArt files)
 	err := r.ParseMultipartForm(32 << 20)
 	if err != nil {
@@ -44,17 +46,16 @@ func (c *TrackController) TrackHandlerPost(w http.ResponseWriter, r *http.Reques
 	// Getting metadata
 	trackName := r.FormValue("name")
 	artistIdFloat := r.Context().Value(entities.ArtistIdKey).(float64)
-	parentIdStr := r.FormValue("parentId") // Optional
+	layerrsIdStr := r.FormValue("layerrIDs") // Optional - could have no layerrs to credit
 	if trackName == "" {
 		http.Error(w, "Track name is required", http.StatusBadRequest)
 		return
 	}
 
-	parentIdInt := 0
-
 	// Converting parentId & artistId to integers
-	if parentIdStr != "" {
-		parentIdInt, err = strconv.Atoi(parentIdStr)
+	if layerrsIdStr != "" {
+		// TODO: get layerrsIdArr converted from JSON to int[] 
+		// layerrsIdArr, err := strconv.Atoi(layerrsIdStr)
 		if err != nil {
 			http.Error(w, "Invalid parent track id", http.StatusBadRequest)
 			return
@@ -91,7 +92,7 @@ func (c *TrackController) TrackHandlerPost(w http.ResponseWriter, r *http.Reques
 	defer coverArtFile.Close()
 
 	// Passing to Service layer
-	err = c.trackService.AddAndUploadTrack(r.Context(), coverArtFile, coverArtHeader, audioFile, audioHeader, trackName, artistIdInt, parentIdInt)
+	err = c.trackService.AddAndUploadTrack(r.Context(), coverArtFile, coverArtHeader, audioFile, audioHeader, trackName, artistIdInt, layerrsIdArr)
 	if err != nil {
 		http.Error(w, "Failed to create track", http.StatusInternalServerError)
 		log.Println("TrackHandlerPost: ", err)

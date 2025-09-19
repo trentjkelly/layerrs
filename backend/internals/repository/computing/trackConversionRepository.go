@@ -45,7 +45,6 @@ func (r *TrackConversionRepository) ConvertAllTracks(audio multipart.File, track
 }
 
 func (r *TrackConversionRepository) CreatePathNames(tempDirPath string, trackId string) (string, string, string, string, string, string) {
-
 	flacName := fmt.Sprintf("%s.flac", trackId)
 	opusName := fmt.Sprintf("%s.opus", trackId)
 	aacName := fmt.Sprintf("%s.aac", trackId)

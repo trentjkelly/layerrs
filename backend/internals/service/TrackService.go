@@ -57,7 +57,7 @@ func NewTrackService(
 }
 
 // Adds all files and data for a new track -- called by TrackController for a POST request
-func (s *TrackService) AddAndUploadTrack(ctx context.Context, coverArt multipart.File, coverHeader *multipart.FileHeader, audio multipart.File, audioHeader *multipart.FileHeader, trackName string, artistId int, parentId int) error {
+func (s *TrackService) AddAndUploadTrack(ctx context.Context, coverArt multipart.File, coverHeader *multipart.FileHeader, audio multipart.File, audioHeader *multipart.FileHeader, trackName string, artistId int, parentIDs []int) error {
 	// Add track metadata to track table (get back ID)
 	track := entities.NewTrack(trackName, artistId)
 	err := s.trackDatabaseRepo.CreateTrack(ctx, track)
@@ -115,7 +115,7 @@ func (s *TrackService) AddAndUploadTrack(ctx context.Context, coverArt multipart
 	}
 
 	// Track has a parent, need to add that relationship as well
-	if parentId != NO_PARENT {
+	if parentIDs != nil {
 		trackTree := new(entities.TrackTree)
 		trackTree.RootId = parentId
 		trackTree.ChildId = track.Id
