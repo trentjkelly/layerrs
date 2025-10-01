@@ -26,8 +26,8 @@ func (r *GenreDatabaseRepository) CloseDB() {
 // Creates a genre in the database
 func (r *GenreDatabaseRepository) CreateGenre(ctx context.Context, genre *entities.Genre) error {
 	query := `INSERT INTO genre (name) VALUES ($1) RETURNING id;`
-	row := r.db.QueryRow(ctx, query, genre.name)
-	err := row.Scan(&genre.id)
+	row := r.db.QueryRow(ctx, query, genre.Name)
+	err := row.Scan(&genre.Id)
 	if err != nil {
 		return fmt.Errorf("could not create genre in the DB: %w", err)
 	}
@@ -37,12 +37,12 @@ func (r *GenreDatabaseRepository) CreateGenre(ctx context.Context, genre *entiti
 
 // TODO: Not completed
 // Creates a mod for the genre in the database
-func (r *GenreDatabaseRepository) CreateGenreMod(ctx context.Context, genre *entities.Genre) error {
-	query := `INSERT INTO genre_mods (genre_id, artist_id, is_founder, is_active) VALUES ($1, $2, $3, $4) RETURNING id;`
+func (r *GenreDatabaseRepository) CreateGenreMod(ctx context.Context, genreMod *entities.GenreMod) error {
+	query := `INSERT INTO genre_mods (genre_id, artist_id, is_founder) VALUES ($1, $2, $3) RETURNING id;`
 	// TODO: Input is likely something besides 'mod', determine when creating struct
-	row := r.db.QueryRow(ctx, query, genre.genreId, genre.artistId, genre.isFounder, genre.isActive)
+	row := r.db.QueryRow(ctx, query, genreMod.GenreId, genreMod.ArtistId, genreMod.IsFounder)
 
-	err := row.Scan(&genre.id)
+	err := row.Scan(&genreMod.Id)
 	if err != nil {
 		return fmt.Errorf("could not create genre mod in the database: %w", err)
 	}
@@ -50,7 +50,14 @@ func (r *GenreDatabaseRepository) CreateGenreMod(ctx context.Context, genre *ent
 	return nil
 }
 
-func (r *GenreDatabaseRepository) CreateGenreTracks(ctx context.Context, genre *entities.Genre) error {
+// Adds a track to a genre in the database
+func (r *GenreDatabaseRepository) CreateGenreTracks(ctx context.Context, genreTrack *entities.GenreTrack) error {
 	query := `INSERT INTO genre_tracks (genre_id, track_id) VALUES ($1, $2) RETURNING id;`
-	row := r.db.QueryRow(ctx, query, gen)
+	row := r.db.QueryRow(ctx, query, genreTrack.GenreId, genreTrack.TrackId)
+	err := row.Scan(&genreTrack.Id)
+	if err != nil {
+		return fmt.Errorf("could not create genre tracks in the database: %w", err)
+	}
+
+	return nil
 }

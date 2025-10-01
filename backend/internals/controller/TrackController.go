@@ -1,16 +1,17 @@
 package controller
 
 import (
+	"bytes"
 	"encoding/json"
 	"io"
 	"log"
 	"net/http"
 	"strconv"
-	"bytes"
+	"fmt"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/trentjkelly/layerrs/internals/service"
 	"github.com/trentjkelly/layerrs/internals/entities"
+	"github.com/trentjkelly/layerrs/internals/service"
 )
 
 type TrackController struct {
@@ -34,8 +35,6 @@ func (c *TrackController) TrackHandlerOptions(w http.ResponseWriter, r *http.Req
 
 // POST request -- creating a new track (POST /track)
 func (c *TrackController) TrackHandlerPost(w http.ResponseWriter, r *http.Request) {
-	var layerrsIdArr []int
-
 	// Parse form (for trackAudio and coverArt files)
 	err := r.ParseMultipartForm(32 << 20)
 	if err != nil {
@@ -52,18 +51,20 @@ func (c *TrackController) TrackHandlerPost(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	// Converting parentId & artistId to integers
+	// Converting layerrsIdStr to integers
+	var layerrsIdArr []int
 	if layerrsIdStr != "" {
-		// TODO: get layerrsIdArr converted from JSON to int[] 
-		// layerrsIdArr, err := strconv.Atoi(layerrsIdStr)
+		err := json.Unmarshal([]byte(layerrsIdStr), &layerrsIdArr)
 		if err != nil {
-			http.Error(w, "Invalid parent track id", http.StatusBadRequest)
+			http.Error(w, "Invalid layers ID array", http.StatusBadRequest)
 			return
 		}
 	}
 
+	// Converting artistIdFloat to integer
 	artistIdInt := int(artistIdFloat)
-	if err != nil {
+	if artistIdInt == 0 || artistIdInt == service.NO_PARENT {
+		fmt.Printf("4: %d", artistIdInt)
 		http.Error(w, "Invalid artist id", http.StatusBadRequest)
 		return
 	}
@@ -94,6 +95,7 @@ func (c *TrackController) TrackHandlerPost(w http.ResponseWriter, r *http.Reques
 	// Passing to Service layer
 	err = c.trackService.AddAndUploadTrack(r.Context(), coverArtFile, coverArtHeader, audioFile, audioHeader, trackName, artistIdInt, layerrsIdArr)
 	if err != nil {
+		fmt.Printf("8: %s", err.Error())
 		http.Error(w, "Failed to create track", http.StatusInternalServerError)
 		log.Println("TrackHandlerPost: ", err)
 		return

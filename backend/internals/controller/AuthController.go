@@ -61,7 +61,7 @@ func (c *AuthController) LogInArtistHandler(w http.ResponseWriter, r *http.Reque
 	tokenString, refreshString, err := c.authService.LoginArtist(r.Context(), loginRequest.Email, loginRequest.Password)
 	if err != nil {
 		log.Println(err)
-		http.Error(w, "Could not log in the artist", http.StatusInternalServerError)
+		http.Error(w, "Could not log in the artist", http.StatusUnauthorized)
 	}
 
 	// Send back the token string

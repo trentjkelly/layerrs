@@ -9,6 +9,7 @@
     import { urlBase } from "../../stores/environment";
     import { logger } from "../../modules/lib/logger";
     import { handleEnvironment } from "../../stores/environment";
+    import NewTrackCard from "../../components/NewTrackCard.svelte";
     /**
      * @type {any[]}
      */
@@ -40,19 +41,14 @@
 </script>
 
 <main class={`transition-all duration-300 h-full w-full ${$isSidebarOpen ? 'ml-64' : 'ml-0'} bg-zinc-900`}>
-
     <TopHeader pageName="Your Library" pageIcon="/vinyl.png"></TopHeader>
-
-    
     <section class="w-full flex flex-wrap justify-around pb-24">
         {#if $isLoggedIn}
-
             {#each trackIds as id}
                 {#if id}
-                    <TrackCard trackId={id}></TrackCard>
+                    <NewTrackCard trackId={id}></NewTrackCard>
                 {/if}
             {/each}
-
         {:else}
             <LogInPopup />
         {/if}

@@ -114,13 +114,17 @@ func (s *TrackService) AddAndUploadTrack(ctx context.Context, coverArt multipart
 		return fmt.Errorf("failed to create the waveform in the db: %w", err)
 	}
 
-	// Track has a parent, need to add that relationship as well
+	// Track has an array of parents, need to add that relationship to the database as well
 	if parentIDs != nil {
-		trackTree := new(entities.TrackTree)
-		trackTree.RootId = parentId
-		trackTree.ChildId = track.Id
+		var trackTrees []*entities.TrackTree
+		for _, parentId := range parentIDs {
+			trackTree := new(entities.TrackTree)
+			trackTree.RootId = parentId
+			trackTree.ChildId = track.Id
+			trackTrees = append(trackTrees, trackTree)
+		}
 
-		err = s.treeDatabaseRepo.CreateTrackTree(ctx, trackTree)
+		err = s.treeDatabaseRepo.CreateTrackTrees(ctx, trackTrees)
 		if err != nil {
 			return fmt.Errorf("failed to create the track tree in the db: %w", err)
 		}

@@ -1,9 +1,10 @@
 package databaseRepository
 
 import (
+	"context"
+
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/trentjkelly/layerrs/internals/entities"
-	"context"
 )
 
 type TrackTreeDatabaseRepository struct {
@@ -20,6 +21,16 @@ func NewTrackTreeDatabaseRepository(db *pgxpool.Pool) *TrackTreeDatabaseReposito
 // Closes the database pool connection
 func (r *TrackTreeDatabaseRepository) CloseDB() {
 	r.db.Close()
+}
+
+func (r *TrackTreeDatabaseRepository) CreateTrackTrees(ctx context.Context, trackTrees []*entities.TrackTree) error {
+	for _, trackTree := range trackTrees {
+		err := r.CreateTrackTree(ctx, trackTree)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // Creates a child-parent relationship between two tracks to the track_tree sql table
