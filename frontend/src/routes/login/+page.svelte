@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
     import TopHeader from "../../components/TopHeader.svelte";
     import { isSidebarOpen } from "../../stores/player";
     import { goto } from "$app/navigation";
@@ -8,24 +8,50 @@
 
     let email = $state('')
     let password = $state('')
+    let error = $state('')
 
     async function handleLogin() {
         // Backend authentication request for logging in
-        const res = await loginServerRequest(email, password)
-        if (res === null) {
-            logger.error('Failed to login')
+        const isValid = validateLoginInputs(email, password)
+        if (!isValid) {
+            error = 'Email and password are required.'
             return
         }
 
-        console.log(res)
+        const res = await loginServerRequest(email, password)
+        if (res === null) {
+            logger.error('Failed to login')
+            error = 'We\'re experiencing technical issues, please try again later.'
+            return
+        }
+
+        // Check status code from response
+        const status = res.status
+        if (status == 401 || status == 400) {
+            logger.error('Invalid credentials on login')
+            error = 'Invalid email or password, please try again.'
+            return
+        } else if (res.status !== 200) {
+            logger.error('Failed to login')
+            error = 'We\'re experiencing technical issues, please try again later.'
+            return
+        }
 
         // Set cookies for the refresh and jwt tokens
-        const success = await handleBrowserLogin(res.token, res.refreshToken)
+        const resJson = await res.json()
+        const success = await handleBrowserLogin(resJson.token, resJson.refreshToken)
         if (success) {
             goto('/')
         } else {
             logger.error('Failed to login')
         }
+    }
+
+    function validateLoginInputs(email : string, password : string) {
+        if (email === '' || password === '') {
+            return false
+        }
+        return true
     }
 
     function navigateSignUp() {
@@ -48,10 +74,11 @@
                     <label for="email" class="block text-xl font-semibold text-white mb-3">Email</label>
                     <input 
                         id="email" 
-                        class="w-full px-4 py-3 rounded-lg bg-gray-700 text-white placeholder-gray-400 border border-gray-600 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" 
+                        class="w-full px-4 py-3 rounded-lg bg-gray-700 text-white placeholder-gray-400 border {error ? 'border-red-500' : 'border-gray-600'} focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 autofill:bg-gray-700 autofill:text-white" 
                         type="email" 
                         bind:value={email}
                         placeholder="Enter your email..."
+                        onkeydown={(e) => e.key === 'Enter' && handleLogin()}
                     />
                 </div>
 
@@ -60,12 +87,20 @@
                     <label for="password" class="block text-xl font-semibold text-white mb-3">Password</label>
                     <input 
                         id="password" 
-                        class="w-full px-4 py-3 rounded-lg bg-gray-700 text-white placeholder-gray-400 border border-gray-600 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" 
+                        class="w-full px-4 py-3 rounded-lg bg-gray-700 text-white placeholder-gray-400 border {error ? 'border-red-500' : 'border-gray-600'} focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 autofill:bg-gray-700 autofill:text-white" 
                         type="password" 
                         bind:value={password}
                         placeholder="Enter your password..."
+                        onkeydown={(e) => e.key === 'Enter' && handleLogin()}
                     />
                 </div>
+                
+                <!-- Error Message -->
+                {#if error}
+                    <div class="w-full text-center">
+                        <p class="text-red-400 text-md">{error}</p>
+                    </div>
+                {/if}
                 
                 <!-- Login Button -->
                 <div class="w-full flex justify-center pt-4">

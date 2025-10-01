@@ -1,8 +1,6 @@
-import { logger } from "../lib/logger";
 import { getUrlBase } from "../../stores/environment";
 
-export async function loginServerRequest(email: string, password: string) : Promise<any> {
-    if ((email !== '') && (password !== '')) {
+export async function loginServerRequest(email: string, password: string) : Promise<Response | null> {
         try {
             const res = await fetch(`${getUrlBase()}/api/authentication/login`, {
                 method: "POST",
@@ -15,14 +13,8 @@ export async function loginServerRequest(email: string, password: string) : Prom
                 })
             })
 
-            const jsonData = await res.json()
-            return jsonData
+            return res
         } catch (error) {
-            logger.error(`Failed to login: ${error}`)
             return null
         }
-    } else {
-        logger.error('Email or password is empty')
-        return null
-    }
 }
