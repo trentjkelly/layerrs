@@ -55,7 +55,7 @@
                         class="w-full px-4 py-3 rounded-lg bg-gray-700 text-white placeholder-gray-400 border border-gray-600 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" 
                         type="email" 
                         bind:value={email}
-                        placeholder="Enter your email..."
+                        placeholder="Enter an email..."
                     />
                 </div>
 
@@ -67,7 +67,7 @@
                         class="w-full px-4 py-3 rounded-lg bg-gray-700 text-white placeholder-gray-400 border border-gray-600 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" 
                         type="password" 
                         bind:value={password}
-                        placeholder="Enter your password..."
+                        placeholder="Enter a password..."
                     />
                 </div>
 
@@ -79,19 +79,19 @@
                         class="w-full px-4 py-3 rounded-lg bg-gray-700 text-white placeholder-gray-400 border border-gray-600 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" 
                         type="text" 
                         bind:value={username}
-                        placeholder="Choose a username..."
+                        placeholder="Enter a username..."
                     />
                 </div>
 
-                <!-- Name Input -->
+                <!-- Display Name Input -->
                 <div class="w-full">
-                    <label for="name" class="block text-xl font-semibold text-white mb-3">Full Name</label>
+                    <label for="name" class="block text-xl font-semibold text-white mb-3">Display Name</label>
                     <input 
                         id="name" 
                         class="w-full px-4 py-3 rounded-lg bg-gray-700 text-white placeholder-gray-400 border border-gray-600 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" 
                         type="text" 
                         bind:value={name}
-                        placeholder="Enter your full name..."
+                        placeholder="Enter a display name..."
                     />
                 </div>
                 
