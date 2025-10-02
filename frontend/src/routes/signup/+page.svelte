@@ -9,10 +9,11 @@
     let password = $state('')
     let name = $state('')
     let username = $state('')
-
+    let isSubmitting = $state(false);
 
     async function signup() {
         if ((email !== '') && (password !== '') && (name !== '') && (username !== '')) {
+            isSubmitting = true;
             try {
                 const res = await fetch(`${$urlBase}/api/authentication/signup`, {
                     method: "POST",
@@ -26,9 +27,14 @@
                         username: username
                     })
                 })
+
+                if (!res.ok) {
+                    throw new Error("Failed to sign up");
+                }
             } catch (err) {
                 logger.error(err)
             }
+            isSubmitting = false;
         }
     }
 
@@ -98,7 +104,7 @@
                 <!-- Sign Up Button -->
                 <div class="w-full flex justify-center pt-4">
                     <button 
-                        class="px-8 py-4 bg-indigo-600 hover:bg-indigo-700 rounded-full text-white font-semibold text-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed" 
+                        class="px-8 py-4 bg-indigo-600 hover:bg-indigo-700 rounded-full text-white font-semibold text-lg transition-colors {isSubmitting ? 'animate-pulse' : ''} disabled:opacity-50 disabled:cursor-not-allowed" 
                         onclick={signup}
                         disabled={!email || !password || !username || !name}
                     >
