@@ -9,12 +9,16 @@
     let email = $state('')
     let password = $state('')
     let error = $state('')
+    let isSubmitting = $state(false);
 
     async function handleLogin() {
         // Backend authentication request for logging in
+        isSubmitting = true;
+
         const isValid = validateLoginInputs(email, password)
         if (!isValid) {
             error = 'Email and password are required.'
+            isSubmitting = false;
             return
         }
 
@@ -22,6 +26,7 @@
         if (res === null) {
             logger.error('Failed to login')
             error = 'We\'re experiencing technical issues, please try again later.'
+            isSubmitting = false;
             return
         }
 
@@ -30,10 +35,12 @@
         if (status == 401 || status == 400) {
             logger.error('Invalid credentials on login')
             error = 'Invalid email or password, please try again.'
+            isSubmitting = false;
             return
         } else if (res.status !== 200) {
             logger.error('Failed to login')
             error = 'We\'re experiencing technical issues, please try again later.'
+            isSubmitting = false;
             return
         }
 
@@ -45,6 +52,8 @@
         } else {
             logger.error('Failed to login')
         }
+
+        isSubmitting = false;
     }
 
     function validateLoginInputs(email : string, password : string) {
@@ -56,6 +65,10 @@
 
     function navigateSignUp() {
         goto('/signup')
+    }
+
+    function navigateForgotPassword() {
+        goto('/forgot-password')
     }
 
 </script>
@@ -105,7 +118,7 @@
                 <!-- Login Button -->
                 <div class="w-full flex justify-center pt-4">
                     <button 
-                        class="px-8 py-4 bg-indigo-600 hover:bg-indigo-700 rounded-full text-white font-semibold text-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed" 
+                        class="px-8 py-4 bg-indigo-600 hover:bg-indigo-700 rounded-full text-white font-semibold text-lg transition-colors {isSubmitting ? 'animate-pulse' : ''} disabled:opacity-50 disabled:cursor-not-allowed" 
                         onclick={handleLogin}
                         disabled={!email || !password}
                     >
@@ -120,6 +133,16 @@
                         onclick={navigateSignUp}
                     >
                         Don't have an account? Sign up instead
+                    </button>
+                </div>
+
+                <!-- Forgot Password Link -->
+                <div class="w-full flex justify-center">
+                    <button 
+                        class="text-gray-400 hover:text-white transition-colors underline" 
+                        onclick={navigateForgotPassword}
+                    >
+                        Forgot password?
                     </button>
                 </div>
             </div>
