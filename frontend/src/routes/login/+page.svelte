@@ -33,12 +33,10 @@
         // Check status code from response
         const status = res.status
         if (status == 401 || status == 400) {
-            logger.error('Invalid credentials on login')
             error = 'Invalid email or password, please try again.'
             isSubmitting = false;
             return
         } else if (res.status !== 200) {
-            logger.error('Failed to login')
             error = 'We\'re experiencing technical issues, please try again later.'
             isSubmitting = false;
             return
@@ -78,7 +76,7 @@
     <TopHeader pageName="Log in" pageIcon=""></TopHeader>
 
     <section class="w-full flex flex-row justify-center pb-32">
-        <div class="outline outline-gray-600 rounded-3xl w-2/3 max-w-2xl flex flex-col items-center p-8">
+        <div class="outline outline-indigo-800 outline-2 rounded-3xl w-2/3 max-w-2xl flex flex-col items-center p-8">
             <h2 class="mb-8 text-3xl font-bold text-white">Log In</h2>
             
             <div class="w-full space-y-6">
@@ -122,7 +120,11 @@
                         onclick={handleLogin}
                         disabled={!email || !password}
                     >
+                    {#if isSubmitting}
+                        Logging in...
+                    {:else}
                         Log In
+                    {/if}
                     </button>
                 </div>
                 
