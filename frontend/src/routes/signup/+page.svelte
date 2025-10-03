@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
     import TopHeader from "../../components/TopHeader.svelte";
     import { isSidebarOpen } from "../../stores/player";
     import { goto } from "$app/navigation";
@@ -9,33 +9,58 @@
     let password = $state('')
     let name = $state('')
     let username = $state('')
+    let error = $state('')
     let isSubmitting = $state(false);
 
     async function signup() {
-        if ((email !== '') && (password !== '') && (name !== '') && (username !== '')) {
-            isSubmitting = true;
-            try {
-                const res = await fetch(`${$urlBase}/api/authentication/signup`, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({
-                        email: email,
-                        password: password,
-                        name: name,
-                        username: username
-                    })
-                })
+        isSubmitting = true;
+        error = '';
 
-                if (!res.ok) {
-                    throw new Error("Failed to sign up");
-                }
-            } catch (err) {
-                logger.error(err)
-            }
+        const isValid = validateSignupInputs(email, password, name, username)
+        if (!isValid) {
+            error = 'All fields are required.'
             isSubmitting = false;
+            return
         }
+
+        try {
+            const res = await fetch(`${$urlBase}/api/authentication/signup`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    email: email,
+                    password: password,
+                    name: name,
+                    username: username
+                })
+            })
+
+            if (res.status === 400 || res.status === 409) {
+                error = 'Email or username already exists. Please try again.'
+                isSubmitting = false;
+                return
+            } else if (!res.ok) {
+                error = 'We\'re experiencing technical issues, please try again later.'
+                isSubmitting = false;
+                return
+            }
+
+            // Success - redirect to login
+            goto('/login')
+        } catch (err) {
+            logger.error(err)
+            error = 'We\'re experiencing technical issues, please try again later.'
+        }
+        isSubmitting = false;
+    }
+
+    function validateSignupInputs(email: string, password: string, name: string, username: string) {
+        if (email === '' || password === '' || name === '' || username === '') {
+            return false
+        }
+        return true
     }
 
     function navigateLogIn() {
@@ -49,7 +74,7 @@
     <TopHeader pageName="Sign up" pageIcon=""></TopHeader>
 
     <section class="w-full flex flex-row justify-center pb-32">
-        <div class="outline outline-gray-600 rounded-3xl w-2/3 max-w-2xl flex flex-col items-center p-8">
+        <div class="outline outline-indigo-800 outline-2 rounded-3xl w-2/3 max-w-2xl flex flex-col items-center p-8">
             <h2 class="mb-8 text-3xl font-bold text-white">Sign Up</h2>
 
             <div class="w-full space-y-6">
@@ -101,6 +126,13 @@
                     />
                 </div>
                 
+                <!-- Error Message -->
+                {#if error}
+                    <div class="w-full text-center">
+                        <p class="text-red-400 text-md">{error}</p>
+                    </div>
+                {/if}
+                
                 <!-- Sign Up Button -->
                 <div class="w-full flex justify-center pt-4">
                     <button 
@@ -108,7 +140,11 @@
                         onclick={signup}
                         disabled={!email || !password || !username || !name}
                     >
-                        Sign Up
+                        {#if isSubmitting}
+                            Signing up...
+                        {:else}
+                            Sign Up
+                        {/if}
                     </button>
                 </div>
                 
