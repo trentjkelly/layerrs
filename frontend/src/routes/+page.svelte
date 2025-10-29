@@ -114,6 +114,9 @@
 
     <!-- Where the songs go -->
     <section class="w-full flex flex-wrap justify-around pb-24">
+
+		<p class="color-white">Hey Ryan!</p>
+		<p>Hey Ryan!</p>
         <!-- {#each trackIds as id}
             <NewTrackCard trackId={id}></NewTrackCard>
         {/each} -->
