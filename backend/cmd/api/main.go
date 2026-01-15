@@ -20,12 +20,14 @@ const (
 
 func main() {
 	// Get the environment
+	log.Println("Building the application")
 	env, isDocker, err := config.GetEnvironment()
 	if err != nil {
 		log.Fatalf("Could not get the environment: %v", err)
 	}
 
 	// Database Connection
+	log.Println("Connecting to the database")
 	pool, err := config.InitDB(env, isDocker)
 	if err != nil {
 		log.Fatal(err)
@@ -33,6 +35,8 @@ func main() {
 	defer pool.Close()
 
 	// -- REPOSITORIES --
+	log.Println("Creating the repositories, services, and controllers")
+
 	// Computing Repositories
 	trackConversionRepo := computingRepository.NewTrackConversionRepository()
 	waveformRepo := computingRepository.NewWaveformHeightsRepository()
@@ -69,6 +73,7 @@ func main() {
 	likesController := controller.NewLikesController(likesService)
 	artistController := controller.NewArtistController(artistService)
 	layerrsController := controller.NewLayerrsController(layerrsService)
+	
 	// -- CONFIGURATION --
 	cfg := appConfig{
 		addr : ":8080",
@@ -85,6 +90,7 @@ func main() {
 	}
 
 	// Mount and run the application
+	log.Println("Starting the application")
 	mux := app.mount()
 	log.Fatal(app.run(mux))
 }
