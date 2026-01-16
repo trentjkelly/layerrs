@@ -44,6 +44,7 @@ func main() {
 	// Auth Repositories
 	passwordRepo := authRepository.NewPasswordRepository()
 	authRepo := authRepository.NewAuthRepository()
+	verificationEmailRepo := authRepository.NewVerificationEmailRepository()
 
 	// Database Repositories
 	artistDatabaseRepo := databaseRepository.NewArtistDatabaseRepository(pool)
@@ -59,7 +60,7 @@ func main() {
 	trackStorageRepo := storageRepository.NewTrackStorageRepository(env)
 
 	// -- SERVICES --
-	authService := service.NewAuthService(passwordRepo, artistDatabaseRepo, authRepo)
+	authService := service.NewAuthService(passwordRepo, artistDatabaseRepo, authRepo, verificationEmailRepo)
 	trackService := service.NewTrackService(trackStorageRepo, coverStorageRepo, trackDatabaseRepo, trackTreeDatabaseRepo, trackConversionRepo, waveformRepo, waveformDatabaseRepo, layerrsDatabaseRepo, env)
 	recService := service.NewRecommendationsService(trackDatabaseRepo, likesDatabaseRepo)
 	artistService := service.NewArtistService(artistDatabaseRepo)

@@ -16,13 +16,15 @@ type AuthService struct {
 	passwordRepository	 *authRepository.PasswordRepository
 	artistDbRepository 	*databaseRepository.ArtistDatabaseRepository
 	authRepository		*authRepository.AuthRepository
+	verificationEmailRepository *authRepository.VerificationEmailRepository
 }
 
-func NewAuthService(passwordRepository *authRepository.PasswordRepository, artistDbRepository *databaseRepository.ArtistDatabaseRepository, authRepository *authRepository.AuthRepository) *AuthService {
+func NewAuthService(passwordRepository *authRepository.PasswordRepository, artistDbRepository *databaseRepository.ArtistDatabaseRepository, authRepository *authRepository.AuthRepository, verificationEmailRepository *authRepository.VerificationEmailRepository) *AuthService {
 	authService := new(AuthService)
 	authService.passwordRepository = passwordRepository
 	authService.artistDbRepository = artistDbRepository
 	authService.authRepository = authRepository
+	authService.verificationEmailRepository = verificationEmailRepository
 	return authService
 }
 
@@ -36,6 +38,12 @@ func (s *AuthService) CreateArtist(ctx context.Context, password string, usernam
 
 	// Store a new Artist using username, name, email, and hashed password
 	_, err = s.artistDbRepository.CreateArtist(ctx, username, name, email, hash)
+	if err != nil {
+		return err
+	}
+
+	// Send a verification email to the user
+	err = s.verificationEmailRepository.SendVerificationEmail(email)
 	if err != nil {
 		return err
 	}
