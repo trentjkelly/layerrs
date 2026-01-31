@@ -49,8 +49,10 @@ func (app *application) mount() http.Handler {
 
 		r.Route("/authentication", func(r chi.Router) {
 			// r.Options("/login", app.trackController.AuthHandlerOptions)
-			r.Post("/signup", app.authController.RegisterArtistHandler)
-			r.Post("/login", app.authController.LogInArtistHandler)
+			r.Post("/login", app.authController.LoginArtistHandler)
+			r.Route("/verify", func(r chi.Router) {
+				r.Get("/", app.authController.VerifyEmailHandler)
+			})
 			r.Post("/refresh", app.authController.RefreshHandler)
 		})
 

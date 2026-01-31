@@ -29,7 +29,7 @@ func (c *TrackController) AuthHandlerOptions(w http.ResponseWriter, r *http.Requ
     w.WriteHeader(http.StatusNoContent)
 }
 
-func (c *AuthController) RegisterArtistHandler(w http.ResponseWriter, r *http.Request) {
+func (c *AuthController) LoginArtistHandler(w http.ResponseWriter, r *http.Request) {
 	// Get inputs from the formdata
 	signupRequest := new(entities.SignupRequest)
 	err := json.NewDecoder(r.Body).Decode(signupRequest)
@@ -48,7 +48,7 @@ func (c *AuthController) RegisterArtistHandler(w http.ResponseWriter, r *http.Re
 	w.WriteHeader(http.StatusOK)
 }
 
-func (c *AuthController) LogInArtistHandler(w http.ResponseWriter, r *http.Request) {
+func (c *AuthController) VerifyEmailHandler(w http.ResponseWriter, r *http.Request) {
 	// Get inputs from formdata
 	loginRequest := new(entities.LoginRequest)
 
