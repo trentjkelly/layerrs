@@ -7,22 +7,20 @@
     import { loginServerRequest } from "../../modules/requests/auth-requests";
 
     let email = $state('')
-    let password = $state('')
     let error = $state('')
     let isSubmitting = $state(false);
 
     async function handleLogin() {
-        // Backend authentication request for logging in
         isSubmitting = true;
 
-        const isValid = validateLoginInputs(email, password)
+        const isValid = validateEmailInput(email)
         if (!isValid) {
-            error = 'Email and password are required.'
+            error = 'Email is required.'
             isSubmitting = false;
             return
         }
 
-        const res = await loginServerRequest(email, password)
+        const res = await loginServerRequest(email)
         if (res === null) {
             logger.error('Failed to login')
             error = 'We\'re experiencing technical issues, please try again later.'
@@ -33,7 +31,7 @@
         // Check status code from response
         const status = res.status
         if (status == 401 || status == 400) {
-            error = 'Invalid email or password, please try again.'
+            error = 'Invalid email, please try again.'
             isSubmitting = false;
             return
         } else if (res.status !== 200) {
@@ -54,12 +52,13 @@
         isSubmitting = false;
     }
 
-    function validateLoginInputs(email : string, password : string) {
-        if (email === '' || password === '') {
+    function validateEmailInput(email : string) {
+        if (email === '') {
             return false
         }
         return true
     }
+
 </script>
 
 <main class={`transition-all duration-300 min-h-screen w-full ${$isSidebarOpen ? 'ml-64' : 'ml-0'} bg-zinc-900`}>

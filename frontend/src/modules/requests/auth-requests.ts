@@ -1,6 +1,6 @@
 import { getUrlBase } from "../../stores/environment";
 
-export async function loginServerRequest(email: string, password: string) : Promise<Response | null> {
+export async function loginServerRequest(email: string) : Promise<Response | null> {
         try {
             const res = await fetch(`${getUrlBase()}/api/authentication/login`, {
                 method: "POST",
@@ -9,7 +9,6 @@ export async function loginServerRequest(email: string, password: string) : Prom
                 },
                 body: JSON.stringify({
                     email: email,
-                    password: password
                 })
             })
 
