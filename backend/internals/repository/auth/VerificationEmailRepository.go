@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/resend/resend-go/v2"
+	"github.com/trentjkelly/layerrs/internals/entities"
 )
 
 type VerificationEmailRepository struct {
@@ -21,12 +22,12 @@ func NewVerificationEmailRepository() *VerificationEmailRepository {
 }
 
 // Creates a verification email and sends it to the given email address
-func (v *VerificationEmailRepository) SendVerificationEmail(email string) (error) {
+func (v *VerificationEmailRepository) SendEmail(emailInfo entities.LoginEmailInfo) error {
 	params := &resend.SendEmailRequest{
-        From:    "onboarding@resend.dev",
-        To:      []string{"trentjkelly1@gmail.com"},
-        Subject: "Hello World",
-        Html:    "<p>Congrats on sending your <strong>first email</strong>!</p>",
+        From:    emailInfo.EmailSender,
+        To:      emailInfo.EmailRecipients,
+        Subject: emailInfo.EmailSubject,
+        Html:    emailInfo.EmailBodyHTML,
     }
 
     sent, err := v.resend.Emails.Send(params)

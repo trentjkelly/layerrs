@@ -2,10 +2,10 @@ package service
 
 import (
 	"context"
-	"fmt"
 	"github.com/golang-jwt/jwt/v5"
 
 	"log"
+	"fmt"
 
 	"github.com/trentjkelly/layerrs/internals/entities"
 	"github.com/trentjkelly/layerrs/internals/repository/auth"
@@ -43,42 +43,53 @@ func (s *AuthService) CreateArtist(ctx context.Context, password string, usernam
 	}
 
 	// Send a verification email to the user
-	err = s.verificationEmailRepository.SendVerificationEmail(email)
+	// err = s.verificationEmailRepository.SendVerificationEmail(email)
+	// if err != nil {
+	// 	return err
+	// }
+
+	return nil
+}
+
+// Logs in an artist through magic links
+func (s *AuthService) LoginArtist(ctx context.Context, email string) error {
+
+	// TODO: Generate a new magic link token
+
+
+	// Create a new Verification Email
+	verificationEmail := entities.LoginEmailInfo{
+		EmailSender: "Layerrs <team@login.layerrs.com>",
+		EmailRecipients: []string{email},
+		EmailSubject: "Login to Layerrs",
+		EmailBodyHTML: "<p>Please click the link below to login to your Layerrs account.</p>",
+	}
+
+	// Send a login email to the user
+	err := s.verificationEmailRepository.SendEmail(verificationEmail)
 	if err != nil {
-		return err
+		return fmt.Errorf("could not send login email: %w", err)
 	}
 
 	return nil
 }
 
-// Logs in an artist based on email and password
-func (s *AuthService) LoginArtist(ctx context.Context, email string, password string) (string, string, error) {
-	// Get username & password from artist
-	artist := new(entities.Artist)
-	err := s.artistDbRepository.GetArtistIdUsernamePassword(ctx, artist, email)
-	if err != nil {
-		return "", "", err
-	}
+// Logs in an artist based on email magic link verification
+func (s *AuthService) VerifyArtist(ctx context.Context, email string) (string, string, error) {
+	// // Get a new JWT
+	// tokenString, err := s.authRepository.CreateJWT(artist.Id)
+	// if err != nil {
+	// 	return "", "", err
+	// }
 
-	// Check if password is correct one
-	isPassword := s.passwordRepository.CheckPassword(ctx, password, artist.Password)
-	if !isPassword {
-		return "", "", fmt.Errorf("password did not match")
-	}
+	// // Get a new refresh token
+	// refreshString, err := s.authRepository.CreateRefreshToken(artist.Id)
+	// if err != nil {
+	// 	return "", "", err
+	// }
 
-	// Get a new JWT
-	tokenString, err := s.authRepository.CreateJWT(artist.Id)
-	if err != nil {
-		return "", "", err
-	}
-
-	// Get a new refresh token
-	refreshString, err := s.authRepository.CreateRefreshToken(artist.Id)
-	if err != nil {
-		return "", "", err
-	}
-
-	return tokenString, refreshString, nil
+	// return tokenString, refreshString, nil
+	return "", "", nil
 }
 
 func (s *AuthService) RefreshJWT(ctx context.Context, refreshToken string) (string, error) {

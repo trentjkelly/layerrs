@@ -2,13 +2,11 @@ package controller
 
 import (
 	"encoding/json"
-	// "fmt"
 	"log"
 	"net/http"
 
 	"github.com/trentjkelly/layerrs/internals/entities"
 	"github.com/trentjkelly/layerrs/internals/service"
-	"fmt"
 )
 
 type AuthController struct {
@@ -31,17 +29,22 @@ func (c *TrackController) AuthHandlerOptions(w http.ResponseWriter, r *http.Requ
 
 func (c *AuthController) LoginArtistHandler(w http.ResponseWriter, r *http.Request) {
 	// Get inputs from the formdata
-	signupRequest := new(entities.SignupRequest)
-	err := json.NewDecoder(r.Body).Decode(signupRequest)
+	loginRequest := new(entities.LoginRequest)
+	err := json.NewDecoder(r.Body).Decode(loginRequest)
 	if err != nil {
 		http.Error(w, "Invalid JSON", http.StatusBadRequest)
 	}
 
-	// Create new artist
-	err = c.authService.CreateArtist(r.Context(), signupRequest.Password, signupRequest.Username, signupRequest.Name, signupRequest.Email)
+	// Validate email input
+	if loginRequest.Email == "" {
+		http.Error(w, "Email is required", http.StatusBadRequest)
+		return
+	}
+
+	// Send login email to requested email
+	c.authService.LoginArtist(r.Context(), loginRequest.Email)
 	if err != nil {
-		fmt.Println(err)
-		http.Error(w, "Could not create new artst", http.StatusInternalServerError)
+		http.Error(w, "Could not send login email", http.StatusInternalServerError)
 		return
 	}
 
@@ -58,7 +61,7 @@ func (c *AuthController) VerifyEmailHandler(w http.ResponseWriter, r *http.Reque
 	}
 
 	// Check credentials
-	tokenString, refreshString, err := c.authService.LoginArtist(r.Context(), loginRequest.Email, loginRequest.Password)
+	tokenString, refreshString, err := c.authService.VerifyArtist(r.Context(), loginRequest.Email)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, "Could not log in the artist", http.StatusUnauthorized)
