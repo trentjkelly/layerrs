@@ -61,8 +61,9 @@
 
 </script>
 
-<main class={`transition-all duration-300 min-h-screen w-full ${$isSidebarOpen ? 'ml-64' : 'ml-0'} bg-zinc-900`}>
-    <section class="w-full min-h-full flex flex-row justify-center items-center">
+<main class={`transition-all duration-300 h-screen w-full flex flex-col ${$isSidebarOpen ? 'ml-64' : 'ml-0'} bg-zinc-900`}>
+    <TopHeader pageName="" pageIcon=""/>
+    <section class="w-full flex-1 flex flex-col justify-center items-center">
         <div class="w-full flex flex-col items-center">
             <h2 class="mb-8 text-2xl font-bold text-white">Log in to your <span class="text-violet-500">Layerrs</span> Account</h2>
 
@@ -71,7 +72,7 @@
                 <label for="email" class="block text-xl font-semibold text-white mb-3">Email</label>
                 <input 
                     id="email" 
-                    class="w-full px-2 py-2 rounded-lg bg-zinc-900 text-white placeholder-gray-200 border {error ? 'border-red-500' : 'border-gray-200'}" 
+                    class="w-full px-2 py-2 rounded-lg bg-zinc-900 text-white placeholder-gray-200 focus:outline-none border {error ? 'border-red-500' : 'border-gray-200'}" 
                     type="email" 
                     bind:value={email}
                     placeholder="Enter your email..."
@@ -79,7 +80,7 @@
                 />
             </div>
 
-            <button class="py-2 px-6 bg-violet-500 hover:bg-violet-600" onclick={handleLogin}>Log in</button>
+            <button class="py-2 px-6 rounded rounded-lg bg-violet-500 hover:bg-violet-600" onclick={handleLogin}>Continue</button>
         </div>
     </section>
 </main>
