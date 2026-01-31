@@ -72,82 +72,24 @@
 </script>
 
 <main class={`transition-all duration-300 min-h-screen w-full ${$isSidebarOpen ? 'ml-64' : 'ml-0'} bg-zinc-900`}>
+    <section class="w-full min-h-full flex flex-row justify-center items-center">
+        <div class="w-full flex flex-col items-center">
+            <h2 class="mb-8 text-2xl font-bold text-white">Log in to your <span class="text-violet-500">Layerrs</span> Account</h2>
 
-    <TopHeader pageName="Log in" pageIcon=""></TopHeader>
-
-    <section class="w-full flex flex-row justify-center pb-32">
-        <div class="outline outline-indigo-800 outline-2 rounded-3xl w-2/3 max-w-2xl flex flex-col items-center p-8">
-            <h2 class="mb-8 text-3xl font-bold text-white">Log In</h2>
-            
-            <div class="w-full space-y-6">
-                <!-- Email Input -->
-                <div class="w-full">
-                    <label for="email" class="block text-xl font-semibold text-white mb-3">Email</label>
-                    <input 
-                        id="email" 
-                        class="w-full px-4 py-3 rounded-lg bg-gray-700 text-white placeholder-gray-400 border {error ? 'border-red-500' : 'border-gray-600'} focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 autofill:bg-gray-700 autofill:text-white" 
-                        type="email" 
-                        bind:value={email}
-                        placeholder="Enter your email..."
-                        onkeydown={(e) => e.key === 'Enter' && handleLogin()}
-                    />
-                </div>
-
-                <!-- Password Input -->
-                <div class="w-full">
-                    <label for="password" class="block text-xl font-semibold text-white mb-3">Password</label>
-                    <input 
-                        id="password" 
-                        class="w-full px-4 py-3 rounded-lg bg-gray-700 text-white placeholder-gray-400 border {error ? 'border-red-500' : 'border-gray-600'} focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 autofill:bg-gray-700 autofill:text-white" 
-                        type="password" 
-                        bind:value={password}
-                        placeholder="Enter your password..."
-                        onkeydown={(e) => e.key === 'Enter' && handleLogin()}
-                    />
-                </div>
-                
-                <!-- Error Message -->
-                {#if error}
-                    <div class="w-full text-center">
-                        <p class="text-red-400 text-md">{error}</p>
-                    </div>
-                {/if}
-                
-                <!-- Login Button -->
-                <div class="w-full flex justify-center pt-4">
-                    <button 
-                        class="px-8 py-4 bg-indigo-600 hover:bg-indigo-700 rounded-full text-white font-semibold text-lg transition-colors {isSubmitting ? 'animate-pulse' : ''} disabled:opacity-50 disabled:cursor-not-allowed" 
-                        onclick={handleLogin}
-                        disabled={!email || !password}
-                    >
-                    {#if isSubmitting}
-                        Logging in...
-                    {:else}
-                        Log In
-                    {/if}
-                    </button>
-                </div>
-                
-                <!-- Sign Up Link -->
-                <div class="w-full flex justify-center pt-4">
-                    <button 
-                        class="text-gray-400 hover:text-white transition-colors underline" 
-                        onclick={navigateSignUp}
-                    >
-                        Don't have an account? Sign up instead
-                    </button>
-                </div>
-
-                <!-- Forgot Password Link -->
-                <div class="w-full flex justify-center">
-                    <button 
-                        class="text-gray-400 hover:text-white transition-colors underline" 
-                        onclick={navigateForgotPassword}
-                    >
-                        Forgot password?
-                    </button>
-                </div>
+            <!-- Email Input -->
+            <div class="w-96 mb-6">
+                <label for="email" class="block text-xl font-semibold text-white mb-3">Email</label>
+                <input 
+                    id="email" 
+                    class="w-full px-2 py-2 rounded-lg bg-zinc-900 text-white placeholder-gray-200 border {error ? 'border-red-500' : 'border-gray-200'}" 
+                    type="email" 
+                    bind:value={email}
+                    placeholder="Enter your email..."
+                    onkeydown={(e) => e.key === 'Enter' && handleLogin()}
+                />
             </div>
+
+            <button class="py-2 px-6 bg-violet-500 hover:bg-violet-600">Continue</button>
         </div>
     </section>
 </main>
