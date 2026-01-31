@@ -60,15 +60,6 @@
         }
         return true
     }
-
-    function navigateSignUp() {
-        goto('/signup')
-    }
-
-    function navigateForgotPassword() {
-        goto('/forgot-password')
-    }
-
 </script>
 
 <main class={`transition-all duration-300 min-h-screen w-full ${$isSidebarOpen ? 'ml-64' : 'ml-0'} bg-zinc-900`}>
@@ -89,7 +80,7 @@
                 />
             </div>
 
-            <button class="py-2 px-6 bg-violet-500 hover:bg-violet-600">Continue</button>
+            <button class="py-2 px-6 bg-violet-500 hover:bg-violet-600" onclick={handleLogin}>Log in</button>
         </div>
     </section>
 </main>
