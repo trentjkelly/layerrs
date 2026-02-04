@@ -8,5 +8,13 @@ export default defineConfig({
 		host: true,
 		strictPort: true,
 		allowedHosts: ['localhost', '127.0.0.1', '0.0.0.0']
-	}
+	},
+	optimizeDeps: {
+    	exclude: ['fsevents']
+  	},
+  	build: {
+    	rollupOptions: {
+      	external: ['fsevents']
+    	}
+  	}
 });
