@@ -1,17 +1,22 @@
 <script lang="ts">
     import TopHeader from "../../components/TopHeader.svelte";
     import { isSidebarOpen } from "../../stores/player";
-    import { goto } from "$app/navigation";
     import { logger } from "../../modules/lib/logger";
-    import { handleBrowserLogin } from "../../modules/lib/session";
     import { loginServerRequest } from "../../modules/requests/auth-requests";
 
     let email = $state('')
     let error = $state('')
     let isSubmitting = $state(false);
+    let emailEntered = $state(false);
+    let timeElapsed = $state(0);
+
+    let sendButtonDisabled = $state(false);
+
+    const REFRESH_TIME = 30;
 
     async function handleLogin() {
         isSubmitting = true;
+        sendButtonDisabled = true;
 
         const isValid = validateEmailInput(email)
         if (!isValid) {
@@ -29,27 +34,25 @@
         }
 
         // Check status code from response
-        const status = res.status
-        if (status == 401 || status == 400) {
-            error = 'Invalid email, please try again.'
+        if (res.status == 200) {
             isSubmitting = false;
-            return
-        } else if (res.status !== 200) {
+            emailEntered = true;
+        } else {
+            isSubmitting = false;
             error = 'We\'re experiencing technical issues, please try again later.'
-            isSubmitting = false;
             return
         }
+
+        startCountdown();
 
         // Set cookies for the refresh and jwt tokens
-        const resJson = await res.json()
-        const success = await handleBrowserLogin(resJson.token, resJson.refreshToken)
-        if (success) {
-            goto('/')
-        } else {
-            logger.error('Failed to login')
-        }
-
-        isSubmitting = false;
+        // const resJson = await res.json()
+        // const success = await handleBrowserLogin(resJson.token, resJson.refreshToken)
+        // if (success) {
+        //     goto('/')
+        // } else {
+        //     logger.error('Failed to login')
+        // }
     }
 
     function validateEmailInput(email : string) {
@@ -57,6 +60,20 @@
             return false
         }
         return true
+    }
+
+    function startCountdown() {
+        timeElapsed = REFRESH_TIME
+
+        const interval = setInterval(() => {
+            timeElapsed -= 1;
+            if (timeElapsed <= 0) {
+                clearInterval(interval);
+                timeElapsed = REFRESH_TIME;
+                sendButtonDisabled = false;
+            }
+        }, 1000);
+
     }
 
 </script>
@@ -68,7 +85,7 @@
             <h2 class="mb-8 text-2xl font-bold text-white">Log in to your <span class="text-violet-500">Layerrs</span> Account</h2>
 
             <!-- Email Input -->
-            <div class="w-96 mb-6">
+            <div class="w-96 mb-4">
                 <label for="email" class="block text-xl font-semibold text-white mb-3">Email</label>
                 <input 
                     id="email" 
@@ -80,7 +97,15 @@
                 />
             </div>
 
-            <button class="py-2 px-6 rounded rounded-lg bg-violet-500 hover:bg-violet-600" onclick={handleLogin}>Continue</button>
+            {#if emailEntered}
+                <p class="mb-2">Please check your email for a link to log in.</p>
+                {#if sendButtonDisabled}
+                    <p class="text-sm text-gray-400 mb-2">You can resend the link in {timeElapsed} seconds</p>
+                {/if}
+                <button class="py-2 px-6 rounded rounded-lg bg-violet-500 hover:bg-violet-600 disabled:opacity-50 disabled:cursor-not-allowed" onclick={handleLogin} disabled={sendButtonDisabled}>Resend Link</button>
+            {:else}
+                <button class="py-2 px-6 rounded rounded-lg bg-violet-500 hover:bg-violet-600" onclick={handleLogin}>Continue</button>
+            {/if}
         </div>
     </section>
 </main>
