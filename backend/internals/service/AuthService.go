@@ -12,61 +12,70 @@ import (
 	"github.com/trentjkelly/layerrs/internals/repository/database"
 )
 
+const MAX_RETRIES = 10
+
 type AuthService struct {
 	passwordRepository	 *authRepository.PasswordRepository
 	artistDbRepository 	*databaseRepository.ArtistDatabaseRepository
 	authRepository		*authRepository.AuthRepository
 	verificationEmailRepository *authRepository.VerificationEmailRepository
+	authDatabaseRepository *databaseRepository.AuthDatabaseRepository
+	magicLink string
 }
 
-func NewAuthService(passwordRepository *authRepository.PasswordRepository, artistDbRepository *databaseRepository.ArtistDatabaseRepository, authRepository *authRepository.AuthRepository, verificationEmailRepository *authRepository.VerificationEmailRepository) *AuthService {
+func NewAuthService(passwordRepository *authRepository.PasswordRepository, artistDbRepository *databaseRepository.ArtistDatabaseRepository, authRepository *authRepository.AuthRepository, verificationEmailRepository *authRepository.VerificationEmailRepository, authDatabaseRepository *databaseRepository.AuthDatabaseRepository, magicLink string) *AuthService {
 	authService := new(AuthService)
 	authService.passwordRepository = passwordRepository
 	authService.artistDbRepository = artistDbRepository
 	authService.authRepository = authRepository
 	authService.verificationEmailRepository = verificationEmailRepository
+	authService.authDatabaseRepository = authDatabaseRepository
+	authService.magicLink = magicLink
 	return authService
-}
-
-// Creates a new artist with the non-optional information given
-func (s *AuthService) CreateArtist(ctx context.Context, password string, username string, name string, email string) error {
-	// Hash the password
-	hash, err := s.passwordRepository.HashPassword(ctx, password)
-	if err != nil {
-		return err
-	}
-
-	// Store a new Artist using username, name, email, and hashed password
-	_, err = s.artistDbRepository.CreateArtist(ctx, username, name, email, hash)
-	if err != nil {
-		return err
-	}
-
-	// Send a verification email to the user
-	// err = s.verificationEmailRepository.SendVerificationEmail(email)
-	// if err != nil {
-	// 	return err
-	// }
-
-	return nil
 }
 
 // Logs in an artist through magic links
 func (s *AuthService) LoginArtist(ctx context.Context, email string) error {
+	var artistId int
 
-	// TODO: Generate a new magic link token
+	// Get the artist from the database / see if they exist
+	artist, err := s.artistDbRepository.GetArtistByEmail(ctx, email)
+	if err != nil {
+		return fmt.Errorf("could not get artist from database: %w", err)
+	}
 
+	if artist == nil {
+		artistId, err = s.createArtistLoop(ctx, email)
+		if err != nil {
+			return fmt.Errorf("could not create artist in database: %w", err)
+		}
+	} else {
+		artistId = artist.Id
+	}
 
-	// Create a new Verification Email
+	// Generate a new magic link token
+	magicLinkToken, err := s.authRepository.CreateMagicLinkToken()
+	if err != nil {
+		return fmt.Errorf("could not create magic link token: %w", err)
+	}
+
+	// Store the magic link token in the database
+	err = s.authDatabaseRepository.CreateMagicLinkToken(ctx, magicLinkToken, artistId)
+	if err != nil {
+		return fmt.Errorf("could not store magic link token in database: %w", err)
+	}
+
+	verifyPath := fmt.Sprintf("%s%s", s.magicLink, magicLinkToken)
+
 	verificationEmail := entities.LoginEmailInfo{
 		EmailSender: "Layerrs <team@login.layerrs.com>",
 		EmailRecipients: []string{email},
 		EmailSubject: "Login to Layerrs",
-		EmailBodyHTML: "<p>Please click the link below to login to your Layerrs account.</p>",
+		EmailBodyHTML: fmt.Sprintf("<p>Please click the link below to login to your Layerrs account.</p><a href=\"%s\">Login to Layerrs</a>", verifyPath),
 	}
 
 	// Send a login email to the user
-	err := s.verificationEmailRepository.SendEmail(verificationEmail)
+	err = s.verificationEmailRepository.SendEmail(verificationEmail)
 	if err != nil {
 		return fmt.Errorf("could not send login email: %w", err)
 	}
@@ -74,6 +83,30 @@ func (s *AuthService) LoginArtist(ctx context.Context, email string) error {
 	return nil
 }
 
+func (s *AuthService) createArtistLoop(ctx context.Context, email string) (int, error) {
+	var artistId int
+	var err error
+
+	for i := 0; i < MAX_RETRIES; i++ {
+		username, usernameErr := s.authRepository.CreateRandomUsername()
+		if usernameErr != nil {
+			return 0, fmt.Errorf("could not create random username: %w", usernameErr)
+		}
+		
+		artistId, err = s.artistDbRepository.CreateArtist(ctx, username, email)
+		if err == nil {
+			break
+		}
+	}
+
+	if err != nil {
+		return 0, fmt.Errorf("could not create artist in database: %w", err)
+	}
+
+	return artistId, nil
+}
+
+// TODO: Verify should check, and return a redirect link to the frontend
 // Logs in an artist based on email magic link verification
 func (s *AuthService) VerifyArtist(ctx context.Context, email string) (string, string, error) {
 	// // Get a new JWT

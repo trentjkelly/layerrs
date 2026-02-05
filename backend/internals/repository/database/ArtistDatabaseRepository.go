@@ -28,9 +28,9 @@ func (r *ArtistDatabaseRepository) CloseDB() {
 }
 
 // Adds an Artist to the database, but only the non-optional fields 
-func (r *ArtistDatabaseRepository) CreateArtist(ctx context.Context, username string, name string, email string, password string) (int, error) {
-	query := `INSERT INTO artist (username, name, email, password) VALUES ($1, $2, $3, $4) RETURNING id;`
-	row := r.db.QueryRow(ctx, query, username, name, email, password)
+func (r *ArtistDatabaseRepository) CreateArtist(ctx context.Context, username string, email string) (int, error) {
+	query := `INSERT INTO artist (username, name, email) VALUES ($1, $2, $3) RETURNING id;`
+	row := r.db.QueryRow(ctx, query, username, username, email)
 	
 	var artistId int
 	err := row.Scan(&artistId)
@@ -51,6 +51,19 @@ func (r *ArtistDatabaseRepository) GetArtistIdUsernamePassword(ctx context.Conte
 	}
 
 	return nil
+}
+
+func (r *ArtistDatabaseRepository) GetArtistByEmail(ctx context.Context, email string) (*entities.Artist, error) {
+	query := `SELECT id, username, email FROM artist WHERE email=$1;`
+	row := r.db.QueryRow(ctx, query, email)
+
+	var artist entities.Artist
+	err := row.Scan(&artist.Id, &artist.Username, &artist.Email)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query artist from database: %w", err)
+	}
+
+	return &artist, nil
 }
 
 // Gets an Artist from the database based on their id

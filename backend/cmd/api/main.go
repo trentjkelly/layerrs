@@ -34,6 +34,13 @@ func main() {
 	}
 	defer pool.Close()
 
+	var magicLink string
+	if env == DEVELOPMENT {
+		magicLink = "http://localhost:8080/api/authentication/verify?token="
+	} else {
+		magicLink = "https://layerrs.com/api/authentication/verify?token="
+	}
+
 	// -- REPOSITORIES --
 	log.Println("Creating the repositories, services, and controllers")
 
@@ -53,6 +60,7 @@ func main() {
 	trackTreeDatabaseRepo := databaseRepository.NewTrackTreeDatabaseRepository(pool)
 	waveformDatabaseRepo := databaseRepository.NewWaveformDatabaseRepository(pool)
 	layerrsDatabaseRepo := databaseRepository.NewLayerrsDatabaseRepository(pool)
+	authDatabaseRepo := databaseRepository.NewAuthDatabaseRepository(pool)
 
 	// Storage Repositories
 	coverStorageRepo := storageRepository.NewCoverStorageRepository(env)
@@ -60,7 +68,7 @@ func main() {
 	trackStorageRepo := storageRepository.NewTrackStorageRepository(env)
 
 	// -- SERVICES --
-	authService := service.NewAuthService(passwordRepo, artistDatabaseRepo, authRepo, verificationEmailRepo)
+	authService := service.NewAuthService(passwordRepo, artistDatabaseRepo, authRepo, verificationEmailRepo, authDatabaseRepo, magicLink)
 	trackService := service.NewTrackService(trackStorageRepo, coverStorageRepo, trackDatabaseRepo, trackTreeDatabaseRepo, trackConversionRepo, waveformRepo, waveformDatabaseRepo, layerrsDatabaseRepo, env)
 	recService := service.NewRecommendationsService(trackDatabaseRepo, likesDatabaseRepo)
 	artistService := service.NewArtistService(artistDatabaseRepo)

@@ -6,6 +6,8 @@ import (
 	"os"
 	"fmt"
 	"context"
+	"crypto/rand"
+	"encoding/base64"
 )
 
 type AuthRepository struct {
@@ -69,4 +71,31 @@ func (r *AuthRepository) ValidateJWT(ctx context.Context, tokenString string) (*
 	}
 	
 	return token, nil
+}
+
+func (r *AuthRepository) CreateMagicLinkToken() (string, error) {
+	b := make([]byte, 32)
+	_, err := rand.Read(b)
+	if err != nil {
+		return "", fmt.Errorf("could not read random bytes for magic link token: %w", err)
+	}
+
+	return base64.RawURLEncoding.EncodeToString(b), nil
+}
+
+func (r *AuthRepository) CreateRandomUsername() (string, error) {
+	usernameLength := 64
+	prefix := "user"
+
+	prefixLength := len(prefix)
+
+	
+	b := make([]byte, usernameLength - prefixLength)
+	_, err := rand.Read(b)
+	if err != nil {
+		return "", fmt.Errorf("could not read random bytes for username: %w", err)
+	}
+
+	username := prefix + string(b)
+	return username, nil
 }
