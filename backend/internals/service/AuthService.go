@@ -141,16 +141,19 @@ func (s *AuthService) RefreshJWT(ctx context.Context, refreshToken string) (stri
 
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok {
-		log.Println("here2")
 		return "", err
 	}
 
-	artistInterface, ok := claims["sub"]
+	sub, ok := claims["sub"]
 	if !ok {
-		log.Println("here3")
 		return "", err
 	}
-	artistId := artistInterface.(int)
+
+	artistIdFloat, ok := sub.(float64)
+	if !ok {
+		return "", entities.ErrInvalidToken
+	}
+	artistId := int(artistIdFloat)
 
 	jwt, err := s.authRepository.CreateJWT(artistId)
 	if err != nil {

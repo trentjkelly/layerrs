@@ -2,10 +2,11 @@ package controller
 
 import (
 	"encoding/json"
+	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"net/url"
-	"fmt"
 
 	"github.com/trentjkelly/layerrs/internals/entities"
 	"github.com/trentjkelly/layerrs/internals/service"
@@ -78,10 +79,14 @@ func (c *AuthController) VerifyEmailHandler(w http.ResponseWriter, r *http.Reque
 }
 
 func (c *AuthController) RefreshHandler(w http.ResponseWriter, r *http.Request) {
-	// Get refresh token
 	request := new(entities.RefreshRequest)
-	json.NewDecoder(r.Body).Decode(&request.RefreshToken)
-	if (request.RefreshToken == "") {
+	if err := json.NewDecoder(r.Body).Decode(request); err != nil {
+		log.Println("Invalid JSON:", err)
+		http.Error(w, "Invalid JSON", http.StatusBadRequest)
+		return
+	}
+	if request.RefreshToken == "" {
+		log.Println("Failed to get token")
 		http.Error(w, "Failed to get token", http.StatusBadRequest)
 		return
 	}
@@ -90,11 +95,12 @@ func (c *AuthController) RefreshHandler(w http.ResponseWriter, r *http.Request) 
 	tokenString, err := c.authService.RefreshJWT(r.Context(), request.RefreshToken)
 	if err != nil {
 		if err == entities.ErrInvalidToken {
+			log.Println("Token is invalid")
 			http.Error(w, "Token is invalid", http.StatusUnauthorized)
 			return
 		}
-		http.Error(w, "Could not refresh jwt", http.StatusInternalServerError)
 		log.Println("refresh error", err)
+		http.Error(w, "Could not refresh jwt", http.StatusInternalServerError)
 		return
 	}
 
