@@ -4,7 +4,8 @@
     import { logger } from "../../modules/lib/logger";
     import { loginServerRequest } from "../../modules/requests/auth-requests";
     import { isLoggedIn } from "../../stores/auth";
-    import { goto } from '$app/navigation';
+    import { goto, invalidateAll } from '$app/navigation';
+    import { browser } from '$app/environment';
 
     let email = $state('')
     let error = $state('')
@@ -16,10 +17,26 @@
 
     const REFRESH_TIME = 30;
 
+    // Just a check if they're already logged in, they shouldn't be allowed on the login page
     $effect(() => {
         if ($isLoggedIn) {
             goto('/');
         }
+    });
+
+    // For if a user switches back to this tab (usually after checking login email)
+    // refreshes the page so they don't see login page
+    $effect(() => {
+        if (!browser) return;
+
+        const handler = () => {
+            if (document.visibilityState === 'visible') {
+                invalidateAll();
+            }
+        };
+
+        document.addEventListener('visibilitychange', handler);
+        return () => document.removeEventListener('visibilitychange', handler);
     });
 
     async function handleLogin() {
