@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"net/url"
+	"fmt"
 
 	"github.com/trentjkelly/layerrs/internals/entities"
 	"github.com/trentjkelly/layerrs/internals/service"
@@ -11,11 +13,13 @@ import (
 
 type AuthController struct {
 	authService *service.AuthService
+	frontendUrl string
 }
 
-func NewAuthController(authService *service.AuthService) *AuthController {
+func NewAuthController(authService *service.AuthService, frontendUrl string) *AuthController {
 	authController := new(AuthController)
 	authController.authService = authService
+	authController.frontendUrl = frontendUrl
 	return authController
 }
 
@@ -55,27 +59,22 @@ func (c *AuthController) LoginArtistHandler(w http.ResponseWriter, r *http.Reque
 
 func (c *AuthController) VerifyEmailHandler(w http.ResponseWriter, r *http.Request) {
 	// Get inputs from formdata
-	loginRequest := new(entities.LoginRequest)
-
-	err := json.NewDecoder(r.Body).Decode(loginRequest)
-	if err != nil {
-		http.Error(w, "Invalid JSON", http.StatusBadRequest)
+	token := r.URL.Query().Get("token")
+	if token == "" {
+		http.Error(w, "Token is required", http.StatusBadRequest)
+		return
 	}
 
 	// Check credentials
-	tokenString, refreshString, err := c.authService.VerifyArtist(r.Context(), loginRequest.Email)
+	tokenString, refreshString, err := c.authService.VerifyArtist(r.Context(), token)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, "Could not log in the artist", http.StatusUnauthorized)
+		return
 	}
 
-	// Send back the token string
-	res := entities.LoginResponse{
-		Token: tokenString,
-		Refresh: refreshString,
-	}
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(res)
+	redirectURL := fmt.Sprintf("%s/login/callback#jwt=%s&refresh=%s", c.frontendUrl, url.QueryEscape(tokenString), url.QueryEscape(refreshString))
+	http.Redirect(w, r, redirectURL, http.StatusTemporaryRedirect)
 }
 
 func (c *AuthController) RefreshHandler(w http.ResponseWriter, r *http.Request) {
@@ -84,8 +83,8 @@ func (c *AuthController) RefreshHandler(w http.ResponseWriter, r *http.Request) 
 	json.NewDecoder(r.Body).Decode(&request.RefreshToken)
 	if (request.RefreshToken == "") {
 		http.Error(w, "Failed to get token", http.StatusBadRequest)
+		return
 	}
-	log.Println(request.RefreshToken)
 
 	// Generate new JWT
 	tokenString, err := c.authService.RefreshJWT(r.Context(), request.RefreshToken)
@@ -95,6 +94,7 @@ func (c *AuthController) RefreshHandler(w http.ResponseWriter, r *http.Request) 
 			return
 		}
 		http.Error(w, "Could not refresh jwt", http.StatusInternalServerError)
+		log.Println("refresh error", err)
 		return
 	}
 

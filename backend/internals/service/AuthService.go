@@ -106,40 +106,45 @@ func (s *AuthService) createArtistLoop(ctx context.Context, email string) (int, 
 	return artistId, nil
 }
 
-// TODO: Verify should check, and return a redirect link to the frontend
 // Logs in an artist based on email magic link verification
-func (s *AuthService) VerifyArtist(ctx context.Context, email string) (string, string, error) {
-	// // Get a new JWT
-	// tokenString, err := s.authRepository.CreateJWT(artist.Id)
-	// if err != nil {
-	// 	return "", "", err
-	// }
+func (s *AuthService) VerifyArtist(ctx context.Context, token string) (string, string, error) {
+	magicLinkToken, err := s.authDatabaseRepository.GetMagicLinkToken(ctx, token)
+	if err != nil {
+		return "", "", fmt.Errorf("could not get magic link token from database: %w", err)
+	}
 
-	// // Get a new refresh token
-	// refreshString, err := s.authRepository.CreateRefreshToken(artist.Id)
-	// if err != nil {
-	// 	return "", "", err
-	// }
+	isValid, err := s.authRepository.VerifyMagicLinkToken(ctx, magicLinkToken)
+	if err != nil || !isValid {
+		return "", "", fmt.Errorf("could not verify magic link token: %w", err)
+	}
 
-	// return tokenString, refreshString, nil
-	return "", "", nil
+	jwt, err := s.authRepository.CreateJWT(magicLinkToken.ArtistId)
+	if err != nil {
+		return "", "", fmt.Errorf("could not create JWT: %w", err)
+	}
+
+	refreshToken, err := s.authRepository.CreateRefreshToken(magicLinkToken.ArtistId)
+	if err != nil {
+		return "", "", fmt.Errorf("could not create refresh token: %w", err)
+	}
+
+	return jwt, refreshToken, nil
 }
 
+// Refresh a JWT token using a refresh token
 func (s *AuthService) RefreshJWT(ctx context.Context, refreshToken string) (string, error) {
-	// Check if the refresh token is valid still
 	log.Println(refreshToken)
 	token, err := s.authRepository.ValidateJWT(ctx, refreshToken)
 	if err != nil {
 		return "", entities.ErrInvalidToken
 	}
 
-	// Get claims from token
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok {
 		log.Println("here2")
 		return "", err
 	}
-	// Get artistId from claims
+
 	artistInterface, ok := claims["sub"]
 	if !ok {
 		log.Println("here3")
@@ -147,7 +152,6 @@ func (s *AuthService) RefreshJWT(ctx context.Context, refreshToken string) (stri
 	}
 	artistId := artistInterface.(int)
 
-	// Create new JWT
 	jwt, err := s.authRepository.CreateJWT(artistId)
 	if err != nil {
 		log.Println("here4")

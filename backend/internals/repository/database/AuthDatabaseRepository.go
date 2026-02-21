@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/trentjkelly/layerrs/internals/entities"
 )
 
 type AuthDatabaseRepository struct {
@@ -32,4 +33,16 @@ func (r *AuthDatabaseRepository) CreateMagicLinkToken(ctx context.Context, token
 		return fmt.Errorf("failed to create magic link token in database: %w", err)
 	}
 	return nil
+}
+
+func (r *AuthDatabaseRepository) GetMagicLinkToken(ctx context.Context, token string) (entities.MagicLinkToken, error) {
+	query := `SELECT id, artist_id, created_at FROM magic_link_tokens WHERE hashed_token = $1;`
+	row := r.db.QueryRow(ctx, query, token)
+
+	var magicLinkToken entities.MagicLinkToken
+	err := row.Scan(&magicLinkToken.Id, &magicLinkToken.ArtistId, &magicLinkToken.CreatedAt)
+	if err != nil {
+		return magicLinkToken, fmt.Errorf("failed to get magic link token from database: %w", err)
+	}
+	return magicLinkToken, nil
 }

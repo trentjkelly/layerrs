@@ -8,6 +8,8 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/base64"
+
+	"github.com/trentjkelly/layerrs/internals/entities"
 )
 
 type AuthRepository struct {
@@ -98,4 +100,13 @@ func (r *AuthRepository) CreateRandomUsername() (string, error) {
 
 	username := prefix + string(b)
 	return username, nil
+}
+
+// Check if the magic link token is valid (not expired)
+func (r *AuthRepository) VerifyMagicLinkToken(ctx context.Context, token entities.MagicLinkToken) (bool, error) {
+	if token.CreatedAt.Before(time.Now().Add(-time.Minute * 15)) {
+		return false, fmt.Errorf("magic link token has expired")
+	}
+
+	return true, nil
 }
