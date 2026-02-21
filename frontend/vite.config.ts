@@ -1,13 +1,13 @@
 import { sveltekit } from '@sveltejs/kit/vite';
-import { defineConfig } from 'vite';
+import basicSsl from '@vitejs/plugin-basic-ssl';
+import { defineConfig, type PluginOption } from 'vite';
 
 export default defineConfig({
-	plugins: [sveltekit()],
+	plugins: [basicSsl(), sveltekit()] as PluginOption[],
 	server: {
 		port: 3000,
 		host: true,
-		strictPort: true,
-		allowedHosts: ['localhost', '127.0.0.1', '0.0.0.0']
+		strictPort: true
 	},
 	optimizeDeps: {
     	exclude: ['fsevents']
