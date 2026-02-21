@@ -34,11 +34,14 @@ func main() {
 	}
 	defer pool.Close()
 
+	var frontendUrl string
 	var magicLink string
 	if env == DEVELOPMENT {
 		magicLink = "http://localhost:8080/api/authentication/verify?token="
+		frontendUrl = "https://localhost:3000"
 	} else {
 		magicLink = "https://layerrs.com/api/authentication/verify?token="
+		frontendUrl = "https://layerrs.com"
 	}
 
 	// -- REPOSITORIES --
@@ -76,7 +79,7 @@ func main() {
 	layerrsService := service.NewLayerrsService(layerrsDatabaseRepo)
 
 	// -- CONTROLLERS --
-	authController := controller.NewAuthController(authService)
+	authController := controller.NewAuthController(authService, frontendUrl)
 	trackController := controller.NewTrackController(trackService)
 	recController := controller.NewRecommendationsController(recService)
 	likesController := controller.NewLikesController(likesService)
