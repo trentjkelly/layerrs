@@ -3,6 +3,8 @@
     import { isSidebarOpen } from "../../stores/player";
     import { logger } from "../../modules/lib/logger";
     import { loginServerRequest } from "../../modules/requests/auth-requests";
+    import { isLoggedIn } from "../../stores/auth";
+    import { goto } from '$app/navigation';
 
     let email = $state('')
     let error = $state('')
@@ -13,6 +15,12 @@
     let sendButtonDisabled = $state(false);
 
     const REFRESH_TIME = 30;
+
+    $effect(() => {
+        if ($isLoggedIn) {
+            goto('/');
+        }
+    });
 
     async function handleLogin() {
         isSubmitting = true;
@@ -44,15 +52,6 @@
         }
 
         startCountdown();
-
-        // Set cookies for the refresh and jwt tokens
-        // const resJson = await res.json()
-        // const success = await handleBrowserLogin(resJson.token, resJson.refreshToken)
-        // if (success) {
-        //     goto('/')
-        // } else {
-        //     logger.error('Failed to login')
-        // }
     }
 
     function validateEmailInput(email : string) {
