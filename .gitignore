@@ -22,6 +22,8 @@ backend/bin/*
 .wrangler
 /.svelte-kit
 /build
+backend/bin/build-errors.log
+tmp/
 
 # OS
 .DS_Store

@@ -1,3 +1,4 @@
+import { get } from 'svelte/store';
 import { jwt, isLoggedIn, refreshToken } from "../../stores/auth";
 import { logger } from "./logger";
 
@@ -26,14 +27,16 @@ export async function handleBrowserLogout() : Promise<boolean> {
 // Takes care of setting cookies on the browser & in the stores
 export async function handleBrowserLogin(newJwtToken: string, newRefreshToken: string) : Promise<boolean> {
     try {
-        const res  = await fetch('/cookies', { 
+        const res  = await fetch('/cookies', {
             method: 'POST',
+            credentials: 'include',
             headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ 
+            body: JSON.stringify({
                 refreshToken: newRefreshToken,
                 jwtToken: newJwtToken
             })
         })
+
         if (!res.ok) {
             logger.error(`Failed to set the JWT and refresh tokens: ${res.statusText}`);
             return false;
