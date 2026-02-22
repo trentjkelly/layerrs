@@ -46,12 +46,17 @@ func (r *ArtistDatabaseRepository) GetArtistByEmail(ctx context.Context, email s
 	row := r.db.QueryRow(ctx, query, email)
 
 	var artist entities.Artist
-	err := row.Scan(&artist.Id, &artist.Username, &artist.Email)
+	var username sql.NullString
+	
+	err := row.Scan(&artist.Id, &username, &artist.Email)
 	if err != nil {
 		if err == pgx.ErrNoRows {
 			return nil, nil
 		}
 		return nil, fmt.Errorf("failed to query artist from database: %w", err)
+	}
+	if username.Valid {
+		artist.Username = username.String
 	}
 
 	return &artist, nil
@@ -63,16 +68,20 @@ func (r *ArtistDatabaseRepository) ReadArtistById(ctx context.Context, artist *e
 	row := r.db.QueryRow(ctx, query, artist.Id)
 
 	// Potential NULL Values
+	var username sql.NullString
 	var bio sql.NullString
 	var r2ImageKey sql.NullString
 
-	err := row.Scan(&artist.Id, &artist.Username, &artist.Email, &bio, &r2ImageKey, &artist.CreatedAt, &artist.UpdatedAt)
+	err := row.Scan(&artist.Id, &username, &artist.Email, &bio, &r2ImageKey, &artist.CreatedAt, &artist.UpdatedAt)
 
 	if err != nil {
 		return fmt.Errorf("failed to query artist from database: %w", err)
 	}
 
 	// Potential NULL values converted to empty strings
+	if username.Valid {
+		artist.Username = username.String
+	}
 	if bio.Valid {
 		artist.Bio = bio.String
 	} else {
