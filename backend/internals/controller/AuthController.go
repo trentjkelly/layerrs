@@ -36,6 +36,7 @@ func (c *AuthController) LoginArtistHandler(w http.ResponseWriter, r *http.Reque
 	loginRequest := new(entities.LoginRequest)
 	err := json.NewDecoder(r.Body).Decode(loginRequest)
 	if err != nil {
+		log.Println("Invalid JSON:", err)
 		http.Error(w, "Invalid JSON", http.StatusBadRequest)
 		return
 	}
@@ -49,7 +50,7 @@ func (c *AuthController) LoginArtistHandler(w http.ResponseWriter, r *http.Reque
 	// Send login email to requested email
 	err = c.authService.LoginArtist(r.Context(), loginRequest.Email)
 	if err != nil {
-		log.Println(err)
+		log.Println("Could not send login email:", err)
 		http.Error(w, "Could not send login email", http.StatusInternalServerError)
 		return
 	}

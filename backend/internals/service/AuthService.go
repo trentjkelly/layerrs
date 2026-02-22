@@ -45,7 +45,7 @@ func (s *AuthService) LoginArtist(ctx context.Context, email string) error {
 	}
 
 	if artist == nil {
-		artistId, err = s.createArtistLoop(ctx, email)
+		artistId, err = s.artistDbRepository.CreateArtist(ctx, email)
 		if err != nil {
 			return fmt.Errorf("could not create artist in database: %w", err)
 		}
@@ -81,29 +81,6 @@ func (s *AuthService) LoginArtist(ctx context.Context, email string) error {
 	}
 
 	return nil
-}
-
-func (s *AuthService) createArtistLoop(ctx context.Context, email string) (int, error) {
-	var artistId int
-	var err error
-
-	for i := 0; i < MAX_RETRIES; i++ {
-		username, usernameErr := s.authRepository.CreateRandomUsername()
-		if usernameErr != nil {
-			return 0, fmt.Errorf("could not create random username: %w", usernameErr)
-		}
-		
-		artistId, err = s.artistDbRepository.CreateArtist(ctx, username, email)
-		if err == nil {
-			break
-		}
-	}
-
-	if err != nil {
-		return 0, fmt.Errorf("could not create artist in database: %w", err)
-	}
-
-	return artistId, nil
 }
 
 // Logs in an artist based on email magic link verification

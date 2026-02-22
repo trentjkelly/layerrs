@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/trentjkelly/layerrs/internals/entities"
-	// "log"
 )
 
 type ArtistDatabaseRepository struct {
@@ -28,9 +28,9 @@ func (r *ArtistDatabaseRepository) CloseDB() {
 }
 
 // Adds an Artist to the database, but only the non-optional fields 
-func (r *ArtistDatabaseRepository) CreateArtist(ctx context.Context, username string, email string) (int, error) {
-	query := `INSERT INTO artist (username, name, email) VALUES ($1, $2, $3) RETURNING id;`
-	row := r.db.QueryRow(ctx, query, username, username, email)
+func (r *ArtistDatabaseRepository) CreateArtist(ctx context.Context, email string) (int, error) {
+	query := `INSERT INTO artist (email) VALUES ($1) RETURNING id;`
+	row := r.db.QueryRow(ctx, query, email)
 	
 	var artistId int
 	err := row.Scan(&artistId)
@@ -41,18 +41,6 @@ func (r *ArtistDatabaseRepository) CreateArtist(ctx context.Context, username st
 	return artistId, nil
 }
 
-func (r *ArtistDatabaseRepository) GetArtistIdUsernamePassword(ctx context.Context, artist *entities.Artist, email string) (error) {
-	query := `SELECT id, username, password FROM artist WHERE email=$1;`
-	row := r.db.QueryRow(ctx, query, email)
-
-	err := row.Scan(&artist.Id, &artist.Username, &artist.Password)
-	if err != nil {
-		return fmt.Errorf("failed to query artist from database: %w", err)
-	}
-
-	return nil
-}
-
 func (r *ArtistDatabaseRepository) GetArtistByEmail(ctx context.Context, email string) (*entities.Artist, error) {
 	query := `SELECT id, username, email FROM artist WHERE email=$1;`
 	row := r.db.QueryRow(ctx, query, email)
@@ -60,6 +48,9 @@ func (r *ArtistDatabaseRepository) GetArtistByEmail(ctx context.Context, email s
 	var artist entities.Artist
 	err := row.Scan(&artist.Id, &artist.Username, &artist.Email)
 	if err != nil {
+		if err == pgx.ErrNoRows {
+			return nil, nil
+		}
 		return nil, fmt.Errorf("failed to query artist from database: %w", err)
 	}
 
@@ -68,14 +59,14 @@ func (r *ArtistDatabaseRepository) GetArtistByEmail(ctx context.Context, email s
 
 // Gets an Artist from the database based on their id
 func (r *ArtistDatabaseRepository) ReadArtistById(ctx context.Context, artist *entities.Artist) error {
-	query := `SELECT id, name, username, email, bio, r2_image_key, created_at, updated_at, password FROM artist WHERE id=$1;`
+	query := `SELECT id, username, email, bio, r2_image_key, created_at, updated_at FROM artist WHERE id=$1;`
 	row := r.db.QueryRow(ctx, query, artist.Id)
 
 	// Potential NULL Values
 	var bio sql.NullString
 	var r2ImageKey sql.NullString
 
-	err := row.Scan(&artist.Id, &artist.Name, &artist.Username, &artist.Email, &bio, &r2ImageKey, &artist.CreatedAt, &artist.UpdatedAt, &artist.Password)
+	err := row.Scan(&artist.Id, &artist.Username, &artist.Email, &bio, &r2ImageKey, &artist.CreatedAt, &artist.UpdatedAt)
 
 	if err != nil {
 		return fmt.Errorf("failed to query artist from database: %w", err)
@@ -99,8 +90,8 @@ func (r *ArtistDatabaseRepository) ReadArtistById(ctx context.Context, artist *e
 
 // Updates the information of the artist
 func (r *ArtistDatabaseRepository) UpdateArtist(ctx context.Context, artist *entities.Artist) error {
-	query := `UPDATE artist SET name=$2, email=$3, bio=$4, r2_image_key=$5, updated_at=$6 WHERE id=$1 RETURNING updated_at;`
-	row := r.db.QueryRow(ctx, query, artist.Id, artist.Name, artist.Email, artist.Bio, artist.R2ImageKey, time.Now())
+	query := `UPDATE artist SET email=$2, bio=$3, r2_image_key=$4, updated_at=$5 WHERE id=$1 RETURNING updated_at;`
+	row := r.db.QueryRow(ctx, query, artist.Id, artist.Email, artist.Bio, artist.R2ImageKey, time.Now())
 	err := row.Scan(&artist.UpdatedAt)
 	
 	if err != nil {
