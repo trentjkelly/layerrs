@@ -6,6 +6,10 @@ import (
 	"os"
 	"fmt"
 	"context"
+	"crypto/rand"
+	"encoding/base64"
+
+	"github.com/trentjkelly/layerrs/internals/entities"
 )
 
 type AuthRepository struct {
@@ -69,4 +73,40 @@ func (r *AuthRepository) ValidateJWT(ctx context.Context, tokenString string) (*
 	}
 	
 	return token, nil
+}
+
+func (r *AuthRepository) CreateMagicLinkToken() (string, error) {
+	b := make([]byte, 32)
+	_, err := rand.Read(b)
+	if err != nil {
+		return "", fmt.Errorf("could not read random bytes for magic link token: %w", err)
+	}
+
+	return base64.RawURLEncoding.EncodeToString(b), nil
+}
+
+func (r *AuthRepository) CreateRandomUsername() (string, error) {
+	usernameLength := 64
+	prefix := "user"
+
+	prefixLength := len(prefix)
+
+	
+	b := make([]byte, usernameLength - prefixLength)
+	_, err := rand.Read(b)
+	if err != nil {
+		return "", fmt.Errorf("could not read random bytes for username: %w", err)
+	}
+
+	username := prefix + string(b)
+	return username, nil
+}
+
+// Check if the magic link token is valid (not expired)
+func (r *AuthRepository) VerifyMagicLinkToken(ctx context.Context, token entities.MagicLinkToken) (bool, error) {
+	if token.CreatedAt.Before(time.Now().Add(-time.Minute * 15)) {
+		return false, fmt.Errorf("magic link token has expired")
+	}
+
+	return true, nil
 }

@@ -77,11 +77,13 @@ func InitDB(env string, isDocker bool) (*pgxpool.Pool, error) {
 		return nil, fmt.Errorf("failed to create database config: %w", err)
 	}
 
+	log.Println("Creating a connection to the database for migrations")
 	db, err := dbConfig.CreatePSQLConnection()
 	if err != nil {
 		return nil, fmt.Errorf("failed to create connection: %w", err)
 	}
 
+	log.Println("Applying database migrations")
 	err = ApplyMigrations(db)
 	if err != nil {
 		return nil, fmt.Errorf("failed to apply migrations: %w", err)
@@ -92,6 +94,7 @@ func InitDB(env string, isDocker bool) (*pgxpool.Pool, error) {
 		return nil, fmt.Errorf("failed to close connection: %w", err)
 	}
 
+	log.Println("Creating a connection pool to the database")
 	pool, err := dbConfig.CreatePSQLPoolConnection()
 	if err != nil {
 		return nil, fmt.Errorf("failed to create connection pool: %w", err)
@@ -117,6 +120,7 @@ func (dbConfig *DBConfig) CreatePSQLPoolConnection() (*pgxpool.Pool, error) {
 		return nil, fmt.Errorf("failed to create connection pool: %w", err)
 	}
 
+	log.Println("Pinging the connection pool")
 	err = pool.Ping(context.Background())
 	if err != nil {
 		return nil, fmt.Errorf("failed to ping connection pool using url: %s: %w", dbConfig.psqlURL, err)
@@ -127,7 +131,6 @@ func (dbConfig *DBConfig) CreatePSQLPoolConnection() (*pgxpool.Pool, error) {
 
 // Creates a connection to the PostgreSQL database -- only used for migrations
 func (dbConfig *DBConfig) CreatePSQLConnection() (*sql.DB, error) {
-
 	db, err := sql.Open("postgres", dbConfig.psqlURL)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open connection: %w", err)
@@ -135,6 +138,7 @@ func (dbConfig *DBConfig) CreatePSQLConnection() (*sql.DB, error) {
 
 	log.Println(dbConfig.psqlURL)
 
+	log.Println("Pinging the database for migrations")
 	err = db.Ping()
 	if err != nil {
 		return nil, fmt.Errorf("failed to ping database for migrations using url: %s: %w", dbConfig.psqlURL, err)

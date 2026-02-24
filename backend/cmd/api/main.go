@@ -20,19 +20,33 @@ const (
 
 func main() {
 	// Get the environment
+	log.Println("Building the application")
 	env, isDocker, err := config.GetEnvironment()
 	if err != nil {
 		log.Fatalf("Could not get the environment: %v", err)
 	}
 
 	// Database Connection
+	log.Println("Connecting to the database")
 	pool, err := config.InitDB(env, isDocker)
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer pool.Close()
 
+	var frontendUrl string
+	var magicLink string
+	if env == DEVELOPMENT {
+		magicLink = "http://localhost:8080/api/authentication/verify?token="
+		frontendUrl = "https://localhost:3000"
+	} else {
+		magicLink = "https://layerrs.com/api/authentication/verify?token="
+		frontendUrl = "https://layerrs.com"
+	}
+
 	// -- REPOSITORIES --
+	log.Println("Creating the repositories, services, and controllers")
+
 	// Computing Repositories
 	trackConversionRepo := computingRepository.NewTrackConversionRepository()
 	waveformRepo := computingRepository.NewWaveformHeightsRepository()
@@ -40,6 +54,7 @@ func main() {
 	// Auth Repositories
 	passwordRepo := authRepository.NewPasswordRepository()
 	authRepo := authRepository.NewAuthRepository()
+	verificationEmailRepo := authRepository.NewVerificationEmailRepository()
 
 	// Database Repositories
 	artistDatabaseRepo := databaseRepository.NewArtistDatabaseRepository(pool)
@@ -48,6 +63,7 @@ func main() {
 	trackTreeDatabaseRepo := databaseRepository.NewTrackTreeDatabaseRepository(pool)
 	waveformDatabaseRepo := databaseRepository.NewWaveformDatabaseRepository(pool)
 	layerrsDatabaseRepo := databaseRepository.NewLayerrsDatabaseRepository(pool)
+	authDatabaseRepo := databaseRepository.NewAuthDatabaseRepository(pool)
 
 	// Storage Repositories
 	coverStorageRepo := storageRepository.NewCoverStorageRepository(env)
@@ -55,7 +71,7 @@ func main() {
 	trackStorageRepo := storageRepository.NewTrackStorageRepository(env)
 
 	// -- SERVICES --
-	authService := service.NewAuthService(passwordRepo, artistDatabaseRepo, authRepo)
+	authService := service.NewAuthService(passwordRepo, artistDatabaseRepo, authRepo, verificationEmailRepo, authDatabaseRepo, magicLink)
 	trackService := service.NewTrackService(trackStorageRepo, coverStorageRepo, trackDatabaseRepo, trackTreeDatabaseRepo, trackConversionRepo, waveformRepo, waveformDatabaseRepo, layerrsDatabaseRepo, env)
 	recService := service.NewRecommendationsService(trackDatabaseRepo, likesDatabaseRepo)
 	artistService := service.NewArtistService(artistDatabaseRepo)
@@ -63,12 +79,13 @@ func main() {
 	layerrsService := service.NewLayerrsService(layerrsDatabaseRepo)
 
 	// -- CONTROLLERS --
-	authController := controller.NewAuthController(authService)
+	authController := controller.NewAuthController(authService, frontendUrl)
 	trackController := controller.NewTrackController(trackService)
 	recController := controller.NewRecommendationsController(recService)
 	likesController := controller.NewLikesController(likesService)
 	artistController := controller.NewArtistController(artistService)
 	layerrsController := controller.NewLayerrsController(layerrsService)
+	
 	// -- CONFIGURATION --
 	cfg := appConfig{
 		addr : ":8080",
@@ -85,6 +102,7 @@ func main() {
 	}
 
 	// Mount and run the application
+	log.Println("Starting the application")
 	mux := app.mount()
 	log.Fatal(app.run(mux))
 }

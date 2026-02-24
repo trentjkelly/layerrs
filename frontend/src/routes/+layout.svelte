@@ -1,21 +1,25 @@
 <script lang="ts">
 	import '../app.css';
-    import { onMount } from 'svelte';
-    import AudioPlayer from '../components/AudioPlayer.svelte';
-    import SideBar from '../components/SideBar.svelte';
-    import { initializeAudio, audio } from '../stores/player';
+	import { onMount } from 'svelte';
+	import { page } from '$app/stores';
+	import AudioPlayer from '../components/AudioPlayer.svelte';
+	import SideBar from '../components/SideBar.svelte';
+	import { initializeAudio, audio } from '../stores/player';
 	import { jwt, refreshToken, isLoggedIn } from '../stores/auth';
 	import { handleEnvironment, urlBase } from '../stores/environment';
 	import { logger } from '../modules/lib/logger';
-	
+
 	let { data, children } = $props();
-	
+
 	// Initialize audio component across the entire session
 	onMount(async () => {
-		await handleEnvironment()
-		initializeAudio()
-		await loadCookies()
-		await handleSessionStart()
+		await handleEnvironment();
+		initializeAudio();
+		await loadCookies();
+		if ($page.url.pathname === '/login/callback') {
+			return;
+		}
+		await handleSessionStart();
 	});
 
 	async function loadCookies() {
@@ -30,7 +34,6 @@
 
 	async function handleSessionStart() {
 		logger.debug('Session started!');
-		logger.debug($refreshToken)
 
 		// Refresh token doesn't exist (already loaded from cookies in page.server.ts), then logout:
 		if($refreshToken == "") {
@@ -78,7 +81,6 @@
 	}
 
 	async function refreshJWT() : Promise<(string | number)[]> {
-		
 		let newJWT = ""
 		let status = 0
 
@@ -88,7 +90,7 @@
 				headers: {
 					"Content-Type": "application/json"
 				},
-				body: JSON.stringify({ $refreshToken })
+				body: JSON.stringify({ refreshToken: $refreshToken })
 			})
 			status = await res.status
 			const resJson = await res.json()

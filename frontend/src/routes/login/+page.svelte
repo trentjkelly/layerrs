@@ -1,93 +1,127 @@
-<script>
+<script lang="ts">
     import TopHeader from "../../components/TopHeader.svelte";
     import { isSidebarOpen } from "../../stores/player";
-    import { goto } from "$app/navigation";
     import { logger } from "../../modules/lib/logger";
-    import { handleBrowserLogin } from "../../modules/lib/session";
     import { loginServerRequest } from "../../modules/requests/auth-requests";
+    import { isLoggedIn } from "../../stores/auth";
+    import { goto, invalidateAll } from '$app/navigation';
+    import { browser } from '$app/environment';
 
     let email = $state('')
-    let password = $state('')
+    let error = $state('')
+    let isSubmitting = $state(false);
+    let emailEntered = $state(false);
+    let timeElapsed = $state(0);
+
+    let sendButtonDisabled = $state(false);
+
+    const REFRESH_TIME = 30;
+
+    // Just a check if they're already logged in, they shouldn't be allowed on the login page
+    $effect(() => {
+        if ($isLoggedIn) {
+            goto('/');
+        }
+    });
+
+    // For if a user switches back to this tab (usually after checking login email)
+    // refreshes the page so they don't see login page
+    $effect(() => {
+        if (!browser) return;
+
+        const handler = () => {
+            if (document.visibilityState === 'visible') {
+                invalidateAll();
+            }
+        };
+
+        document.addEventListener('visibilitychange', handler);
+        return () => document.removeEventListener('visibilitychange', handler);
+    });
 
     async function handleLogin() {
-        // Backend authentication request for logging in
-        const res = await loginServerRequest(email, password)
-        if (res === null) {
-            logger.error('Failed to login')
+        isSubmitting = true;
+        sendButtonDisabled = true;
+
+        const isValid = validateEmailInput(email)
+        if (!isValid) {
+            error = 'Email is required.'
+            isSubmitting = false;
             return
         }
 
-        console.log(res)
-
-        // Set cookies for the refresh and jwt tokens
-        const success = await handleBrowserLogin(res.token, res.refreshToken)
-        if (success) {
-            goto('/')
-        } else {
+        const res = await loginServerRequest(email)
+        if (res === null) {
             logger.error('Failed to login')
+            error = 'We\'re experiencing technical issues, please try again later.'
+            isSubmitting = false;
+            return
         }
+
+        // Check status code from response
+        if (res.status == 200) {
+            isSubmitting = false;
+            emailEntered = true;
+        } else {
+            isSubmitting = false;
+            error = 'We\'re experiencing technical issues, please try again later.'
+            return
+        }
+
+        startCountdown();
     }
 
-    function navigateSignUp() {
-        goto('/signup')
+    function validateEmailInput(email : string) {
+        if (email === '') {
+            return false
+        }
+        return true
+    }
+
+    function startCountdown() {
+        timeElapsed = REFRESH_TIME
+
+        const interval = setInterval(() => {
+            timeElapsed -= 1;
+            if (timeElapsed <= 0) {
+                clearInterval(interval);
+                timeElapsed = REFRESH_TIME;
+                sendButtonDisabled = false;
+            }
+        }, 1000);
+
     }
 
 </script>
 
-<main class={`transition-all duration-300 min-h-screen w-full ${$isSidebarOpen ? 'ml-64' : 'ml-0'} bg-zinc-900`}>
+<main class={`transition-all duration-300 h-screen w-full flex flex-col ${$isSidebarOpen ? 'ml-64' : 'ml-0'} bg-zinc-900`}>
+    <TopHeader pageName="" pageIcon=""/>
+    <section class="w-full flex-1 flex flex-col justify-center items-center">
+        <div class="w-full flex flex-col items-center">
+            <h2 class="mb-8 text-2xl font-bold text-white">Log in to your <span class="text-violet-500">Layerrs</span> Account</h2>
 
-    <TopHeader pageName="Log in" pageIcon=""></TopHeader>
-
-    <section class="w-full flex flex-row justify-center pb-32">
-        <div class="outline outline-gray-600 rounded-3xl w-2/3 max-w-2xl flex flex-col items-center p-8">
-            <h2 class="mb-8 text-3xl font-bold text-white">Log In</h2>
-            
-            <div class="w-full space-y-6">
-                <!-- Email Input -->
-                <div class="w-full">
-                    <label for="email" class="block text-xl font-semibold text-white mb-3">Email</label>
-                    <input 
-                        id="email" 
-                        class="w-full px-4 py-3 rounded-lg bg-gray-700 text-white placeholder-gray-400 border border-gray-600 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" 
-                        type="email" 
-                        bind:value={email}
-                        placeholder="Enter your email..."
-                    />
-                </div>
-
-                <!-- Password Input -->
-                <div class="w-full">
-                    <label for="password" class="block text-xl font-semibold text-white mb-3">Password</label>
-                    <input 
-                        id="password" 
-                        class="w-full px-4 py-3 rounded-lg bg-gray-700 text-white placeholder-gray-400 border border-gray-600 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" 
-                        type="password" 
-                        bind:value={password}
-                        placeholder="Enter your password..."
-                    />
-                </div>
-                
-                <!-- Login Button -->
-                <div class="w-full flex justify-center pt-4">
-                    <button 
-                        class="px-8 py-4 bg-indigo-600 hover:bg-indigo-700 rounded-full text-white font-semibold text-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed" 
-                        onclick={handleLogin}
-                        disabled={!email || !password}
-                    >
-                        Log In
-                    </button>
-                </div>
-                
-                <!-- Sign Up Link -->
-                <div class="w-full flex justify-center pt-4">
-                    <button 
-                        class="text-gray-400 hover:text-white transition-colors underline" 
-                        onclick={navigateSignUp}
-                    >
-                        Don't have an account? Sign up instead
-                    </button>
-                </div>
+            <!-- Email Input -->
+            <div class="w-96 mb-4">
+                <label for="email" class="block text-xl font-semibold text-white mb-3">Email</label>
+                <input 
+                    id="email" 
+                    class="w-full px-2 py-2 rounded-lg bg-zinc-900 text-white placeholder-gray-200 focus:outline-none border {error ? 'border-red-500' : 'border-gray-200'}" 
+                    type="email" 
+                    bind:value={email}
+                    placeholder="Enter your email..."
+                    onkeydown={(e) => e.key === 'Enter' && handleLogin()}
+                />
             </div>
+
+            {#if emailEntered}
+                <p class="mb-2">Please check your email for a link to log in.</p>
+                {#if sendButtonDisabled}
+                    <p class="text-sm text-gray-400 mb-2">You can resend the link in {timeElapsed} seconds</p>
+                {/if}
+                <button class="py-2 px-6 rounded rounded-lg bg-violet-500 hover:bg-violet-600 disabled:opacity-50 disabled:cursor-not-allowed" onclick={handleLogin} disabled={sendButtonDisabled}>Resend Link</button>
+            {:else}
+                <button class="py-2 px-6 rounded rounded-lg bg-violet-500 hover:bg-violet-600" onclick={handleLogin}>Continue</button>
+            {/if}
         </div>
     </section>
 </main>
