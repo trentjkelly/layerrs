@@ -1,5 +1,5 @@
 export type TrackData = {
-    name: string;
+    description: string;
     artistId: string;
     likes: number;
     layerrs: number;

@@ -13,7 +13,7 @@ export async function getTrackData(urlBase: string, trackId: string): Promise<Tr
         const responseData = await response.json();
 
         const trackData: TrackData = {
-            name: responseData.name,
+            description: responseData.description,
             artistId: responseData.artistId,
             likes: responseData.likes,
             layerrs: responseData.layerrs,

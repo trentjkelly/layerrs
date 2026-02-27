@@ -12,7 +12,7 @@
     let artistLayerrs = $state<Array<string>>([]);
     let layerrs = $state<Array<string>>([]);
     let islayerrsDropdownOpen = $state(false);
-    let title = $state<string>('');
+    let description = $state<string>('');
     let isUploaded = $state(false);
     let isDragOver = $state(false);
 
@@ -100,7 +100,7 @@
             logger.debug("audioFile is valid")
             const form = new FormData();
             form.append('audioFile', audioFile)
-            form.append('name', title)
+            form.append('description', description)
             form.append('layerrIDs', JSON.stringify(layerrs))
 
             const res = await fetch(`${$urlBase}/api/track/`, { 
@@ -179,7 +179,7 @@
                     <input 
                         class="w-full px-2 py-2 rounded-lg bg-gray-700 text-white placeholder-gray-400 border border-gray-600 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" 
                         type="text" 
-                        bind:value={title} 
+                        bind:value={description} 
                         placeholder="Give your track a short description..."
                     />
                 </div>
@@ -245,7 +245,7 @@
                 <button 
                     class="mt-8 px-8 py-4 bg-indigo-600 hover:bg-indigo-700 rounded-full text-white font-semibold text-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed" 
                     onclick={submitFile}
-                    disabled={!audioFiles || !title}
+                    disabled={!audioFiles || !description}
                 >
                     Upload Track
                 </button>

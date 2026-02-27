@@ -16,7 +16,7 @@
 
     // State variables for the page
     let newAudioURL = $state('');
-    let trackName = $state('cannnot find track name');
+    let trackDescription = $state('cannnot find track description');
     let artistId = $state(0);
     let artistName = $state('cannot find artist name');
     
@@ -79,7 +79,7 @@
 
         const trackData = await getTrackData(urlBase, trackId)
         if (trackData) {
-            trackName = trackData.name
+            trackDescription = trackData.description
             artistId = parseInt(trackData.artistId)
             numLikes = trackData.likes
             numLayerrs = trackData.layerrs
@@ -259,7 +259,7 @@
     <div class="w-full h-8 mb-1 flex flex-row items-center">
             <a class="ml-2 px-1 text-violet-500 hover:bg-white text-lg transition-all duration-300" href={`/artist/${artistId}`}>{artistName}</a>
             <p class="ml-2 text-violet-400">•</p>
-            <a class="ml-2 px-1 text-gray-100 hover:text-violet-500 hover:bg-white text-lg transition-all duration-300" href={`/track/${trackId}`}>{trackName}</a>
+            <a class="ml-2 px-1 text-gray-100 hover:text-violet-500 hover:bg-white text-lg transition-all duration-300" href={`/track/${trackId}`}>{trackDescription}</a>
     </div>
     <!-- Waveform -->
     <div 
