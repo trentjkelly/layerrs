@@ -11,7 +11,6 @@ type Track struct {
 	FlacR2TrackKey 	string		`json:"flacR2TrackKey"`
 	OpusR2TrackKey 	string		`json:"opusR2TrackKey"`
 	AacR2TrackKey 	string		`json:"aacR2TrackKey"`
-	R2CoverKey 		string		`json:"r2CoverKey"`
 	CreatedAt 		time.Time	`json:"createdAt"`
 	Plays			int			`json:"plays"`
 	Likes			int 		`json:"likes"`
