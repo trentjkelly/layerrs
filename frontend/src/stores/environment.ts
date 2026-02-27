@@ -5,13 +5,14 @@ import { logger } from "../modules/lib/logger"
 export const environment = writable('PRODUCTION')
 export const urlBase = writable('https://layerrs.com')
 
-// Changes the environment based on the .env file
+// Changes the environment based on the .env file (or Vite dev mode when .env is missing)
 export async function handleEnvironment(): Promise<void> {
 	const envValue = import.meta.env.VITE_ENVIRONMENT
-	if (envValue === 'DEVELOPMENT') {
+	const isDev = import.meta.env.DEV
+	if (envValue === 'DEVELOPMENT' || (envValue == null && isDev)) {
 		urlBase.set('http://localhost:8080')
 		environment.set('DEVELOPMENT')
-	} else if (envValue === 'PRODUCTION') {
+	} else if (envValue === 'PRODUCTION' || (envValue == null && !isDev)) {
 		urlBase.set('https://layerrs.com')
 		environment.set('PRODUCTION')
 	} else {
