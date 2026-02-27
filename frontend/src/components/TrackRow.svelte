@@ -20,10 +20,6 @@
         <img src="/play.png" class="h-10 w-10" alt="Play button">
     </div>
 
-    <div class="h-20 w-20 bg-slate-200">
-        <img src={imageURL} alt="Cover art">
-    </div>
-
     <p class="text-xl font-bold ml-8">{trackName}</p>
     <p class="text-lg ml-4">@{artistName}</p>
 

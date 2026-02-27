@@ -72,7 +72,7 @@
         }
     })
 
-    // When the component is loaded, gets the track data & cover art 
+    // When the component is loaded, gets the track data 
     onMount(async () => {
         await handleEnvironment()
         urlBase = getUrlBase()
@@ -138,16 +138,6 @@
                 selectedIndices.push(index)
             }
             return selectedIndices
-    }
-
-    // Changes hover property when someone hovers the cover image
-    function hoverTrackImage() {
-        isHovered = true
-    }
-
-    // Changes hover property when someone unhovers the cover image
-    function leaveHoverTrackImage() {
-        isHovered = false
     }
 
     // Plays/pauses the audio
