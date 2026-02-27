@@ -9,7 +9,6 @@
     import LogInPopup from "../../components/LogInPopup.svelte";
 
     let audioFiles = $state<FileList | null>(null);
-    let coverArtFiles = $state<FileList | null>(null);
     let artistLayerrs = $state<Array<string>>([]);
     let layerrs = $state<Array<string>>([]);
     let islayerrsDropdownOpen = $state(false);
@@ -40,10 +39,6 @@
 
     function removeAudioFile() {
         audioFiles = null;
-    }
-
-    function removeCoverArtFile() {
-        coverArtFiles = null;
     }
 
     function togglelayerrsDropdown() {
@@ -85,21 +80,15 @@
             dt.items.add(audioFile);
             audioFiles = dt.files;
         }
-        if (imageFile) {
-            const dt = new DataTransfer();
-            dt.items.add(imageFile);
-            coverArtFiles = dt.files;
-        }
     }
 
     async function submitFile() {
-        if (!audioFiles || !coverArtFiles) {
-            logger.error("Missing audio or cover art files");
+        if (!audioFiles) {
+            logger.error("Missing audio file");
             return;
         }
         
         let audioFile = audioFiles[0];
-        let coverArtFile = coverArtFiles[0];
 
         // Audio file validation: needs to be either wav or flac
         if (audioFile.type !== 'audio/wav' && audioFile.type !== 'audio/flac') {
@@ -107,17 +96,10 @@
             return
         }
 
-        // Cover art file validation: needs to be a png or jpg
-        if (coverArtFile.type !== 'image/png' && coverArtFile.type !== 'image/jpeg') {
-            logger.error("coverArtFile is not a png or jpg file")
-            return
-        }
-
-        if (audioFile && coverArtFile) {
-            logger.debug("audioFile and coverArtFile are valid")
+        if (audioFile) {
+            logger.debug("audioFile is valid")
             const form = new FormData();
             form.append('audioFile', audioFile)
-            form.append('coverArtFile', coverArtFile)
             form.append('name', title)
             form.append('layerrIDs', JSON.stringify(layerrs))
 
@@ -132,7 +114,7 @@
                 isUploaded = true
             }
         } else {
-            logger.error("audioFile and coverArtFile are not valid")
+            logger.error("audioFile is not valid")
         }
     }
 
@@ -151,21 +133,60 @@
             <div class="outline outline-gray-600 rounded-3xl w-2/3 max-w-4xl flex flex-col items-center p-8">
                 {#if !isUploaded}
                 <h2 class="mb-4 text-3xl font-bold text-white">Upload a Track</h2>
+
+                <!-- Audio Upload Box -->
+                <div class="w-full mb-4">
+                    <h3 class="text-xl font-semibold text-white mb-1">Audio File</h3>
+                    <label for="audio" class="block">
+                        <div 
+                            role="button"
+                            tabindex="0"
+                            class="w-full h-48 border-2 border-dashed border-gray-400 rounded-xl flex flex-col items-center justify-center transition-all duration-200 cursor-pointer hover:border-indigo-400 hover:bg-gray-700/50 {isDragOver && !audioFiles ? 'border-indigo-500 bg-indigo-500/20' : ''}"
+                            ondragover={handleDragOver}
+                            ondragleave={handleDragLeave}
+                            ondrop={handleDrop}
+                        >
+                            {#if !audioFiles}
+                                <div class="text-center">
+                                    <p class="text-lg text-gray-300">Drop your audio file here</p>
+                                    <p class="text-sm text-gray-300">or click to browse</p>
+                                    <p class="text-sm text-gray-400 mt-6">Only FLAC and WAV files are supported</p>
+                                </div>
+                            {:else}
+                                <div class="text-center w-full">
+                                    <div class="flex items-center justify-center space-x-2">
+                                        <span class="text-green-400">✓</span>
+                                        <span class="text-gray-300">{audioFiles[0].name}</span>
+                                        <button 
+                                            onclick={removeAudioFile}
+                                            class="ml-2 px-2 py-1 text-xs bg-red-500 hover:bg-red-600 rounded text-white"
+                                        >
+                                            Remove
+                                        </button>
+                                    </div>
+                                </div>
+                            {/if}
+                        </div>
+                    </label>
+                    
+                    <!-- Hidden audio file input -->
+                    <input id="audio" class="hidden" type="file" accept="audio/*" bind:files={audioFiles} />
+                </div>
                 
-                <!-- Track Name Input -->
+                <!-- Description Input -->
                 <div class="w-full mb-6">
-                    <h3 class="text-xl font-semibold text-white mb-3">Track Name</h3>
+                    <h3 class="text-xl font-semibold text-white mb-1">Description</h3>
                     <input 
-                        class="w-full px-4 py-3 rounded-lg bg-gray-700 text-white placeholder-gray-400 border border-gray-600 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" 
+                        class="w-full px-2 py-2 rounded-lg bg-gray-700 text-white placeholder-gray-400 border border-gray-600 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" 
                         type="text" 
                         bind:value={title} 
-                        placeholder="Enter track name..." 
+                        placeholder="Give your track a short description..."
                     />
                 </div>
 
                 <!-- Add layerrs Section -->
                 <div class="w-full mb-4">
-                    <h3 class="text-xl font-semibold text-white mb-3">Add Layerrs</h3>
+                    <h3 class="text-xl font-semibold text-white mb-1">Add Layerrs</h3>
                     <div class="bg-gray-700 rounded-lg p-4 mb-4">
                         <p class="text-gray-200 text-sm leading-relaxed">
                             Layerrs are any other artist's tracks you've used for samples, vocals, sounds, remixes, covers, in this track.
@@ -221,88 +242,10 @@
                     </div>
                 </div>
                 
-                <!-- Audio Upload Box -->
-                <div class="w-full mb-4">
-                    <h3 class="text-xl font-semibold text-white mb-3">Audio File</h3>
-                    <label for="audio" class="block">
-                        <div 
-                            role="button"
-                            tabindex="0"
-                            class="w-full h-48 border-2 border-dashed border-gray-400 rounded-xl flex flex-col items-center justify-center transition-all duration-200 cursor-pointer hover:border-indigo-400 hover:bg-gray-700/50 {isDragOver && !audioFiles ? 'border-indigo-500 bg-indigo-500/20' : ''}"
-                            ondragover={handleDragOver}
-                            ondragleave={handleDragLeave}
-                            ondrop={handleDrop}
-                        >
-                            {#if !audioFiles}
-                                <div class="text-center">
-                                    <p class="text-lg text-gray-300">Drop your audio file here</p>
-                                    <p class="text-sm text-gray-300">or click to browse</p>
-                                    <p class="text-sm text-gray-400 mt-6">Only FLAC and WAV files are supported</p>
-                                </div>
-                            {:else}
-                                <div class="text-center w-full">
-                                    <div class="flex items-center justify-center space-x-2">
-                                        <span class="text-green-400">✓</span>
-                                        <span class="text-gray-300">{audioFiles[0].name}</span>
-                                        <button 
-                                            onclick={removeAudioFile}
-                                            class="ml-2 px-2 py-1 text-xs bg-red-500 hover:bg-red-600 rounded text-white"
-                                        >
-                                            Remove
-                                        </button>
-                                    </div>
-                                </div>
-                            {/if}
-                        </div>
-                    </label>
-                    
-                    <!-- Hidden audio file input -->
-                    <input id="audio" class="hidden" type="file" accept="audio/*" bind:files={audioFiles} />
-                </div>
-
-                <!-- Cover Art Upload Box -->
-                <div class="w-full mb-4">
-                    <h3 class="text-xl font-semibold text-white mb-3">Cover Art</h3>
-                    <label for="coverArt" class="block">
-                        <div 
-                            role="button"
-                            tabindex="0"
-                            class="w-full h-48 border-2 border-dashed border-gray-400 rounded-xl flex flex-col items-center justify-center transition-all duration-200 cursor-pointer hover:border-indigo-400 hover:bg-gray-700/50 {isDragOver && !coverArtFiles ? 'border-indigo-500 bg-indigo-500/20' : ''}"
-                            ondragover={handleDragOver}
-                            ondragleave={handleDragLeave}
-                            ondrop={handleDrop}
-                        >
-                            {#if !coverArtFiles}
-                                <div class="text-center">
-                                    <p class="text-lg text-gray-300">Drop your cover art here</p>
-                                    <p class="text-sm text-gray-300">or click to browse</p>
-                                    <p class="text-sm text-gray-400 mt-6">Only PNG and JPG files are supported</p>
-                                </div>
-                            {:else}
-                                <div class="text-center w-full">
-                                    <div class="flex items-center justify-center space-x-2">
-                                        <span class="text-green-400">✓</span>
-                                        <span class="text-gray-300">{coverArtFiles[0].name}</span>
-                                        <button 
-                                            onclick={removeCoverArtFile}
-                                            class="ml-2 px-2 py-1 text-xs bg-red-500 hover:bg-red-600 rounded text-white"
-                                        >
-                                            Remove
-                                        </button>
-                                    </div>
-                                </div>
-                            {/if}
-                        </div>
-                    </label>
-                    
-                    <!-- Hidden cover art file input -->
-                    <input id="coverArt" class="hidden" type="file" accept="image/*" bind:files={coverArtFiles} />
-                </div>
-                
                 <button 
                     class="mt-8 px-8 py-4 bg-indigo-600 hover:bg-indigo-700 rounded-full text-white font-semibold text-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed" 
                     onclick={submitFile}
-                    disabled={!audioFiles || !coverArtFiles || !title}
+                    disabled={!audioFiles || !title}
                 >
                     Upload Track
                 </button>
