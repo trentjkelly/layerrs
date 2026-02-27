@@ -6,7 +6,7 @@ import (
 
 type Track struct {
 	Id 				int			`json:"id"`
-	Name 			string		`json:"name"`
+	Description 	string		`json:"description"`
 	ArtistId 		int			`json:"artistId"`
 	FlacR2TrackKey 	string		`json:"flacR2TrackKey"`
 	OpusR2TrackKey 	string		`json:"opusR2TrackKey"`
@@ -21,9 +21,9 @@ type Track struct {
 }
 
 // Constructor for a new track
-func NewTrack(name string, artistId int) *Track {
+func NewTrack(description string, artistId int) *Track {
 	track := new(Track)
-	track.Name = name
+	track.Description = description
 	track.ArtistId = artistId
 	return track
 }
