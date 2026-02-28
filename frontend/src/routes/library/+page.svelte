@@ -1,6 +1,5 @@
 <script>
     import TopHeader from "../../components/TopHeader.svelte";
-    import TrackCard from "../../components/TrackCard.svelte";
     import { isSidebarOpen } from "../../stores/player";
     import { onMount } from "svelte";
     import { jwt } from "../../stores/auth";
