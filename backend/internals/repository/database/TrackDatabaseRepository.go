@@ -76,7 +76,7 @@ func (r *TrackDatabaseRepository) ReadTrackById(ctx context.Context, track *enti
 
 // Updates the information for a Track in the database
 func (r *TrackDatabaseRepository) UpdateTrack(ctx context.Context, track *entities.Track) error {
-	query := `UPDATE track SET description=$2, flac_r2_track_key=$3, opus_r2_track_key=$4, aac_r2_track_key=$5, is_valid=$7, duration=$8 WHERE id=$1 RETURNING description;`
+	query := `UPDATE track SET description=$2, flac_r2_track_key=$3, opus_r2_track_key=$4, aac_r2_track_key=$5, is_valid=$6, duration=$7 WHERE id=$1 RETURNING description;`
 	row := r.db.QueryRow(ctx, query, track.Id, track.Description, track.FlacR2TrackKey, track.OpusR2TrackKey, track.AacR2TrackKey, track.IsValid, track.TrackDuration)
 	
 	err := row.Scan(&track.Description)
