@@ -68,7 +68,6 @@ func (app *application) mount() http.Handler {
 					r.Use(AuthJWTMiddleware)
 					r.Get("/download", app.trackController.TrackDownloadHandlerGet)
 				})
-				r.Get("/cover", app.trackController.TrackCoverHandlerGet)
 				r.Get("/data", app.trackController.TrackerDataHandlerGet)
 
 				// r.Use(AuthJWTMiddleware)

@@ -1,7 +1,6 @@
 <script>
     import { isSidebarOpen } from "../../../stores/player";
     import TopHeader from "../../../components/TopHeader.svelte";
-    import TrackCard from "../../../components/TrackCard.svelte";
     import TrackRow from "../../../components/TrackRow.svelte";
     import { urlBase } from "../../../stores/environment";
     

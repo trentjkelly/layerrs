@@ -4,7 +4,7 @@
 
     // Track Details
     let imageURL = $state('')
-    let trackName = $state('Yessirski')
+    let trackDescription = $state('cannnot find track description');
     let artistName = $state('trentjkelly')
     let timeAgo = $state('3 days ago')
     let trackLength = $state('3:13')
@@ -15,16 +15,11 @@
 </script>
 
 <div class="w-full h-20 bg-slate-400 flex flex-row items-center">
-
     <div class="h-20 w-20 flex flex-row items-center justify-center">
         <img src="/play.png" class="h-10 w-10" alt="Play button">
     </div>
 
-    <div class="h-20 w-20 bg-slate-200">
-        <img src={imageURL} alt="Cover art">
-    </div>
-
-    <p class="text-xl font-bold ml-8">{trackName}</p>
+    <p class="text-xl font-bold ml-8">{trackDescription}</p>
     <p class="text-lg ml-4">@{artistName}</p>
 
     <div class="flex flex-row items-center ml-8">
@@ -39,5 +34,4 @@
 
     <LikeButton trackId={trackId} numLikes={numLikes} />
     <LayerrButton trackId={trackId} numLayerrs={numLayerrs} />
-
 </div>

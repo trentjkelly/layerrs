@@ -26,8 +26,8 @@ func (r *TrackDatabaseRepository) CloseDB() {
 
 // Adds a Track to the database, but only the non-optional fields
 func (r *TrackDatabaseRepository) CreateTrack(ctx context.Context, track *entities.Track) error {
-	query := `INSERT INTO track (name, artist_id) VALUES ($1, $2) RETURNING id`
-	row := r.db.QueryRow(ctx, query, track.Name, track.ArtistId)
+	query := `INSERT INTO track (description, artist_id) VALUES ($1, $2) RETURNING id`
+	row := r.db.QueryRow(ctx, query, track.Description, track.ArtistId)
 	
 	err := row.Scan(&track.Id)
 	if err != nil {
@@ -39,16 +39,15 @@ func (r *TrackDatabaseRepository) CreateTrack(ctx context.Context, track *entiti
 
 // Gets a Track from the database based on their id
 func (r *TrackDatabaseRepository) ReadTrackById(ctx context.Context, track *entities.Track) error {
-	query := `SELECT id, name, artist_id, flac_r2_track_key, opus_r2_track_key, aac_r2_track_key, r2_cover_key, created_at, plays, likes, layerrs, is_valid, duration FROM track WHERE id=$1;`
+	query := `SELECT id, description, artist_id, flac_r2_track_key, opus_r2_track_key, aac_r2_track_key, created_at, plays, likes, layerrs, is_valid, duration FROM track WHERE id=$1;`
 	row := r.db.QueryRow(ctx, query, track.Id)
 	
 	// Potential NULL Values
 	var flacR2TrackKey sql.NullString
 	var opusR2TrackKey sql.NullString
 	var aacR2TrackKey sql.NullString
-	var r2CoverKey sql.NullString
 
-	err := row.Scan(&track.Id, &track.Name, &track.ArtistId, &flacR2TrackKey, &opusR2TrackKey, &aacR2TrackKey, &r2CoverKey, &track.CreatedAt, &track.Plays, &track.Likes, &track.Layerrs, &track.IsValid, &track.TrackDuration)
+	err := row.Scan(&track.Id, &track.Description, &track.ArtistId, &flacR2TrackKey, &opusR2TrackKey, &aacR2TrackKey, &track.CreatedAt, &track.Plays, &track.Likes, &track.Layerrs, &track.IsValid, &track.TrackDuration)
 	if err != nil {
 		return fmt.Errorf("failed to scan rows in ReadTrackByID: %w", err)
 	}
@@ -72,21 +71,15 @@ func (r *TrackDatabaseRepository) ReadTrackById(ctx context.Context, track *enti
 		track.AacR2TrackKey = ""
 	}
 
-	if r2CoverKey.Valid {
-		track.R2CoverKey = r2CoverKey.String
-	} else {
-		track.R2CoverKey = ""
-	}
-
 	return nil
 }
 
 // Updates the information for a Track in the database
 func (r *TrackDatabaseRepository) UpdateTrack(ctx context.Context, track *entities.Track) error {
-	query := `UPDATE track SET name=$2, flac_r2_track_key=$3, opus_r2_track_key=$4, aac_r2_track_key=$5, r2_cover_key=$6, is_valid=$7, duration=$8 WHERE id=$1 RETURNING name;`
-	row := r.db.QueryRow(ctx, query, track.Id, track.Name, track.FlacR2TrackKey, track.OpusR2TrackKey, track.AacR2TrackKey, track.R2CoverKey, track.IsValid, track.TrackDuration)
+	query := `UPDATE track SET description=$2, flac_r2_track_key=$3, opus_r2_track_key=$4, aac_r2_track_key=$5, is_valid=$6, duration=$7 WHERE id=$1 RETURNING description;`
+	row := r.db.QueryRow(ctx, query, track.Id, track.Description, track.FlacR2TrackKey, track.OpusR2TrackKey, track.AacR2TrackKey, track.IsValid, track.TrackDuration)
 	
-	err := row.Scan(&track.Name)
+	err := row.Scan(&track.Description)
 	if err != nil {
 		return fmt.Errorf("failed to scan rows in UpdateTrack: %w", err)
 	}

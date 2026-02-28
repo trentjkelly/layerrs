@@ -3,7 +3,6 @@ package controller
 import (
 	"bytes"
 	"encoding/json"
-	"io"
 	"log"
 	"net/http"
 	"strconv"
@@ -35,7 +34,7 @@ func (c *TrackController) TrackHandlerOptions(w http.ResponseWriter, r *http.Req
 
 // POST request -- creating a new track (POST /track)
 func (c *TrackController) TrackHandlerPost(w http.ResponseWriter, r *http.Request) {
-	// Parse form (for trackAudio and coverArt files)
+	// Parse form (for trackAudio file)
 	err := r.ParseMultipartForm(32 << 20)
 	if err != nil {
 		http.Error(w, "Failed to parse form" + err.Error(), http.StatusBadRequest)
@@ -43,11 +42,16 @@ func (c *TrackController) TrackHandlerPost(w http.ResponseWriter, r *http.Reques
 	}
 
 	// Getting metadata
-	trackName := r.FormValue("name")
+	trackDescription := r.FormValue("description")
 	artistIdFloat := r.Context().Value(entities.ArtistIdKey).(float64)
 	layerrsIdStr := r.FormValue("layerrIDs") // Optional - could have no layerrs to credit
-	if trackName == "" {
-		http.Error(w, "Track name is required", http.StatusBadRequest)
+	if trackDescription == "" {
+		http.Error(w, "Track description is required", http.StatusBadRequest)
+		return
+	}
+
+	if len(trackDescription) > 100 || len(trackDescription) < 10 {
+		http.Error(w, "Track description must be between 10 and 100 characters", http.StatusBadRequest)
 		return
 	}
 
@@ -84,16 +88,8 @@ func (c *TrackController) TrackHandlerPost(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	// Getting cover art file
-	coverArtFile, coverArtHeader, err := r.FormFile("coverArtFile")
-	if err != nil {
-		http.Error(w, "Cover art file is required", http.StatusBadRequest)
-		return
-	}
-	defer coverArtFile.Close()
-
 	// Passing to Service layer
-	err = c.trackService.AddAndUploadTrack(r.Context(), coverArtFile, coverArtHeader, audioFile, audioHeader, trackName, artistIdInt, layerrsIdArr)
+	err = c.trackService.AddAndUploadTrack(r.Context(), audioFile, audioHeader, trackDescription, artistIdInt, layerrsIdArr)
 	if err != nil {
 		fmt.Printf("8: %s", err.Error())
 		http.Error(w, "Failed to create track", http.StatusInternalServerError)
@@ -178,35 +174,6 @@ func (c *TrackController) TrackDownloadHandlerGet(w http.ResponseWriter, r *http
 		// Set headers and send response
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(buffer.Bytes())
-}
-
-func (c *TrackController) TrackCoverHandlerGet(w http.ResponseWriter, r *http.Request) {
-	
-	// Get trackId from request URL
-	trackIdStr := chi.URLParam(r, "id")
-	trackId, err := strconv.Atoi(trackIdStr)
-	if err != nil {
-		http.Error(w, "Invalid track id", http.StatusBadRequest)
-		return
-	}
-
-	// Get cover from storage
-	file, err := c.trackService.StreamCoverArt(r.Context(), trackId)
-	if err != nil {
-		http.Error(w, "Failed to stream track", http.StatusInternalServerError)
-		return
-	}
-	defer file.Close()
-
-	// Send cover to frontend
-	w.Header().Set("Content-Type", "img/*")
-	_, err = io.Copy(w, file)
-	if err != nil {
-		http.Error(w, "Error while retrieving cover art", http.StatusInternalServerError)
-		return
-	}
-
-	w.WriteHeader(http.StatusOK)
 }
 
 func (c *TrackController) TrackerDataHandlerGet(w http.ResponseWriter, r *http.Request) {

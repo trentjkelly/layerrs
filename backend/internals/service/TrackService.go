@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"fmt"
-	"io"
 	"mime/multipart"
 	"path/filepath"
 	"strconv"
@@ -21,7 +20,6 @@ const (
 
 type TrackService struct {
 	trackStorageRepo 		*storageRepository.TrackStorageRepository
-	coverStorageRepo 		*storageRepository.CoverStorageRepository
 	trackDatabaseRepo 		*databaseRepository.TrackDatabaseRepository
 	treeDatabaseRepo 		*databaseRepository.TrackTreeDatabaseRepository
 	trackConversionRepo 	*computingRepository.TrackConversionRepository
@@ -34,7 +32,6 @@ type TrackService struct {
 // Constructor for a new TrackService
 func NewTrackService(
 	trackStorageRepo 		*storageRepository.TrackStorageRepository, 
-	coverStorageRepo 		*storageRepository.CoverStorageRepository, 
 	trackDatabaseRepo 		*databaseRepository.TrackDatabaseRepository, 
 	treeDatabaseRepo 		*databaseRepository.TrackTreeDatabaseRepository,
 	trackConversionRepo 	*computingRepository.TrackConversionRepository,
@@ -45,7 +42,6 @@ func NewTrackService(
 ) *TrackService {
 	trackService := new(TrackService)
 	trackService.trackStorageRepo = trackStorageRepo
-	trackService.coverStorageRepo = coverStorageRepo
 	trackService.trackDatabaseRepo = trackDatabaseRepo
 	trackService.treeDatabaseRepo = treeDatabaseRepo
 	trackService.trackConversionRepo = trackConversionRepo
@@ -57,19 +53,17 @@ func NewTrackService(
 }
 
 // Adds all files and data for a new track -- called by TrackController for a POST request
-func (s *TrackService) AddAndUploadTrack(ctx context.Context, coverArt multipart.File, coverHeader *multipart.FileHeader, audio multipart.File, audioHeader *multipart.FileHeader, trackName string, artistId int, parentIDs []int) error {
+func (s *TrackService) AddAndUploadTrack(ctx context.Context, audio multipart.File, audioHeader *multipart.FileHeader, trackDescription string, artistId int, parentIDs []int) error {
 	// Add track metadata to track table (get back ID)
-	track := entities.NewTrack(trackName, artistId)
+	track := entities.NewTrack(trackDescription, artistId)
 	err := s.trackDatabaseRepo.CreateTrack(ctx, track)
 	if err != nil {
 		return err
 	}
 
-	// Update track table with new cover art and track audio name (the id as a string with .mp3)
-	coverFileExtension := filepath.Ext(coverHeader.Filename)
+	// Update track table with track audio name (the id as a string with .mp3)
 	audiofileExtension := filepath.Ext(audioHeader.Filename)
 	trackIdStr := strconv.Itoa(track.Id)
-	track.R2CoverKey = trackIdStr + coverFileExtension
 
 	// Audio file type conversions
 	// TODO: Remove filepaths after being done
@@ -222,26 +216,4 @@ func (s *TrackService) GetDownloadSignedTrackURL(ctx context.Context, trackId in
 	}
 
 	return url, expiresAt.String(), nil
-}
-
-// Sends a cover back by trackId
-func (s *TrackService) StreamCoverArt(ctx context.Context, trackId int) (io.ReadCloser, error) {
-	track := new(entities.Track)
-	track.Id = trackId
-
-	err := s.trackDatabaseRepo.ReadTrackById(ctx, track)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read cover art from storage bucket: %w", err)
-	}
-
-	if !track.IsValid {
-		return nil, fmt.Errorf("track is not valid")
-	}
-
-	file, err := s.coverStorageRepo.ReadCover(ctx, &track.R2CoverKey)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read cover art from storage bucket: %w", err)
-	}
-
-	return file, nil
 }
