@@ -96,6 +96,11 @@
             return
         }
 
+        if (description.length < 10 || description.length > 100) {
+            logger.error("Description must be between 10 and 100 characters")
+            return
+        }
+
         if (audioFile) {
             logger.debug("audioFile is valid")
             const form = new FormData();
@@ -176,12 +181,16 @@
                 <!-- Description Input -->
                 <div class="w-full mb-6">
                     <h3 class="text-xl font-semibold text-white mb-1">Description</h3>
-                    <input 
-                        class="w-full px-2 py-2 rounded-lg bg-gray-700 text-white placeholder-gray-400 border border-gray-600 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" 
-                        type="text" 
-                        bind:value={description} 
+                    <input
+                        class="w-full px-2 py-2 rounded-lg bg-gray-700 text-white placeholder-gray-400 border border-gray-600 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                        type="text"
+                        bind:value={description}
                         placeholder="Give your track a short description..."
+                        maxlength={100}
                     />
+                    <p class="text-sm mt-1 {description.length < 10 || description.length > 100 ? 'text-red-400' : 'text-gray-400'}">
+                        {description.length}/100 characters (minimum 10)
+                    </p>
                 </div>
 
                 <!-- Add layerrs Section -->
@@ -242,10 +251,10 @@
                     </div>
                 </div>
                 
-                <button 
-                    class="mt-8 px-8 py-4 bg-indigo-600 hover:bg-indigo-700 rounded-full text-white font-semibold text-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed" 
+                <button
+                    class="mt-8 px-8 py-4 bg-indigo-600 hover:bg-indigo-700 rounded-full text-white font-semibold text-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     onclick={submitFile}
-                    disabled={!audioFiles || !description}
+                    disabled={!audioFiles || description.length < 10 || description.length > 100}
                 >
                     Upload Track
                 </button>
