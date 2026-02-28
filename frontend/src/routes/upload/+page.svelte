@@ -188,7 +188,7 @@
                         placeholder="Give your track a short description..."
                         maxlength={100}
                     />
-                    <p class="text-sm mt-1 {description.length < 10 || description.length > 100 ? 'text-red-400' : 'text-gray-400'}">
+                    <p class="text-sm mt-1 {description.length === 0 ? 'text-gray-400' : (description.length < 10 || description.length > 100 ? 'text-red-400' : 'text-gray-400')}">
                         {description.length}/100 characters (minimum 10)
                     </p>
                 </div>
