@@ -59,11 +59,12 @@ func (app *application) mount() http.Handler {
 		r.Route("/profile", func(r chi.Router) {
 			r.Use(AuthJWTMiddleware)
 			r.Put("/", app.artistController.ArtistHandlerPut)
+			r.Get("/", app.artistController.ArtistHandlerGet)
 		})
 
-		r.Route("/artist", func(r chi.Router) {
-			r.Get("/{artistId}", app.artistController.ArtistHandlerGet)
-		})
+		// r.Route("/artist", func(r chi.Router) {
+		// 	r.Get("/{artistId}", app.artistController.ArtistHandlerGet)
+		// })
 
 		r.Route("/track", func(r chi.Router) {
 			r.Options("/", app.trackController.TrackHandlerOptions)
