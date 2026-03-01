@@ -117,6 +117,6 @@
         <!-- {#each trackIds as id}
             <NewTrackCard trackId={id}></NewTrackCard>
         {/each} -->
-        <NewTrackCard trackId={artistId}></NewTrackCard>
+        <NewTrackCard trackId={2}></NewTrackCard>
     </section>
 </main>
