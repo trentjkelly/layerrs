@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"io"
 	"bytes"
+	"log"
+	"time"
 
 	"github.com/trentjkelly/layerrs/internals/entities"
 	"github.com/trentjkelly/layerrs/internals/repository/database"
@@ -35,6 +37,15 @@ func (s *ArtistService) GetArtistData(ctx context.Context, artistId int) (*entit
 	err := s.artistDatabaseRepository.ReadArtistById(ctx, artist)
 	if err != nil {
 		return artist, fmt.Errorf("failed to read artist from database: %w", err)
+	}
+
+	if artist.R2ImageKey != "" {
+		url, err := s.portraitStorageRepo.GetSignedPortraitURL(ctx, artist.R2ImageKey, 15*time.Minute)
+		if err != nil {
+			log.Printf("[WARN] GetArtistData: could not get signed portrait url: %s", err)
+		} else {
+			artist.PortraitUrl = url
+		}
 	}
 
 	return artist, nil

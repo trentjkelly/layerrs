@@ -5,9 +5,7 @@ import (
 	"log"
 	"net/http"
 	"path/filepath"
-	"strconv"
 
-	"github.com/go-chi/chi/v5"
 	"github.com/trentjkelly/layerrs/internals/service"
 	"github.com/trentjkelly/layerrs/internals/entities"
 )
@@ -101,18 +99,20 @@ func (c *ArtistController) ArtistHandlerPut(w http.ResponseWriter, r *http.Reque
 	w.WriteHeader(http.StatusOK)
 }
 
-// GET request -- Sends the artists informaiton to frontend
+// GET request -- Sends the artist's information to frontend
 func (c *ArtistController) ArtistHandlerGet(w http.ResponseWriter, r *http.Request) {
-	// Get artistId
-	artistStr := chi.URLParam(r, "artistId")
-	artistId, err := strconv.Atoi(artistStr)
-	if err != nil {
-		log.Printf("[ERROR] ArtistHandlerGet: %s", err)
-		http.Error(w, "Invalid artist id", http.StatusBadRequest)
+	// Get artistId from JWT context
+	artistIdFloat, ok := r.Context().Value(entities.ArtistIdKey).(float64)
+	if !ok {
+		log.Println("[ERROR] ArtistHandlerGet: could not parse artistId from context")
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
+	artistId := int(artistIdFloat)
 
-	// Get the rest of the artist data
+	log.Printf("Getting artist with id: %d", artistId)
+
+	// Get the artist data (includes a signed portrait URL if a portrait exists)
 	artist, err := c.artistService.GetArtistData(r.Context(), artistId)
 	if err != nil {
 		log.Printf("[ERROR] ArtistHandlerGet: %s", err)

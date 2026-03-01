@@ -10,6 +10,8 @@ type Artist struct {
 	Email 		string		`json:"email"`
 	Bio 		string		`json:"bio"`
 	R2ImageKey 	string		`json:"r2ImageKey"`
+	PortraitUrl	string		`json:"portraitUrl,omitempty"`
+	CanPost		bool		`json:"canPost"`
 	CreatedAt 	time.Time	`json:"createdAt"`
 	UpdatedAt 	time.Time	`json:"updatedAt"`
 }

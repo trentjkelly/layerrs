@@ -65,7 +65,7 @@ func (r *ArtistDatabaseRepository) GetArtistByEmail(ctx context.Context, email s
 
 // Gets an Artist from the database based on their id
 func (r *ArtistDatabaseRepository) ReadArtistById(ctx context.Context, artist *entities.Artist) error {
-	query := `SELECT id, username, email, bio, r2_image_key, created_at, updated_at FROM artist WHERE id=$1;`
+	query := `SELECT username, email, bio, r2_image_key, can_post, created_at, updated_at FROM artist WHERE id=$1;`
 	row := r.db.QueryRow(ctx, query, artist.Id)
 
 	// Potential NULL Values
@@ -73,7 +73,7 @@ func (r *ArtistDatabaseRepository) ReadArtistById(ctx context.Context, artist *e
 	var bio sql.NullString
 	var r2ImageKey sql.NullString
 
-	err := row.Scan(&artist.Id, &username, &artist.Email, &bio, &r2ImageKey, &artist.CreatedAt, &artist.UpdatedAt)
+	err := row.Scan(&username, &artist.Email, &bio, &r2ImageKey, &artist.CanPost, &artist.CreatedAt, &artist.UpdatedAt)
 
 	if err != nil {
 		return fmt.Errorf("failed to query artist from database: %w", err)
@@ -100,7 +100,7 @@ func (r *ArtistDatabaseRepository) ReadArtistById(ctx context.Context, artist *e
 
 // Updates the information of the artist without changing the portrait key
 func (r *ArtistDatabaseRepository) UpdateArtist(ctx context.Context, artist *entities.Artist) error {
-	query := `UPDATE artist SET username=$2, bio=$3, updated_at=$4 WHERE id=$1 RETURNING updated_at;`
+	query := `UPDATE artist SET username=$2, bio=$3, can_post=TRUE, updated_at=$4 WHERE id=$1 RETURNING updated_at;`
 	row := r.db.QueryRow(ctx, query, artist.Id, artist.Username, artist.Bio, time.Now())
 	err := row.Scan(&artist.UpdatedAt)
 
@@ -114,7 +114,7 @@ func (r *ArtistDatabaseRepository) UpdateArtist(ctx context.Context, artist *ent
 // Updates the information of the artist including the portrait key
 func (r *ArtistDatabaseRepository) UpdateArtistWithPortrait(ctx context.Context, artist *entities.Artist) error {
 	log.Printf("Updating artist with portrait: %s", artist.Username)
-	query := `UPDATE artist SET username=$2, bio=$3, r2_image_key=$4, updated_at=$5 WHERE id=$1 RETURNING updated_at;`
+	query := `UPDATE artist SET username=$2, bio=$3, r2_image_key=$4, can_post=TRUE, updated_at=$5 WHERE id=$1 RETURNING updated_at;`
 	row := r.db.QueryRow(ctx, query, artist.Id, artist.Username, artist.Bio, artist.R2ImageKey, time.Now())
 	err := row.Scan(&artist.UpdatedAt)
 
