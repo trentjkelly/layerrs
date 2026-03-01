@@ -1,14 +1,15 @@
 <script lang="ts">
     import { onMount } from "svelte";
+    import { get } from "svelte/store";
     import TopHeader from "../../components/TopHeader.svelte";
     import { isSidebarOpen } from "../../stores/player";
     import { jwt } from "../../stores/auth";
-    import { handleEnvironment, urlBase } from "../../stores/environment";
+    import { urlBase } from "../../stores/environment";
     import { logger } from "../../modules/lib/logger";
+    import { username as usernameStore, email, bio as bioStore, portraitUrl, loadProfile } from "../../stores/profile";
 
-    let username = $state("sampleartist");
-    let bio = $state("Producer from Chicago. Making beats since 2018. Influences: J Dilla, Madlib, Flying Lotus.");
-    let email = "artist@example.com";
+    let username = $state('');
+    let bio = $state('');
 
     let profilePhotoSrc = $state<string | null>(null);
     let photoFile = $state<File | null>(null);
@@ -17,7 +18,10 @@
     let saveSuccess = $state(false);
 
     onMount(async () => {
-        await handleEnvironment();
+        await loadProfile();
+        username = get(usernameStore);
+        bio = get(bioStore);
+        profilePhotoSrc = get(portraitUrl) || null;
     });
 
     function handlePhotoChange(event: Event) {
@@ -84,6 +88,12 @@
 
             if (res.status === 200) {
                 saveSuccess = true;
+                usernameStore.set('');
+                await loadProfile();
+                username = get(usernameStore);
+                bio = get(bioStore);
+                profilePhotoSrc = get(portraitUrl) || null;
+                photoFile = null;
             } else {
                 logger.error(`Failed to save profile: ${res.status}`);
                 saveError = 'Failed to save changes. Please try again.';
@@ -108,7 +118,7 @@
             <div class="w-full mb-6">
                 <h3 class="text-xl font-semibold text-white mb-1">Email</h3>
                 <p class="w-full px-3 py-2 rounded-lg bg-gray-800 text-gray-400 border border-gray-700 select-none">
-                    {email}
+                    {$email}
                 </p>
             </div>
 

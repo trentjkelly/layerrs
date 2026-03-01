@@ -12,6 +12,7 @@
 		const params = new URLSearchParams(hash);
 		const jwt = params.get('jwt');
 		const refresh = params.get('refresh');
+		const firstLogin = params.get('firstLogin') === 'true';
 
 		if (!jwt || !refresh) {
 			logger.error('Callback missing jwt or refresh in URL hash');
@@ -23,7 +24,7 @@
 		handleBrowserLogin(jwt, refresh).then((success) => {
 			if (success) {
 				status = 'success';
-				goto('/');
+				goto(firstLogin ? '/profile' : '/');
 			} else {
 				status = 'error';
 				errorMessage = 'We couldn’t sign you in. Please try again.';

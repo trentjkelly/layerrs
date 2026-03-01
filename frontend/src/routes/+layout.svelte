@@ -7,6 +7,7 @@
 	import { initializeAudio, audio } from '../stores/player';
 	import { jwt, refreshToken, isLoggedIn } from '../stores/auth';
 	import { handleEnvironment, urlBase } from '../stores/environment';
+	import { loadProfile } from '../stores/profile';
 	import { logger } from '../modules/lib/logger';
 
 	let { data, children } = $props();
@@ -20,6 +21,9 @@
 			return;
 		}
 		await handleSessionStart();
+		if ($isLoggedIn) {
+			await loadProfile();
+		}
 	});
 
 	async function loadCookies() {

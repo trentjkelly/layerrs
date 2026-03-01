@@ -1,10 +1,11 @@
-<script>
+<script lang="ts">
     import { isLoggedIn } from "../stores/auth";
     import { goto } from "$app/navigation";
     import { handleBrowserLogout } from "../modules/lib/session";
     import { logger } from "../modules/lib/logger";
-    
-    let showDropdown = false;
+
+    let { username, email, portraitUrl } = $props();
+    let showDropdown = $state(false);
 
     async function handleLogout() {
         const success = await handleBrowserLogout();
@@ -23,7 +24,7 @@
 <!-- Fixed circle in top right - only show when logged in -->
 {#if $isLoggedIn}
 <div class="fixed top-5 right-5 z-50">
-    <div 
+    <div
         class="relative"
         onmouseenter={() => showDropdown = true}
         onmouseleave={() => showDropdown = false}
@@ -36,14 +37,18 @@
                 <!-- Profile section with original circle -->
                 <div class="px-4 py-3 border-b border-gray-700">
                     <div class="flex items-center space-x-3">
-                        <div class="w-12 h-12 bg-violet-700 rounded-full flex-shrink-0 shadow-lg"></div>
+                        <div class="w-12 h-12 bg-violet-700 rounded-full flex-shrink-0 shadow-lg overflow-hidden">
+                            {#if portraitUrl}
+                                <img src={portraitUrl} alt="Profile" class="w-full h-full object-cover" />
+                            {/if}
+                        </div>
                         <div class="flex-1 min-w-0">
-                            <p class="text-sm font-medium text-white truncate">User Profile</p>
-                            <p class="text-xs text-gray-400 truncate">user@example.com</p>
+                            <p class="text-sm font-medium text-white truncate">{username || 'Profile'}</p>
+                            <p class="text-xs text-gray-400 truncate">{email}</p>
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- Settings option -->
                 <button
                     onclick={handleProfile}
@@ -54,9 +59,9 @@
                     </svg>
                     Profile
                 </button>
-                
+
                 <!-- Logout option -->
-                <button 
+                <button
                     onclick={handleLogout}
                     class="w-full px-4 py-2 text-left text-red-400 hover:bg-red-900/20 flex items-center transition-colors duration-150"
                 >
@@ -68,7 +73,10 @@
             </div>
         {:else}
             <!-- Default circle when not expanded -->
-            <div class="w-12 h-12 bg-violet-700 rounded-full cursor-pointer shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105">
+            <div class="w-12 h-12 bg-violet-700 rounded-full cursor-pointer shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 overflow-hidden">
+                {#if portraitUrl}
+                    <img src={portraitUrl} alt="Profile" class="w-full h-full object-cover" />
+                {/if}
             </div>
         {/if}
     </div>
