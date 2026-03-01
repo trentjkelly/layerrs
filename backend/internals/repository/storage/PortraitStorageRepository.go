@@ -4,7 +4,7 @@ import (
 	"github.com/trentjkelly/layerrs/internals/config"
 	"context"
 	"fmt"
-	"mime/multipart"
+	"bytes"
 	"os"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -27,10 +27,10 @@ func NewPortraitStorageRepository(env string) *PortraitStorageRepository {
 }
 
 // Uploads a portrait to storage
-func (r *PortraitStorageRepository) CreatePortrait(ctx context.Context, file multipart.File, filename *string) error {
+func (r *PortraitStorageRepository) CreatePortrait(ctx context.Context, file *bytes.Reader, filename string) error {
 	input := &s3.PutObjectInput{
 		Bucket:	r.portraitBucketName,
-		Key:	filename,
+		Key:	&filename,
 		Body:	file,
 	}
 
