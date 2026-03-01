@@ -56,6 +56,11 @@ func (app *application) mount() http.Handler {
 			r.Post("/refresh", app.authController.RefreshHandler)
 		})
 
+		r.Route("/profile", func(r chi.Router) {
+			r.Use(AuthJWTMiddleware)
+			r.Put("/", app.artistController.ArtistHandlerPut)
+		})
+
 		r.Route("/artist", func(r chi.Router) {
 			r.Get("/{artistId}", app.artistController.ArtistHandlerGet)
 		})

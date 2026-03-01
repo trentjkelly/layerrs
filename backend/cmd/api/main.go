@@ -18,6 +18,10 @@ const (
 	PRODUCTION = "PRODUCTION"
 )
 
+const (
+	WEBP_IMAGE_QUALITY = 85
+)
+
 func main() {
 	// Get the environment
 	log.Println("Building the application")
@@ -50,6 +54,7 @@ func main() {
 	// Computing Repositories
 	trackConversionRepo := computingRepository.NewTrackConversionRepository()
 	waveformRepo := computingRepository.NewWaveformHeightsRepository()
+	portraitConversionRepo := computingRepository.NewPortraitConversionRepository(WEBP_IMAGE_QUALITY)
 
 	// Auth Repositories
 	passwordRepo := authRepository.NewPasswordRepository()
@@ -66,14 +71,14 @@ func main() {
 	authDatabaseRepo := databaseRepository.NewAuthDatabaseRepository(pool)
 
 	// Storage Repositories
-	// portraitStorageRepo := storageRepository.NewPortraitStorageRepository(env)
+	portraitStorageRepo := storageRepository.NewPortraitStorageRepository(env)
 	trackStorageRepo := storageRepository.NewTrackStorageRepository(env)
 
 	// -- SERVICES --
 	authService := service.NewAuthService(passwordRepo, artistDatabaseRepo, authRepo, verificationEmailRepo, authDatabaseRepo, magicLink)
 	trackService := service.NewTrackService(trackStorageRepo, trackDatabaseRepo, trackTreeDatabaseRepo, trackConversionRepo, waveformRepo, waveformDatabaseRepo, layerrsDatabaseRepo, env)
 	recService := service.NewRecommendationsService(trackDatabaseRepo, likesDatabaseRepo)
-	artistService := service.NewArtistService(artistDatabaseRepo)
+	artistService := service.NewArtistService(artistDatabaseRepo, portraitStorageRepo, portraitConversionRepo)
 	likesService := service.NewLikesService(likesDatabaseRepo, trackDatabaseRepo)
 	layerrsService := service.NewLayerrsService(layerrsDatabaseRepo)
 
