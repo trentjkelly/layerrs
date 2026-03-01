@@ -1,6 +1,10 @@
 <script lang="ts">
+    import { onMount } from "svelte";
     import TopHeader from "../../components/TopHeader.svelte";
     import { isSidebarOpen } from "../../stores/player";
+    import { jwt } from "../../stores/auth";
+    import { handleEnvironment, urlBase } from "../../stores/environment";
+    import { logger } from "../../modules/lib/logger";
 
     let username = $state("sampleartist");
     let bio = $state("Producer from Chicago. Making beats since 2018. Influences: J Dilla, Madlib, Flying Lotus.");
@@ -8,12 +12,48 @@
 
     let profilePhotoSrc = $state<string | null>(null);
     let photoFile = $state<File | null>(null);
+    let isSaving = $state(false);
+    let saveError = $state<string | null>(null);
+    let saveSuccess = $state(false);
+
+    onMount(async () => {
+        await handleEnvironment();
+    });
 
     function handlePhotoChange(event: Event) {
         const input = event.target as HTMLInputElement;
         const file = input.files?.[0] ?? null;
-        photoFile = file;
-        profilePhotoSrc = file ? URL.createObjectURL(file) : null;
+        if (!file) return;
+
+        const img = new Image();
+        const objectUrl = URL.createObjectURL(file);
+
+        img.onload = () => {
+            URL.revokeObjectURL(objectUrl);
+
+            const size = Math.min(img.width, img.height);
+            const canvas = document.createElement('canvas');
+            canvas.width = size;
+            canvas.height = size;
+
+            const ctx = canvas.getContext('2d')!;
+            ctx.drawImage(
+                img,
+                (img.width - size) / 2,
+                (img.height - size) / 2,
+                size, size,
+                0, 0, size, size
+            );
+
+            const outputType = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
+            canvas.toBlob((blob) => {
+                if (!blob) return;
+                photoFile = new File([blob], file.name, { type: outputType });
+                profilePhotoSrc = URL.createObjectURL(photoFile);
+            }, outputType, 0.9);
+        };
+
+        img.src = objectUrl;
     }
 
     function removeNewPhoto() {
@@ -21,8 +61,39 @@
         profilePhotoSrc = null;
     }
 
-    function saveChanges() {
-        // TODO: wire up API request
+    async function saveChanges() {
+        isSaving = true;
+        saveError = null;
+        saveSuccess = false;
+
+        const form = new FormData();
+        form.append('username', username);
+        form.append('bio', bio);
+        if (photoFile) {
+            form.append('portraitFile', photoFile);
+        }
+
+        try {
+            const res = await fetch(`${$urlBase}/api/profile`, {
+                method: "PUT",
+                headers: {
+                    'Authorization': `Bearer ${$jwt}`
+                },
+                body: form
+            });
+
+            if (res.status === 200) {
+                saveSuccess = true;
+            } else {
+                logger.error(`Failed to save profile: ${res.status}`);
+                saveError = 'Failed to save changes. Please try again.';
+            }
+        } catch (err) {
+            logger.error(`Error saving profile: ${err}`);
+            saveError = 'Technical issues, please try again later.';
+        } finally {
+            isSaving = false;
+        }
     }
 </script>
 
@@ -84,8 +155,20 @@
                 </div>
             </div>
 
-            <!-- Save Buttons -->
-            <button class="px-8 py-4 bg-indigo-600 hover:bg-indigo-700 rounded-full text-white font-semibold text-lg transition-colors">Save Changes</button>
+            <!-- Feedback -->
+            {#if saveSuccess}
+                <p class="mb-4 text-green-400 text-sm font-medium">Profile saved successfully.</p>
+            {/if}
+            {#if saveError}
+                <p class="mb-4 text-red-400 text-sm font-medium">{saveError}</p>
+            {/if}
+
+            <!-- Save Button -->
+            <button
+                onclick={saveChanges}
+                disabled={isSaving}
+                class="px-8 py-4 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-full text-white font-semibold text-lg transition-colors"
+            >{isSaving ? 'Saving...' : 'Save Changes'}</button>
         </div>
     </section>
 </main>
