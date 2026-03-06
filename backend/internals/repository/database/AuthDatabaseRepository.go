@@ -35,6 +35,17 @@ func (r *AuthDatabaseRepository) CreateMagicLinkToken(ctx context.Context, token
 	return nil
 }
 
+func (r *AuthDatabaseRepository) CountMagicLinkTokensByArtistId(ctx context.Context, artistId int) (int, error) {
+	query := `SELECT COUNT(*) FROM magic_link_tokens WHERE artist_id = $1;`
+	row := r.db.QueryRow(ctx, query, artistId)
+	var count int
+	err := row.Scan(&count)
+	if err != nil {
+		return 0, fmt.Errorf("failed to count magic link tokens: %w", err)
+	}
+	return count, nil
+}
+
 func (r *AuthDatabaseRepository) GetMagicLinkToken(ctx context.Context, token string) (entities.MagicLinkToken, error) {
 	query := `SELECT id, artist_id, created_at FROM magic_link_tokens WHERE hashed_token = $1;`
 	row := r.db.QueryRow(ctx, query, token)

@@ -67,7 +67,7 @@ func (c *AuthController) VerifyEmailHandler(w http.ResponseWriter, r *http.Reque
 	}
 
 	// Check credentials
-	tokenString, refreshString, err := c.authService.VerifyArtist(r.Context(), token)
+	tokenString, refreshString, isFirstLogin, err := c.authService.VerifyArtist(r.Context(), token)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, "Could not log in the artist", http.StatusUnauthorized)
@@ -75,6 +75,9 @@ func (c *AuthController) VerifyEmailHandler(w http.ResponseWriter, r *http.Reque
 	}
 
 	redirectURL := fmt.Sprintf("%s/login/callback#jwt=%s&refresh=%s", c.frontendUrl, url.QueryEscape(tokenString), url.QueryEscape(refreshString))
+	if isFirstLogin {
+		redirectURL += "&firstLogin=true"
+	}
 	http.Redirect(w, r, redirectURL, http.StatusTemporaryRedirect)
 }
 

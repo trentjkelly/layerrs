@@ -11,7 +11,6 @@
     let audioFiles = $state<FileList | null>(null);
     let artistLayerrs = $state<Array<string>>([]);
     let layerrs = $state<Array<string>>([]);
-    let islayerrsDropdownOpen = $state(false);
     let description = $state<string>('');
     let isUploaded = $state(false);
     let isDragOver = $state(false);
@@ -41,19 +40,12 @@
         audioFiles = null;
     }
 
-    function togglelayerrsDropdown() {
-        islayerrsDropdownOpen = !islayerrsDropdownOpen;
-    }
-
     function addlayerr(trackId: string) {
-        if (!layerrs.includes(trackId)) {
+        if (layerrs.includes(trackId)) {
+            layerrs = layerrs.filter(id => id !== trackId);
+        } else {
             layerrs = [...layerrs, trackId];
         }
-        islayerrsDropdownOpen = false;
-    }
-
-    function removelayerr(trackId: string) {
-        layerrs = layerrs.filter(id => id !== trackId);
     }
 
     function handleDragOver(event: DragEvent) {
@@ -196,57 +188,26 @@
                 <!-- Add layerrs Section -->
                 <div class="w-full mb-4">
                     <h3 class="text-xl font-semibold text-white mb-1">Add Layerrs</h3>
-                    <div class="bg-gray-700 rounded-lg p-4 mb-4">
-                        <p class="text-gray-200 text-sm leading-relaxed">
-                            Layerrs are any other artist's tracks you've used for samples, vocals, sounds, remixes, covers, in this track.
-                        </p>
-                    </div>
+                    <p class="text-sm text-gray-400 mt-1 mb-3">Layerrs are any other artist's tracks you've used for samples, vocals, sounds, remixes, covers, in this track.</p>
                     
-                    <!-- Selected layerrs -->
-                    {#if layerrs.length > 0}
-                        <div class="mb-3 space-y-2">
-                            {#each layerrs as trackId}
-                                <div class="flex items-center justify-between px-3 bg-gray-600 rounded-lg">
-                                    <span class="text-white text-md">{trackId}</span>
-                                    <button 
-                                        type="button"
-                                        onclick={() => removelayerr(trackId)}
-                                        class="text-red-400 hover:text-red-300 text-2xl font-bold"
-                                    >
-                                        ×
-                                    </button>
-                                </div>
-                            {/each}
-                        </div>
-                    {/if}
-                    
-                    <div class="relative flex justify-center">
-                        <button 
-                            type="button"
-                            onclick={togglelayerrsDropdown}
-                            class="px-6 py-3 rounded-full bg-violet-600 text-white hover:bg-violet-700 focus:outline-none focus:ring-2 focus:ring-violet-500/20 flex items-center justify-center transition-colors"
-                        >
-                            <span class="text-lg font-semibold">Add Layerrs +</span>
-                        </button>
-                        
-                        {#if islayerrsDropdownOpen}
-                            <div class="absolute top-full left-0 right-0 mt-1 bg-gray-700 border border-gray-600 rounded-lg shadow-lg z-10 max-h-48 overflow-y-auto">
-                                {#if artistLayerrs.length === 0}
-                                    <div class="px-4 py-3 text-gray-400 text-center">
-                                        No tracks available
-                                    </div>
-                                {:else}
-                                    {#each artistLayerrs as trackId}
-                                        <button 
-                                            type="button"
-                                            onclick={() => addlayerr(trackId)}
-                                            class="w-full px-4 py-3 text-left text-white hover:bg-gray-600 border-b border-gray-600 last:border-b-0"
-                                        >
-                                            {trackId}
-                                        </button>
-                                    {/each}
-                                {/if}
+                    <div class="h-48 overflow-y-auto bg-gray-700 border border-gray-600 rounded-lg">
+                        {#if artistLayerrs.length === 0}
+                            <div class="h-full flex items-center justify-center px-4 py-3 text-gray-400 text-center">
+                                You haven't downloaded any tracks yet
                             </div>
+                        {:else}
+                            {#each artistLayerrs as trackId}
+                                <button
+                                    type="button"
+                                    onclick={() => addlayerr(trackId)}
+                                    class="w-full flex items-center justify-between px-4 py-3 text-left text-white border-b border-gray-600 last:border-b-0 cursor-pointer transition-colors {layerrs.includes(trackId) ? 'bg-violet-900/30 hover:bg-violet-900/50' : 'hover:bg-gray-600'}"
+                                >
+                                    <span>{trackId}</span>
+                                    {#if layerrs.includes(trackId)}
+                                        <span class="text-violet-400 font-bold">✓</span>
+                                    {/if}
+                                </button>
+                            {/each}
                         {/if}
                     </div>
                 </div>

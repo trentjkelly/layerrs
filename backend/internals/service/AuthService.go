@@ -84,28 +84,34 @@ func (s *AuthService) LoginArtist(ctx context.Context, email string) error {
 }
 
 // Logs in an artist based on email magic link verification
-func (s *AuthService) VerifyArtist(ctx context.Context, token string) (string, string, error) {
+func (s *AuthService) VerifyArtist(ctx context.Context, token string) (string, string, bool, error) {
 	magicLinkToken, err := s.authDatabaseRepository.GetMagicLinkToken(ctx, token)
 	if err != nil {
-		return "", "", fmt.Errorf("could not get magic link token from database: %w", err)
+		return "", "", false, fmt.Errorf("could not get magic link token from database: %w", err)
 	}
 
 	isValid, err := s.authRepository.VerifyMagicLinkToken(ctx, magicLinkToken)
 	if err != nil || !isValid {
-		return "", "", fmt.Errorf("could not verify magic link token: %w", err)
+		return "", "", false, fmt.Errorf("could not verify magic link token: %w", err)
 	}
 
 	jwt, err := s.authRepository.CreateJWT(magicLinkToken.ArtistId)
 	if err != nil {
-		return "", "", fmt.Errorf("could not create JWT: %w", err)
+		return "", "", false, fmt.Errorf("could not create JWT: %w", err)
 	}
 
 	refreshToken, err := s.authRepository.CreateRefreshToken(magicLinkToken.ArtistId)
 	if err != nil {
-		return "", "", fmt.Errorf("could not create refresh token: %w", err)
+		return "", "", false, fmt.Errorf("could not create refresh token: %w", err)
 	}
 
-	return jwt, refreshToken, nil
+	count, err := s.authDatabaseRepository.CountMagicLinkTokensByArtistId(ctx, magicLinkToken.ArtistId)
+	if err != nil {
+		log.Printf("[WARN] VerifyArtist: could not count magic link tokens: %s", err)
+		return jwt, refreshToken, false, nil
+	}
+
+	return jwt, refreshToken, count == 1, nil
 }
 
 // Refresh a JWT token using a refresh token
