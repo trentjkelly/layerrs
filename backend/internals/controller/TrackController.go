@@ -6,7 +6,6 @@ import (
 	"log"
 	"net/http"
 	"strconv"
-	"fmt"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/trentjkelly/layerrs/internals/entities"
@@ -37,6 +36,7 @@ func (c *TrackController) TrackHandlerPost(w http.ResponseWriter, r *http.Reques
 	// Parse form (for trackAudio file)
 	err := r.ParseMultipartForm(32 << 20)
 	if err != nil {
+		log.Printf("[ERROR] TrackHandlerPost: failed to parse form: %s", err)
 		http.Error(w, "Failed to parse form" + err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -46,11 +46,13 @@ func (c *TrackController) TrackHandlerPost(w http.ResponseWriter, r *http.Reques
 	artistIdFloat := r.Context().Value(entities.ArtistIdKey).(float64)
 	layerrsIdStr := r.FormValue("layerrIDs") // Optional - could have no layerrs to credit
 	if trackDescription == "" {
+		log.Println("[ERROR] TrackHandlerPost: track description is required")
 		http.Error(w, "Track description is required", http.StatusBadRequest)
 		return
 	}
 
 	if len(trackDescription) > 100 || len(trackDescription) < 10 {
+		log.Println("[ERROR] TrackHandlerPost: track description must be between 10 and 100 characters")
 		http.Error(w, "Track description must be between 10 and 100 characters", http.StatusBadRequest)
 		return
 	}
@@ -60,6 +62,7 @@ func (c *TrackController) TrackHandlerPost(w http.ResponseWriter, r *http.Reques
 	if layerrsIdStr != "" {
 		err := json.Unmarshal([]byte(layerrsIdStr), &layerrsIdArr)
 		if err != nil {
+			log.Printf("[ERROR] TrackHandlerPost: invalid layerr ID array: %s", err)
 			http.Error(w, "Invalid layers ID array", http.StatusBadRequest)
 			return
 		}
@@ -68,7 +71,7 @@ func (c *TrackController) TrackHandlerPost(w http.ResponseWriter, r *http.Reques
 	// Converting artistIdFloat to integer
 	artistIdInt := int(artistIdFloat)
 	if artistIdInt == 0 || artistIdInt == service.NO_PARENT {
-		fmt.Printf("4: %d", artistIdInt)
+		log.Printf("[ERROR] TrackHandlerPost: invalid artist id: %d", artistIdInt)
 		http.Error(w, "Invalid artist id", http.StatusBadRequest)
 		return
 	}
@@ -76,6 +79,7 @@ func (c *TrackController) TrackHandlerPost(w http.ResponseWriter, r *http.Reques
 	// Getting audio file
 	audioFile, audioHeader, err := r.FormFile("audioFile")
 	if err != nil {
+		log.Printf("[ERROR] TrackHandlerPost: audio file is required: %s", err)
 		http.Error(w, "Audio file is required", http.StatusBadRequest)
 		return
 	}
@@ -84,6 +88,7 @@ func (c *TrackController) TrackHandlerPost(w http.ResponseWriter, r *http.Reques
 	// Validate that the audio file is in WAV or FLAC format
 	audioType := audioHeader.Header.Get("Content-Type")
 	if audioType != "audio/wav" && audioType != "audio/flac" {
+		log.Printf("[ERROR] TrackHandlerPost: invalid audio type: %s", audioType)
 		http.Error(w, "Audio file must be in WAV or FLAC format", http.StatusBadRequest)
 		return
 	}
@@ -91,9 +96,8 @@ func (c *TrackController) TrackHandlerPost(w http.ResponseWriter, r *http.Reques
 	// Passing to Service layer
 	err = c.trackService.AddAndUploadTrack(r.Context(), audioFile, audioHeader, trackDescription, artistIdInt, layerrsIdArr)
 	if err != nil {
-		fmt.Printf("8: %s", err.Error())
+		log.Printf("[ERROR] TrackHandlerPost: %s", err)
 		http.Error(w, "Failed to create track", http.StatusInternalServerError)
-		log.Println("TrackHandlerPost: ", err)
 		return
 	}
 
@@ -200,5 +204,6 @@ func (c *TrackController) TrackerDataHandlerGet(w http.ResponseWriter, r *http.R
 	if err != nil {
 		log.Println("[ERROR] TrackerDataHandlerGet: ", err)
 		http.Error(w, "Failed at encoding json", http.StatusInternalServerError)
+		return
 	}
 }

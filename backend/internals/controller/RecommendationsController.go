@@ -22,13 +22,16 @@ func NewRecommendationsController(recService *service.RecommendationsService) *R
 func (c *RecommendationsController) RecommendationsHandlerHomeGet(w http.ResponseWriter, r *http.Request) {
 	rec, err := c.recService.MostLikedAlgorithm(r.Context())
 	if err !=  nil {
+		log.Printf("[ERROR] RecommendationsHandlerHomeGet: %s", err)
 		http.Error(w, "Unable to get reccomendations", http.StatusInternalServerError)
 		return
 	}
 
 	err = json.NewEncoder(w).Encode(rec)
 	if err != nil {
+		log.Printf("[ERROR] RecommendationsHandlerHomeGet: %s", err)
 		http.Error(w, "Unable to encode recommendations to json", http.StatusInternalServerError)
+		return
 	}
 }
 
@@ -39,12 +42,15 @@ func (c *RecommendationsController) RecommendationsHandlerLibraryGet(w http.Resp
 
 	likesArr, err := c.recService.ArtistLikesAlgorithm(r.Context(), artistId, 0)
 	if err != nil {
-		log.Println(err)
+		log.Printf("[ERROR] RecommendationsHandlerLibraryGet: %s", err)
 		http.Error(w, "Could not retrieve liked tracks", http.StatusInternalServerError)
+		return
 	}
 
 	err = json.NewEncoder(w).Encode(likesArr)
 	if err != nil {
+		log.Printf("[ERROR] RecommendationsHandlerLibraryGet: %s", err)
 		http.Error(w, "Unable to encode recommendations to json", http.StatusInternalServerError)
+		return
 	}
 }

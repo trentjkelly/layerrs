@@ -43,6 +43,7 @@ func (c *AuthController) LoginArtistHandler(w http.ResponseWriter, r *http.Reque
 
 	// Validate email input
 	if loginRequest.Email == "" {
+		log.Println("[ERROR] LoginArtistHandler: email is required")
 		http.Error(w, "Email is required", http.StatusBadRequest)
 		return
 	}
@@ -62,6 +63,7 @@ func (c *AuthController) VerifyEmailHandler(w http.ResponseWriter, r *http.Reque
 	// Get inputs from formdata
 	token := r.URL.Query().Get("token")
 	if token == "" {
+		log.Println("[ERROR] VerifyEmailHandler: token is required")
 		http.Error(w, "Token is required", http.StatusBadRequest)
 		return
 	}

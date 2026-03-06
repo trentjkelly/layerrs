@@ -125,6 +125,7 @@ func (c *ArtistController) ArtistHandlerGet(w http.ResponseWriter, r *http.Reque
 	if err != nil {
 		log.Printf("[ERROR] ArtistHandlerGet: %s", err)
 		http.Error(w, "Could not send artist data", http.StatusInternalServerError)
+		return
 	}
 }
 
