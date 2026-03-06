@@ -37,6 +37,7 @@ func (c *LikesController) LikesHandlerPost(w http.ResponseWriter, r *http.Reques
 	trackStr := r.FormValue("trackId")
 	trackId, err := strconv.Atoi(trackStr)
 	if err != nil {
+		log.Printf("[ERROR] LikesHandlerPost: invalid track id: %s", err)
 		http.Error(w, "Invalid track id", http.StatusBadRequest)
 		return
 	}
@@ -44,6 +45,7 @@ func (c *LikesController) LikesHandlerPost(w http.ResponseWriter, r *http.Reques
 	// Add the like
 	err = c.likesService.AddLike(r.Context(), artistId, trackId)
 	if err != nil {
+		log.Printf("[ERROR] LikesHandlerPost: %s", err)
 		http.Error(w, "Could not add like to track", http.StatusInternalServerError)
 		return
 	}
@@ -59,6 +61,7 @@ func (c *LikesController) LikesHandlerGet(w http.ResponseWriter, r *http.Request
 	trackStr := r.URL.Query().Get("trackId")
 	trackId, err := strconv.Atoi(trackStr)
 	if err != nil {
+		log.Printf("[ERROR] LikesHandlerGet: invalid trackId: %s", err)
 		http.Error(w, "Invalid trackId", http.StatusBadRequest)
 		return
 	}
@@ -74,7 +77,9 @@ func (c *LikesController) LikesHandlerGet(w http.ResponseWriter, r *http.Request
 	// Send json
 	err = json.NewEncoder(w).Encode(likeCheck)
 	if err != nil {
+		log.Printf("[ERROR] LikesHandlerGet: %s", err)
 		http.Error(w, "Could not send back like", http.StatusInternalServerError)
+		return
 	}
 }
 
@@ -87,6 +92,7 @@ func (c *LikesController) LikesHandlerDelete(w http.ResponseWriter, r *http.Requ
 	trackStr := r.URL.Query().Get("trackId")
 	trackId, err := strconv.Atoi(trackStr)
 	if err != nil {
+		log.Printf("[ERROR] LikesHandlerDelete: invalid trackId: %s", err)
 		http.Error(w, "Invalid trackId", http.StatusBadRequest)
 		return
 	}

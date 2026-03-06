@@ -2,6 +2,7 @@ package controller
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 
 	"github.com/trentjkelly/layerrs/internals/entities"
@@ -36,12 +37,15 @@ func (c *LayerrsController) LayerrsHandlerGet(w http.ResponseWriter, r *http.Req
 	// Get the artist's layerrs
 	layerrs, err := c.layerrsService.GetArtistLayerrs(r.Context(), artistId)
 	if err != nil {
+		log.Printf("[ERROR] LayerrsHandlerGet: %s", err)
 		http.Error(w, "Could not get artist's layerrs", http.StatusInternalServerError)
 		return
 	}
 
 	err = json.NewEncoder(w).Encode(layerrs)
 	if err != nil {
+		log.Printf("[ERROR] LayerrsHandlerGet: %s", err)
 		http.Error(w, "Could not encode artist's layerrs to json", http.StatusInternalServerError)
+		return
 	}
 }
