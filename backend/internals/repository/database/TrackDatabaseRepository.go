@@ -139,28 +139,79 @@ func (r *TrackDatabaseRepository) DecrementLikes(ctx context.Context, track *ent
 	return nil
 }
 
-// Gets the top N tracks by likes -- used for recommendations algorithm
-func (r *TrackDatabaseRepository) ReadNTracksByLikes(ctx context.Context, offset int) (*entities.Recommendation, error) {
-	query := `SELECT id FROM track ORDER BY likes DESC LIMIT 8 OFFSET $1;`
-	
+// Gets the top N most recent tracks with full track data -- used for recommendations algorithm
+func (r *TrackDatabaseRepository) ReadNTracksByDate(ctx context.Context, offset int, artistId int) ([]entities.Recommendation, error) {
+	query := `
+		SELECT t.id, t.description, t.artist_id, a.username, t.likes, t.layerrs, t.duration, w.waveform_data,
+		CASE WHEN alt.artist_id IS NOT NULL THEN true ELSE false END as is_liked
+		FROM track t
+		JOIN artist a ON t.artist_id = a.id
+		LEFT JOIN waveform w ON w.track_id = t.id
+		LEFT JOIN artist_likes_track alt ON alt.track_id = t.id AND alt.artist_id = $2
+		ORDER BY t.created_at DESC
+		LIMIT 8 OFFSET $1;
+	`
+
+	rows, err := r.db.Query(ctx, query, offset, artistId)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query rows in ReadNTracksByDate: %w", err)
+	}
+	defer rows.Close()
+
+	var recs []entities.Recommendation
+
+	for rows.Next() {
+		var rec entities.Recommendation
+		var waveformData []int
+		err = rows.Scan(&rec.Id, &rec.Description, &rec.ArtistId, &rec.ArtistName, &rec.Likes, &rec.Layerrs, &rec.Duration, &waveformData, &rec.IsLiked)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan rows in ReadNTracksByDate: %w", err)
+		}
+		if waveformData != nil {
+			rec.WaveformData = waveformData
+		} else {
+			rec.WaveformData = []int{}
+		}
+		recs = append(recs, rec)
+	}
+
+	return recs, nil
+}
+
+// Gets the top N tracks by likes with full track data -- used for recommendations algorithm
+func (r *TrackDatabaseRepository) ReadNTracksByLikes(ctx context.Context, offset int) ([]entities.Recommendation, error) {
+	query := `
+		SELECT t.id, t.description, t.artist_id, a.username, t.likes, t.layerrs, t.duration, w.waveform_data
+		FROM track t
+		JOIN artist a ON t.artist_id = a.id
+		LEFT JOIN waveform w ON w.track_id = t.id
+		ORDER BY t.likes DESC
+		LIMIT 8 OFFSET $1;
+	`
+
 	rows, err := r.db.Query(ctx, query, offset)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query rows in ReadNTracksByLikes: %w", err)
 	}
 	defer rows.Close()
 
-	var trackIds [8]int
-	count := 0
+	var recs []entities.Recommendation
 
 	for rows.Next() {
-		err = rows.Scan(&trackIds[count])
+		var rec entities.Recommendation
+		var waveformData []int
+		err = rows.Scan(&rec.Id, &rec.Description, &rec.ArtistId, &rec.ArtistName, &rec.Likes, &rec.Layerrs, &rec.Duration, &waveformData)
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan rows in ReadNTracksByLikes: %w", err)
 		}
-		count++
+		if waveformData != nil {
+			rec.WaveformData = waveformData
+		} else {
+			rec.WaveformData = []int{}
+		}
+		recs = append(recs, rec)
 	}
 
-	rec := entities.NewRecommendation(trackIds[0], trackIds[1], trackIds[2], trackIds[3], trackIds[4], trackIds[5], trackIds[6], trackIds[7])
-
-	return rec, nil
+	return recs, nil
 }
+

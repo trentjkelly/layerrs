@@ -19,8 +19,17 @@ func NewRecommendationsService(trackDbRepo *databaseRepository.TrackDatabaseRepo
 }
 
 // Gets the tracks that are the most liked on the entire site all time
-func (s *RecommendationsService) MostLikedAlgorithm(ctx context.Context) (*entities.Recommendation, error) {
+func (s *RecommendationsService) MostLikedAlgorithm(ctx context.Context) ([]entities.Recommendation, error) {
 	rec, err := s.trackDbRepo.ReadNTracksByLikes(ctx, 0)
+	if err != nil {
+		return nil, err
+	}
+
+	return rec, nil
+}
+
+func (s *RecommendationsService) MostRecentAlgorithm(ctx context.Context, artistId int) ([]entities.Recommendation, error) {
+	rec, err := s.trackDbRepo.ReadNTracksByDate(ctx, 0, artistId)
 	if err != nil {
 		return nil, err
 	}
