@@ -10,3 +10,15 @@ export type TrackData = {
 export type ArtistData = {
     name: string;
 }
+
+export type Recommendation = {
+    id: number;
+    description: string;
+    artistId: number;
+    artistName: string;
+    likes: number;
+    layerrs: number;
+    duration: number;
+    waveformData: number[];
+    isLiked: boolean;
+}

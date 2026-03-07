@@ -7,20 +7,28 @@
     import { handleEnvironment, urlBase } from "../stores/environment";
     import { username, email, portraitUrl } from "../stores/profile";
     import { audio } from "../stores/player";
+    import { isLoggedIn, jwt, authInitialized } from "../stores/auth";
+    import type { Recommendation } from "../models/types";
 
-    // Each of the songs to be loaded in
-    let artistId = 20 // Static for now
-
-    /**
-     * @type {any[]}
-     */
-    let trackIds = [];
+    let tracks: Recommendation[] = $state([]);
 
     async function fetchData() {
-        const response = await fetch(`${$urlBase}/api/recommendations/home`)
+        const headers: Record<string, string> = {}
+        if ($isLoggedIn) {
+            headers['Authorization'] = `Bearer ${$jwt}`
+        }
+        const response = await fetch(`${$urlBase}/api/recommendations/home`, { headers })
         const data = await response.json();
-        trackIds = Object.keys(data).map(key => data[key])
+        tracks = data as Recommendation[]
+		console.log('count of tracks', tracks.length)
+		console.log('tracks', tracks)
     }
+
+    $effect(() => {
+        if ($authInitialized) {
+            fetchData();
+        }
+    });
 
     function togglePlayPause() {
 		if ($audio) {
@@ -96,7 +104,6 @@
 
     onMount(async () => {
         await handleEnvironment()
-        await fetchData()
         // handleHotkeys()
     })
 
@@ -115,9 +122,8 @@
 
     <!-- Where the songs go -->
     <section class="w-full flex flex-wrap justify-around pb-24">
-        <!-- {#each trackIds as id}
-            <NewTrackCard trackId={id}></NewTrackCard>
-        {/each} -->
-        <!-- <NewTrackCard trackId={2}></NewTrackCard> -->
+        {#each tracks as track}
+            <NewTrackCard track={track}></NewTrackCard>
+        {/each}
     </section>
 </main>

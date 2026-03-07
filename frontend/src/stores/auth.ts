@@ -4,3 +4,4 @@ import { writable } from "svelte/store";
 export const jwt = writable('');
 export const refreshToken = writable('');
 export const isLoggedIn = writable(false);
+export const authInitialized = writable(false);

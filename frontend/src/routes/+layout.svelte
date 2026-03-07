@@ -5,7 +5,7 @@
 	import AudioPlayer from '../components/AudioPlayer.svelte';
 	import SideBar from '../components/SideBar.svelte';
 	import { initializeAudio, audio } from '../stores/player';
-	import { jwt, refreshToken, isLoggedIn } from '../stores/auth';
+	import { jwt, refreshToken, isLoggedIn, authInitialized } from '../stores/auth';
 	import { handleEnvironment, urlBase } from '../stores/environment';
 	import { loadProfile } from '../stores/profile';
 	import { logger } from '../modules/lib/logger';
@@ -18,12 +18,14 @@
 		initializeAudio();
 		await loadCookies();
 		if ($page.url.pathname === '/login/callback') {
+			authInitialized.set(true);
 			return;
 		}
 		await handleSessionStart();
 		if ($isLoggedIn) {
 			await loadProfile();
 		}
+		authInitialized.set(true);
 	});
 
 	async function loadCookies() {
