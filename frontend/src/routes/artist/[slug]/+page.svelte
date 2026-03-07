@@ -20,7 +20,7 @@
 
     <section class="h-full w-full flex flex-col items-center">
         <div class="w-2/3 h-auto flex flex-row">
-            <div class="w-48 h-48 bg-slate-600">
+            <div class="w-48 h-48 bg-zinc-600">
                 <img src="" alt="">
             </div>
     

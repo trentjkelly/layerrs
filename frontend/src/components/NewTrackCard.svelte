@@ -2,23 +2,22 @@
     import { onMount, onDestroy, untrack } from 'svelte';
     import { goto } from '$app/navigation';
     import { logger } from '../modules/lib/logger';
-    import { getTrackData } from '../modules/requests/track-requests';
-    import { getArtistName } from '../modules/requests/artist-requests';
     import { getUrlBase, handleEnvironment } from '../stores/environment';
+    import type { Recommendation } from '../models/types';
     import { audio, currentTrack, currentTrackId, isPlaying, currentTime as globalCurrentTime } from '../stores/player';
     import { getAudio } from '../modules/requests/track-requests';
     import WaveformBar from './WaveformBar.svelte';
     import LikeButton from './LikeButton.svelte';
     import LayerrButton from './LayerrButton.svelte';
     
-    // Inherits the trackId from the page
-    let { trackId } = $props();
+    // Inherits the track data from the page
+    let { track }: { track: Recommendation } = $props();
 
     // State variables for the page
     let newAudioURL = $state('');
-    let trackDescription = $state('cannnot find track description');
-    let artistId = $state(0);
-    let artistName = $state('cannot find artist name');
+    let trackDescription = $state(track.description);
+    let artistId = $state(track.artistId);
+    let artistName = $state(track.artistName);
     
     let parentTrackName = $state('');
     let parentTrackId = $state(0);
@@ -32,18 +31,18 @@
     let sourceBuffer = $state<SourceBuffer | null>(null);
     let isLoading = $state(false);
     let currentOffset = $state(0);
-    let numLikes = $state(0);
-    let numLayerrs = $state(0);
+    let numLikes = $state(track.likes);
+    let numLayerrs = $state(track.layerrs);
     let urlBase = $state('');
 
     // Waveform container width
     let waveformWidth = $state(0);
-    let waveformBars = $state([0]);
+    let waveformBars = $state(track.waveformData);
     let visibleBars = $state([0]);
     let timePerBar = $state(0);
 
     // Track data
-    let trackDuration = $state(0);
+    let trackDuration = $state(track.duration);
     let currentTime = $state(0);
     let cursorTime = $state(0);
     let cursorPercentage = $state(0);
@@ -72,30 +71,10 @@
         }
     })
 
-    // When the component is loaded, gets the track data 
+    // When the component is loaded, sets up the environment and waveform
     onMount(async () => {
         await handleEnvironment()
         urlBase = getUrlBase()
-
-        const trackData = await getTrackData(urlBase, trackId)
-        if (trackData) {
-            trackDescription = trackData.description
-            artistId = parseInt(trackData.artistId)
-            numLikes = trackData.likes
-            numLayerrs = trackData.layerrs
-            waveformBars = trackData.waveformData
-            trackDuration = trackData.duration
-        } else {
-            console.log("Could not find track data")
-        }
-
-        const artistData = await getArtistName(urlBase, artistId)
-        if (artistData) {
-            artistName = artistData.name
-        } else {
-            console.log("Could not find artist data")
-        }
-
         changeWaveformWidth()
     })
 
@@ -144,7 +123,7 @@
     async function playPauseAudio() {
         if ($audio) {
             // This Track is the current one (stored in session data)
-            if (trackId === $currentTrackId) {
+            if (track.id === $currentTrackId) {
                 if ($audio.paused) {
                     isPlaying.set(true)
                     await $audio.play()
@@ -176,9 +155,9 @@
 
                 // Play new audio
                 isPlaying.set(true)
-                newAudioURL = await getAudio(urlBase, trackId)
+                newAudioURL = await getAudio(urlBase, String(track.id))
                 currentTrack.set(newAudioURL)
-                currentTrackId.set(trackId)
+                currentTrackId.set(track.id)
 
                 $audio.src = newAudioURL
                 try {
@@ -201,7 +180,7 @@
     }
 
     function navigateTrackPage() {
-        goto(`/track/${trackId}`)
+        goto(`/track/${track.id}`)
     }
 
     function getSongPercentage() {
@@ -231,15 +210,15 @@
 
     async function handleClick(event: MouseEvent) {
         if($audio) {
-            if ($currentTrackId === trackId) {
+            if ($currentTrackId === track.id) {
                 isPlaying.set(true)
                 $audio.currentTime = cursorTime
                 await $audio.play()
             } else {
                 isPlaying.set(true)
-                newAudioURL = await getAudio(urlBase, trackId)
+                newAudioURL = await getAudio(urlBase, String(track.id))
                 currentTrack.set(newAudioURL)
-                currentTrackId.set(trackId)
+                currentTrackId.set(track.id)
                 $audio.src = newAudioURL
                 try {
                     await $audio.play()
@@ -259,7 +238,7 @@
     <div class="w-full h-8 mb-1 flex flex-row items-center">
             <a class="ml-2 px-1 text-violet-500 hover:bg-white text-lg transition-all duration-300" href={`/artist/${artistId}`}>{artistName}</a>
             <p class="ml-2 text-violet-400">•</p>
-            <a class="ml-2 px-1 text-gray-100 hover:text-violet-500 hover:bg-white text-lg transition-all duration-300" href={`/track/${trackId}`}>{trackDescription}</a>
+            <a class="ml-2 px-1 text-zinc-100 hover:text-violet-500 hover:bg-white text-lg transition-all duration-300" href={`/track/${track.id}`}>{trackDescription}</a>
     </div>
     <!-- Waveform -->
     <div 
@@ -287,7 +266,7 @@
 
     <!-- Track Information -->
     <div class="w-full h-12 flex flex-row items-center">
-        <LikeButton trackId={trackId} numLikes={numLikes}></LikeButton>
-        <LayerrButton trackId={trackId} numLayerrs={numLayerrs}></LayerrButton>
+        <LikeButton trackId={track.id} numLikes={numLikes} isLiked={track.isLiked}></LikeButton>
+        <LayerrButton trackId={track.id} numLayerrs={numLayerrs}></LayerrButton>
     </div>
 </div>
