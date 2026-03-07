@@ -105,7 +105,7 @@
                 <label for="email" class="block text-xl font-semibold text-white mb-3">Email</label>
                 <input 
                     id="email" 
-                    class="w-full px-2 py-2 rounded-lg bg-zinc-900 text-white placeholder-gray-200 focus:outline-none border {error ? 'border-red-500' : 'border-gray-200'}" 
+                    class="w-full px-2 py-2 rounded-lg bg-zinc-900 text-white placeholder-zinc-200 focus:outline-none border {error ? 'border-red-500' : 'border-zinc-200'}" 
                     type="email" 
                     bind:value={email}
                     placeholder="Enter your email..."
@@ -116,7 +116,7 @@
             {#if emailEntered}
                 <p class="mb-2">Please check your email for a link to log in.</p>
                 {#if sendButtonDisabled}
-                    <p class="text-sm text-gray-400 mb-2">You can resend the link in {timeElapsed} seconds</p>
+                    <p class="text-sm text-zinc-400 mb-2">You can resend the link in {timeElapsed} seconds</p>
                 {/if}
                 <button class="py-2 px-6 rounded rounded-lg bg-violet-500 hover:bg-violet-600 disabled:opacity-50 disabled:cursor-not-allowed" onclick={handleLogin} disabled={sendButtonDisabled}>Resend Link</button>
             {:else}

@@ -14,6 +14,7 @@
     let description = $state<string>('');
     let isUploaded = $state(false);
     let isDragOver = $state(false);
+    let isLoading = $state(false);
 
     onMount(async () => {
         await handleEnvironment();
@@ -79,6 +80,7 @@
             logger.error("Missing audio file");
             return;
         }
+        isLoading = true;
         
         let audioFile = audioFiles[0];
 
@@ -113,6 +115,7 @@
         } else {
             logger.error("audioFile is not valid")
         }
+        isLoading = false;
     }
 
     function navigateHome() {
@@ -127,7 +130,7 @@
 
     <section class="w-full flex flex-row justify-center pb-32">
         {#if $isLoggedIn}
-            <div class="outline outline-gray-600 rounded-3xl w-2/3 max-w-4xl flex flex-col items-center p-8">
+            <div class="outline outline-zinc-600 rounded-3xl w-2/3 max-w-4xl flex flex-col items-center p-8">
                 {#if !isUploaded}
                 <h2 class="mb-4 text-3xl font-bold text-white">Upload a Track</h2>
 
@@ -138,22 +141,22 @@
                         <div 
                             role="button"
                             tabindex="0"
-                            class="w-full h-48 border-2 border-dashed border-gray-400 rounded-xl flex flex-col items-center justify-center transition-all duration-200 cursor-pointer hover:border-indigo-400 hover:bg-gray-700/50 {isDragOver && !audioFiles ? 'border-indigo-500 bg-indigo-500/20' : ''}"
+                            class="w-full h-48 border-2 border-dashed border-zinc-400 rounded-xl flex flex-col items-center justify-center transition-all duration-200 cursor-pointer hover:border-indigo-400 hover:bg-zinc-700/50 {isDragOver && !audioFiles ? 'border-indigo-500 bg-indigo-500/20' : ''}"
                             ondragover={handleDragOver}
                             ondragleave={handleDragLeave}
                             ondrop={handleDrop}
                         >
                             {#if !audioFiles}
                                 <div class="text-center">
-                                    <p class="text-lg text-gray-300">Drop your audio file here</p>
-                                    <p class="text-sm text-gray-300">or click to browse</p>
-                                    <p class="text-sm text-gray-400 mt-6">Only FLAC and WAV files are supported</p>
+                                    <p class="text-lg text-zinc-300">Drop your audio file here</p>
+                                    <p class="text-sm text-zinc-300">or click to browse</p>
+                                    <p class="text-sm text-zinc-400 mt-6">Only FLAC and WAV files are supported</p>
                                 </div>
                             {:else}
                                 <div class="text-center w-full">
                                     <div class="flex items-center justify-center space-x-2">
                                         <span class="text-green-400">✓</span>
-                                        <span class="text-gray-300">{audioFiles[0].name}</span>
+                                        <span class="text-zinc-300">{audioFiles[0].name}</span>
                                         <button 
                                             onclick={removeAudioFile}
                                             class="ml-2 px-2 py-1 text-xs bg-red-500 hover:bg-red-600 rounded text-white"
@@ -174,13 +177,13 @@
                 <div class="w-full mb-6">
                     <h3 class="text-xl font-semibold text-white mb-1">Description</h3>
                     <input
-                        class="w-full px-2 py-2 rounded-lg bg-gray-700 text-white placeholder-gray-400 border border-gray-600 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                        class="w-full px-2 py-2 rounded-lg bg-zinc-700 text-white placeholder-zinc-400 border border-zinc-600 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                         type="text"
                         bind:value={description}
                         placeholder="Give your track a short description..."
                         maxlength={100}
                     />
-                    <p class="text-sm mt-1 {description.length === 0 ? 'text-gray-400' : (description.length < 10 || description.length > 100 ? 'text-red-400' : 'text-gray-400')}">
+                    <p class="text-sm mt-1 {description.length === 0 ? 'text-zinc-400' : (description.length < 10 || description.length > 100 ? 'text-red-400' : 'text-zinc-400')}">
                         {description.length}/100 characters (minimum 10)
                     </p>
                 </div>
@@ -188,11 +191,11 @@
                 <!-- Add layerrs Section -->
                 <div class="w-full mb-4">
                     <h3 class="text-xl font-semibold text-white mb-1">Add Layerrs</h3>
-                    <p class="text-sm text-gray-400 mt-1 mb-3">Layerrs are any other artist's tracks you've used for samples, vocals, sounds, remixes, covers, in this track.</p>
+                    <p class="text-sm text-zinc-400 mt-1 mb-3">Layerrs are any other artist's tracks you've used for samples, vocals, sounds, remixes, covers, in this track.</p>
                     
-                    <div class="h-48 overflow-y-auto bg-gray-700 border border-gray-600 rounded-lg">
+                    <div class="h-48 overflow-y-auto bg-zinc-700 border border-zinc-600 rounded-lg">
                         {#if artistLayerrs.length === 0}
-                            <div class="h-full flex items-center justify-center px-4 py-3 text-gray-400 text-center">
+                            <div class="h-full flex items-center justify-center px-4 py-3 text-zinc-400 text-center">
                                 You haven't downloaded any tracks yet
                             </div>
                         {:else}
@@ -200,7 +203,7 @@
                                 <button
                                     type="button"
                                     onclick={() => addlayerr(trackId)}
-                                    class="w-full flex items-center justify-between px-4 py-3 text-left text-white border-b border-gray-600 last:border-b-0 cursor-pointer transition-colors {layerrs.includes(trackId) ? 'bg-violet-900/30 hover:bg-violet-900/50' : 'hover:bg-gray-600'}"
+                                    class="w-full flex items-center justify-between px-4 py-3 text-left text-white border-b border-zinc-600 last:border-b-0 cursor-pointer transition-colors {layerrs.includes(trackId) ? 'bg-violet-900/30 hover:bg-violet-900/50' : 'hover:bg-zinc-600'}"
                                 >
                                     <span>{trackId}</span>
                                     {#if layerrs.includes(trackId)}
@@ -213,16 +216,24 @@
                 </div>
                 
                 <button
-                    class="mt-8 px-8 py-4 bg-indigo-600 hover:bg-indigo-700 rounded-full text-white font-semibold text-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    class="mt-8 px-8 py-4 bg-indigo-600 hover:bg-indigo-700 rounded-full text-white font-semibold text-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-3"
                     onclick={submitFile}
-                    disabled={!audioFiles || description.length < 10 || description.length > 100}
+                    disabled={!audioFiles || description.length < 10 || description.length > 100 || isLoading}
                 >
-                    Upload Track
+                    {#if isLoading}
+                        <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                        </svg>
+                        Uploading...
+                    {:else}
+                        Upload Track
+                    {/if}
                 </button>
             {:else}
                 <div class="w-full h-full flex flex-col items-center justify-center">
-                    <h2 class="mb-8 text-3xl font-bold text-white">Track successfully uploaded!</h2>
-                    <button class="bg-indigo-600 hover:bg-indigo-700 mb-12 px-8 py-4 rounded-full text-white font-semibold transition-colors" onclick={navigateHome}>
+                    <h2 class="mb-4 text-3xl font-bold text-white">Track successfully uploaded!</h2>
+                    <button class="bg-indigo-600 hover:bg-indigo-700 mb-2 px-8 py-4 rounded-full text-white font-semibold transition-colors" onclick={navigateHome}>
                         Return Home
                     </button>
                 </div>
