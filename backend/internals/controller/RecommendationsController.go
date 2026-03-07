@@ -1,11 +1,15 @@
 package controller
 
 import (
-	"net/http"
 	"encoding/json"
-	"github.com/trentjkelly/layerrs/internals/service"
-	"github.com/trentjkelly/layerrs/internals/entities"
+	"net/http"
+	"os"
+	"strings"
 	"log"
+
+	"github.com/golang-jwt/jwt/v5"
+	"github.com/trentjkelly/layerrs/internals/entities"
+	"github.com/trentjkelly/layerrs/internals/service"
 )
 
 type RecommendationsController struct {
@@ -20,8 +24,26 @@ func NewRecommendationsController(recService *service.RecommendationsService) *R
 
 // Sends a user what tracks to show on their homepage
 func (c *RecommendationsController) RecommendationsHandlerHomeGet(w http.ResponseWriter, r *http.Request) {
-	rec, err := c.recService.MostLikedAlgorithm(r.Context())
-	if err !=  nil {
+	artistId := 0
+	headerString := r.Header.Get("Authorization")
+	if headerString != "" {
+		parts := strings.Split(headerString, " ")
+		if len(parts) == 2 {
+			token, err := jwt.Parse(parts[1], func(token *jwt.Token) (interface{}, error) {
+				return []byte(os.Getenv("AUTH_SECRET_KEY")), nil
+			})
+			if err == nil && token.Valid {
+				if claims, ok := token.Claims.(jwt.MapClaims); ok {
+					if sub, ok := claims["sub"].(float64); ok {
+						artistId = int(sub)
+					}
+				}
+			}
+		}
+	}
+
+	rec, err := c.recService.MostRecentAlgorithm(r.Context(), artistId)
+	if err != nil {
 		log.Printf("[ERROR] RecommendationsHandlerHomeGet: %s", err)
 		http.Error(w, "Unable to get reccomendations", http.StatusInternalServerError)
 		return

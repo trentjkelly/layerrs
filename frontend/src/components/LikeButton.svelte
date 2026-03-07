@@ -1,44 +1,13 @@
 <script>
-    import { isLoggedIn } from "../stores/auth";
     import { jwt } from "../stores/auth";
     import { goto } from "$app/navigation";
-    import { onMount } from "svelte";
     import { urlBase } from "../stores/environment";
     import { logger } from "../modules/lib/logger";
-    
-    let { trackId, numLikes } = $props()
-    let isTrackLiked = $state(false)
 
-    onMount(async () => {
-        await getIsLiked()
-    })
+    let { trackId, numLikes, isLiked = false } = $props()
+    let isTrackLiked = $state(isLiked)
 
-    // Checks if the track is liked when page is loaded
-    async function getIsLiked() {
-        // If user is logged in
-        if ($isLoggedIn) {
-            try {
-                const params = new URLSearchParams({
-                    trackId: trackId
-                })
-
-                const response = await fetch(`${$urlBase}/api/likes?${params}`, {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${$jwt}`
-                    }
-                })
-                if (response.ok) {
-                    const data = await response.json()
-                    isTrackLiked = data.isLiked
-                }
-            } catch (error) {
-                logger.error(error)
-            }
-        }
-    }
-
-    // Changes the like button image, numLikes, and requests backend to save a like 
+    // Changes the like button image, numLikes, and requests backend to save a like
     async function toggleLikedTrack() {
         isTrackLiked = !isTrackLiked
 
