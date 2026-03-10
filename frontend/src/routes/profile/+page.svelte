@@ -3,8 +3,8 @@
     import { get } from "svelte/store";
     import TopHeader from "../../components/TopHeader.svelte";
     import { isSidebarOpen } from "../../stores/player";
-    import { jwt } from "../../stores/auth";
     import { urlBase } from "../../stores/environment";
+    import { fetchWithAuth } from "../../modules/lib/fetch";
     import { logger } from "../../modules/lib/logger";
     import { username as usernameStore, email, bio as bioStore, portraitUrl, loadProfile } from "../../stores/profile";
 
@@ -16,6 +16,7 @@
     let isSaving = $state(false);
     let saveError = $state<string | null>(null);
     let saveSuccess = $state(false);
+    let usernameError = $state<string | null>(null);
 
     onMount(async () => {
         await loadProfile();
@@ -69,6 +70,13 @@
         isSaving = true;
         saveError = null;
         saveSuccess = false;
+        usernameError = null;
+
+        if (username.includes(' ')) {
+            usernameError = 'Username cannot contain spaces.';
+            isSaving = false;
+            return;
+        }
 
         const form = new FormData();
         form.append('username', username);
@@ -78,11 +86,8 @@
         }
 
         try {
-            const res = await fetch(`${$urlBase}/api/profile`, {
+            const res = await fetchWithAuth(`${$urlBase}/api/profile`, {
                 method: "PUT",
-                headers: {
-                    'Authorization': `Bearer ${$jwt}`
-                },
                 body: form
             });
 
@@ -94,6 +99,8 @@
                 bio = get(bioStore);
                 profilePhotoSrc = get(portraitUrl) || null;
                 photoFile = null;
+            } else if (res.status === 409) {
+                usernameError = 'Username is already taken.';
             } else {
                 logger.error(`Failed to save profile: ${res.status}`);
                 saveError = 'Failed to save changes. Please try again.';
@@ -133,6 +140,9 @@
                     maxlength={30}
                 />
                 <p class="text-sm mt-1 text-zinc-400">{username.length}/30 characters</p>
+                {#if usernameError}
+                    <p class="text-sm mt-1 text-red-400">{usernameError}</p>
+                {/if}
             </div>
 
             <!-- Bio -->

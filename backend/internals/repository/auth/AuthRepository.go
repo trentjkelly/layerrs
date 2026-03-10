@@ -28,7 +28,7 @@ func (r *AuthRepository) CreateJWT(artistId int) (string, error) {
 		"sub": artistId, // subject
 		"iss": "layerr", // issuer
 		"aud": "artist", // audience (role)
-		"exp": time.Now().Add(time.Hour).Unix(), //expiration
+		"exp": time.Now().Add(time.Minute * 15).Unix(), //expiration
 		"iat": time.Now().Unix(),
 	})
 
@@ -46,7 +46,7 @@ func (r *AuthRepository) CreateRefreshToken(artistId int) (string, error) {
 		"sub": artistId, // subject
 		"iss": "layerr", // issuer
 		"aud": "artist", // audience (role)
-		"exp": time.Now().Add(time.Hour * 24 * 7).Unix(), //expiration
+		"exp": time.Now().Add(time.Hour * 24 * 7).Unix(), // expiration
 		"iat": time.Now().Unix(),
 	})
 

@@ -57,22 +57,22 @@ func (c *RecommendationsController) RecommendationsHandlerHomeGet(w http.Respons
 	}
 }
 
-// Sends a user what tracks to show on their likes page
-func (c *RecommendationsController) RecommendationsHandlerLibraryGet(w http.ResponseWriter, r *http.Request) {
+// Sends a user their liked tracks with full track info
+func (c *RecommendationsController) RecommendationsHandlerLibraryLikesGet(w http.ResponseWriter, r *http.Request) {
 	artistIdFloat := r.Context().Value(entities.ArtistIdKey).(float64)
 	artistId := int(artistIdFloat)
 
-	likesArr, err := c.recService.ArtistLikesAlgorithm(r.Context(), artistId, 0)
+	tracks, err := c.recService.ArtistLikesAlgorithm(r.Context(), artistId)
 	if err != nil {
-		log.Printf("[ERROR] RecommendationsHandlerLibraryGet: %s", err)
+		log.Printf("[ERROR] RecommendationsHandlerLibraryLikesGet: %s", err)
 		http.Error(w, "Could not retrieve liked tracks", http.StatusInternalServerError)
 		return
 	}
 
-	err = json.NewEncoder(w).Encode(likesArr)
+	err = json.NewEncoder(w).Encode(tracks)
 	if err != nil {
-		log.Printf("[ERROR] RecommendationsHandlerLibraryGet: %s", err)
-		http.Error(w, "Unable to encode recommendations to json", http.StatusInternalServerError)
+		log.Printf("[ERROR] RecommendationsHandlerLibraryLikesGet: %s", err)
+		http.Error(w, "Unable to encode liked tracks to json", http.StatusInternalServerError)
 		return
 	}
 }

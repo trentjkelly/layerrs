@@ -5,9 +5,12 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/trentjkelly/layerrs/internals/entities"
 	"github.com/trentjkelly/layerrs/internals/service"
 )
@@ -45,6 +48,13 @@ func (c *TrackController) TrackHandlerPost(w http.ResponseWriter, r *http.Reques
 	trackDescription := r.FormValue("description")
 	artistIdFloat := r.Context().Value(entities.ArtistIdKey).(float64)
 	layerrsIdStr := r.FormValue("layerrIDs") // Optional - could have no layerrs to credit
+
+	trackColor := r.FormValue("color")
+	validColors := map[string]bool{"red": true, "orange": true, "yellow": true, "green": true, "blue": true, "violet": true}
+	if !validColors[trackColor] {
+		trackColor = "violet"
+	}
+
 	if trackDescription == "" {
 		log.Println("[ERROR] TrackHandlerPost: track description is required")
 		http.Error(w, "Track description is required", http.StatusBadRequest)
@@ -94,7 +104,7 @@ func (c *TrackController) TrackHandlerPost(w http.ResponseWriter, r *http.Reques
 	}
 
 	// Passing to Service layer
-	err = c.trackService.AddAndUploadTrack(r.Context(), audioFile, audioHeader, trackDescription, artistIdInt, layerrsIdArr)
+	err = c.trackService.AddAndUploadTrack(r.Context(), audioFile, audioHeader, trackDescription, artistIdInt, layerrsIdArr, trackColor)
 	if err != nil {
 		log.Printf("[ERROR] TrackHandlerPost: %s", err)
 		http.Error(w, "Failed to create track", http.StatusInternalServerError)
@@ -178,6 +188,51 @@ func (c *TrackController) TrackDownloadHandlerGet(w http.ResponseWriter, r *http
 		// Set headers and send response
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(buffer.Bytes())
+}
+
+// GET request -- returns recommendation-shaped data for a single track (GET /track/{id}/recommendation)
+func (c *TrackController) TrackRecommendationHandlerGet(w http.ResponseWriter, r *http.Request) {
+	trackIdStr := chi.URLParam(r, "id")
+	trackId, err := strconv.Atoi(trackIdStr)
+	if err != nil {
+		log.Println("[ERROR] TrackRecommendationHandlerGet: ", err)
+		http.Error(w, "Invalid track id", http.StatusBadRequest)
+		return
+	}
+
+	// Optional JWT — extract artistId for isLiked, default 0 for anon
+	artistId := 0
+	headerString := r.Header.Get("Authorization")
+	if headerString != "" {
+		parts := strings.Split(headerString, " ")
+		if len(parts) == 2 {
+			token, err := jwt.Parse(parts[1], func(token *jwt.Token) (interface{}, error) {
+				return []byte(os.Getenv("AUTH_SECRET_KEY")), nil
+			})
+			if err == nil && token.Valid {
+				if claims, ok := token.Claims.(jwt.MapClaims); ok {
+					if sub, ok := claims["sub"].(float64); ok {
+						artistId = int(sub)
+					}
+				}
+			}
+		}
+	}
+
+	rec, err := c.trackService.GetTrackRecommendation(r.Context(), trackId, artistId)
+	if err != nil {
+		log.Println("[ERROR] TrackRecommendationHandlerGet: ", err)
+		http.Error(w, "Failed to get track recommendation", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(rec)
+	if err != nil {
+		log.Println("[ERROR] TrackRecommendationHandlerGet: ", err)
+		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+		return
+	}
 }
 
 func (c *TrackController) TrackerDataHandlerGet(w http.ResponseWriter, r *http.Request) {

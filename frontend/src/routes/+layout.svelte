@@ -22,6 +22,7 @@
 			return;
 		}
 		await handleSessionStart();
+		authInitialized.set(true);
 		if ($isLoggedIn) {
 			await loadProfile();
 		}

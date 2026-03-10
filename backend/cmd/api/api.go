@@ -75,6 +75,7 @@ func (app *application) mount() http.Handler {
 					r.Get("/download", app.trackController.TrackDownloadHandlerGet)
 				})
 				r.Get("/data", app.trackController.TrackerDataHandlerGet)
+				r.Get("/recommendation", app.trackController.TrackRecommendationHandlerGet)
 
 				// r.Use(AuthJWTMiddleware)
 				// r.Put("/", app.trackController.)
@@ -98,8 +99,10 @@ func (app *application) mount() http.Handler {
 			})
 
 			r.Route("/library", func (r chi.Router) {
-				r.Use(AuthJWTMiddleware)
-				r.Get("/", app.recommendationsController.RecommendationsHandlerLibraryGet) // User's library algorithm
+				r.Route("/likes", func (r chi.Router) {
+					r.Use(AuthJWTMiddleware)
+					r.Get("/", app.recommendationsController.RecommendationsHandlerLibraryLikesGet) // User's liked tracks
+				})
 			})
 		})
 

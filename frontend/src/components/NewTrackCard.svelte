@@ -3,15 +3,27 @@
     import { goto } from '$app/navigation';
     import { logger } from '../modules/lib/logger';
     import { getUrlBase, handleEnvironment } from '../stores/environment';
-    import type { Recommendation } from '../models/types';
+    import type { TrackInfo } from '../models/types';
     import { audio, currentTrack, currentTrackId, isPlaying, currentTime as globalCurrentTime } from '../stores/player';
     import { getAudio } from '../modules/requests/track-requests';
     import WaveformBar from './WaveformBar.svelte';
     import LikeButton from './LikeButton.svelte';
-    import LayerrButton from './LayerrButton.svelte';
     
+    type ColorName = 'red' | 'orange' | 'yellow' | 'green' | 'blue' | 'violet';
+
+    const colorClasses: Record<ColorName, { text400: string; text500: string; hoverText500: string; border700: string }> = {
+        red:    { text400: 'text-red-400',    text500: 'text-red-500',    hoverText500: 'hover:text-red-500',    border700: 'border-red-700' },
+        orange: { text400: 'text-orange-400', text500: 'text-orange-500', hoverText500: 'hover:text-orange-500', border700: 'border-orange-700' },
+        yellow: { text400: 'text-yellow-400', text500: 'text-yellow-500', hoverText500: 'hover:text-yellow-500', border700: 'border-yellow-700' },
+        green:  { text400: 'text-green-400',  text500: 'text-green-500',  hoverText500: 'hover:text-green-500',  border700: 'border-green-700' },
+        blue:   { text400: 'text-blue-400',   text500: 'text-blue-500',   hoverText500: 'hover:text-blue-500',   border700: 'border-blue-700' },
+        violet: { text400: 'text-violet-400', text500: 'text-violet-500', hoverText500: 'hover:text-violet-500', border700: 'border-violet-700' },
+    };
+
     // Inherits the track data from the page
-    let { track }: { track: Recommendation } = $props();
+    let { track }: { track: TrackInfo } = $props();
+
+    const colors = $derived(colorClasses[(track.color as ColorName) ?? 'violet']);
 
     // State variables for the page
     let newAudioURL = $state('');
@@ -32,7 +44,6 @@
     let isLoading = $state(false);
     let currentOffset = $state(0);
     let numLikes = $state(track.likes);
-    let numLayerrs = $state(track.layerrs);
     let urlBase = $state('');
 
     // Waveform container width
@@ -183,6 +194,11 @@
         goto(`/track/${track.id}`)
     }
 
+    function navigateLayerr() {
+        console.log("I'm here")
+        goto(`/layerrs/${track.id}`, { state: { track: $state.snapshot(track) } })
+    }
+
     function getSongPercentage() {
         return currentTime / trackDuration
     }
@@ -236,13 +252,16 @@
 <div class="w-3/4 max-w-[1200px] py-2">
 
     <div class="w-full h-8 mb-1 flex flex-row items-center">
-            <a class="ml-2 px-1 text-violet-500 hover:bg-white text-lg transition-all duration-300" href={`/artist/${artistId}`}>{artistName}</a>
-            <p class="ml-2 text-violet-400">•</p>
-            <a class="ml-2 px-1 text-zinc-100 hover:text-violet-500 hover:bg-white text-lg transition-all duration-300" href={`/track/${track.id}`}>{trackDescription}</a>
+            {#if track.artistPortraitUrl}
+                <img src={track.artistPortraitUrl} alt={artistName} class="w-7 h-7 rounded-lg object-cover ml-2" />
+            {/if}
+            <a class="ml-2 px-1 hover:bg-white text-lg transition-all duration-300 {colors.text500}" href={`/artist/${artistId}`}>{artistName}</a>
+            <p class="ml-2 {colors.text400}">•</p>
+            <a class="ml-2 px-1 text-zinc-100 hover:bg-white text-lg transition-all duration-300 {colors.hoverText500}" href={`/track/${track.id}`}>{trackDescription}</a>
     </div>
     <!-- Waveform -->
     <div 
-        class="relative h-24 w-full hover:cursor-pointer flex flex-row items-center rounded-2xl py-1 px-1 border-2 border-violet-700"
+        class="relative h-24 w-full hover:cursor-pointer flex flex-row items-center rounded-2xl py-1 px-1 border-2 {colors.border700}"
         bind:clientWidth={waveformWidth}
         onmousemove={handleMouseMove}
         onmouseleave={handleMouseLeave}
@@ -254,19 +273,22 @@
     >
 
         {#each visibleBars as bar, index}
-            <WaveformBar 
-                height={bar} 
-                timePerBar={timePerBar} 
-                index={index} 
+            <WaveformBar
+                height={bar}
+                timePerBar={timePerBar}
+                index={index}
                 cursorTime={cursorTime}
                 isCursorHovered={isCursorHovered}
+                color={track.color}
             />
         {/each}
     </div>
 
     <!-- Track Information -->
     <div class="w-full h-12 flex flex-row items-center">
-        <LikeButton trackId={track.id} numLikes={numLikes} isLiked={track.isLiked}></LikeButton>
-        <LayerrButton trackId={track.id} numLayerrs={numLayerrs}></LayerrButton>
+        <LikeButton trackId={track.id} numLikes={numLikes} isLiked={track.isLiked} color={track.color}></LikeButton>
+        <button class="py-1 px-2 ml-4 flex flex-row items-center justify-center hover:bg-white transition-all duration-300 text-white {colors.hoverText500}" onclick={navigateLayerr}>
+            <p class="text-md">BUILD ON THIS</p>
+        </button>
     </div>
 </div>

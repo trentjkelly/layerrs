@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { handleBrowserLogin } from '../../../modules/lib/session';
+	import { loadProfile } from '../../../stores/profile';
 	import { logger } from '../../../modules/lib/logger';
 
 	let status = $state<'loading' | 'success' | 'error'>('loading');
@@ -21,9 +22,10 @@
 			return;
 		}
 
-		handleBrowserLogin(jwt, refresh).then((success) => {
+		handleBrowserLogin(jwt, refresh).then(async (success) => {
 			if (success) {
 				status = 'success';
+				await loadProfile();
 				goto(firstLogin ? '/profile' : '/');
 			} else {
 				status = 'error';

@@ -2,9 +2,11 @@ package controller
 
 import (
 	"encoding/json"
+	"errors"
 	"log"
 	"net/http"
 	"path/filepath"
+	"strings"
 
 	"github.com/trentjkelly/layerrs/internals/service"
 	"github.com/trentjkelly/layerrs/internals/entities"
@@ -42,7 +44,7 @@ func (c *ArtistController) ArtistHandlerPut(w http.ResponseWriter, r *http.Reque
 	}
 
 	username := r.FormValue("username")
-	if len(username) < 3 || len(username) > 30 {
+	if len(username) < 3 || len(username) > 30 || strings.Contains(username, " ") {
 		log.Println("[ERROR] ArtistHandlerPut: ", "Username is invalid")
 		http.Error(w, "Username is invalid", http.StatusBadRequest)
 		return
@@ -91,6 +93,10 @@ func (c *ArtistController) ArtistHandlerPut(w http.ResponseWriter, r *http.Reque
 
 	err = c.artistService.UpdateArtist(r.Context(), username, bio, portraitFile, portraitHeader, skipFile)
 	if err != nil {
+		if errors.Is(err, entities.ErrUsernameTaken) {
+			http.Error(w, "Username is already taken", http.StatusConflict)
+			return
+		}
 		log.Printf("[ERROR] ArtistHandlerPut: %s", err)
 		http.Error(w, "Failed to update artist", http.StatusInternalServerError)
 		return
@@ -109,8 +115,6 @@ func (c *ArtistController) ArtistHandlerGet(w http.ResponseWriter, r *http.Reque
 		return
 	}
 	artistId := int(artistIdFloat)
-
-	log.Printf("Getting artist with id: %d", artistId)
 
 	// Get the artist data (includes a signed portrait URL if a portrait exists)
 	artist, err := c.artistService.GetArtistData(r.Context(), artistId)

@@ -31,7 +31,7 @@
         <div class="h-20 flex flex-row items-center justify-between">
             <button onclick={navigateHome} class="flex flex-row items-center ml-4 p-4">
                 <img class="h-8 w-8" src="/vinyls.png" alt="Layerr Logo">
-                <h2 class="text-2xl font-bold ml-2 tracking-wide">Layerrs</h2>
+                <h2 class="text-2xl italic font-bold ml-2 tracking-wide">layerrs</h2>
             </button>
             {#if $isSidebarOpen}
                 <button class="mr-4 h-8 w-8 text-white rounded rounded-xl shadow hover:bg-zinc-600 transform flex flex-row items-center justify-center" onclick={toggleSidebar}>

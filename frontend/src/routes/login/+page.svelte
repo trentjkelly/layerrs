@@ -97,7 +97,7 @@
 <main class={`transition-all duration-300 h-screen w-full flex flex-col ${$isSidebarOpen ? 'ml-64' : 'ml-0'} bg-zinc-900`}>
     <TopHeader pageName="" pageIcon=""/>
     <section class="w-full flex-1 flex flex-col justify-center items-center">
-        <div class="w-full flex flex-col items-center">
+        <div class="flex flex-col items-center rounded-xl border-2 p-8">
             <h2 class="mb-8 text-2xl font-bold text-white">Log in to your <span class="text-violet-500">Layerrs</span> Account</h2>
 
             <!-- Email Input -->

@@ -1,7 +1,7 @@
 import { writable, get } from 'svelte/store';
-import { jwt } from './auth';
 import { urlBase } from './environment';
 import { logger } from '../modules/lib/logger';
+import { fetchWithAuth } from '../modules/lib/fetch';
 
 export const username = writable('');
 export const email = writable('');
@@ -12,10 +12,7 @@ export async function loadProfile(): Promise<void> {
     if (get(username) !== '') return;
 
     try {
-        const res = await fetch(`${get(urlBase)}/api/profile`, {
-            method: 'GET',
-            headers: { 'Authorization': `Bearer ${get(jwt)}` }
-        });
+        const res = await fetchWithAuth(`${get(urlBase)}/api/profile`, { method: 'GET' });
         if (res.ok) {
             const data = await res.json();
             username.set(data.username ?? '');

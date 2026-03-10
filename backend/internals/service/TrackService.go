@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"log"
 	"mime/multipart"
 	"path/filepath"
 	"strconv"
@@ -20,6 +21,7 @@ const (
 
 type TrackService struct {
 	trackStorageRepo 		*storageRepository.TrackStorageRepository
+	portraitStorageRepo 	*storageRepository.PortraitStorageRepository
 	trackDatabaseRepo 		*databaseRepository.TrackDatabaseRepository
 	treeDatabaseRepo 		*databaseRepository.TrackTreeDatabaseRepository
 	trackConversionRepo 	*computingRepository.TrackConversionRepository
@@ -31,8 +33,9 @@ type TrackService struct {
 
 // Constructor for a new TrackService
 func NewTrackService(
-	trackStorageRepo 		*storageRepository.TrackStorageRepository, 
-	trackDatabaseRepo 		*databaseRepository.TrackDatabaseRepository, 
+	trackStorageRepo 		*storageRepository.TrackStorageRepository,
+	portraitStorageRepo 	*storageRepository.PortraitStorageRepository,
+	trackDatabaseRepo 		*databaseRepository.TrackDatabaseRepository,
 	treeDatabaseRepo 		*databaseRepository.TrackTreeDatabaseRepository,
 	trackConversionRepo 	*computingRepository.TrackConversionRepository,
 	waveformHeightsRepo 	*computingRepository.WaveformHeightsRepository,
@@ -42,6 +45,7 @@ func NewTrackService(
 ) *TrackService {
 	trackService := new(TrackService)
 	trackService.trackStorageRepo = trackStorageRepo
+	trackService.portraitStorageRepo = portraitStorageRepo
 	trackService.trackDatabaseRepo = trackDatabaseRepo
 	trackService.treeDatabaseRepo = treeDatabaseRepo
 	trackService.trackConversionRepo = trackConversionRepo
@@ -53,9 +57,9 @@ func NewTrackService(
 }
 
 // Adds all files and data for a new track -- called by TrackController for a POST request
-func (s *TrackService) AddAndUploadTrack(ctx context.Context, audio multipart.File, audioHeader *multipart.FileHeader, trackDescription string, artistId int, parentIDs []int) error {
+func (s *TrackService) AddAndUploadTrack(ctx context.Context, audio multipart.File, audioHeader *multipart.FileHeader, trackDescription string, artistId int, parentIDs []int, color string) error {
 	// Add track metadata to track table (get back ID)
-	track := entities.NewTrack(trackDescription, artistId)
+	track := entities.NewTrack(trackDescription, artistId, color)
 	err := s.trackDatabaseRepo.CreateTrack(ctx, track)
 	if err != nil {
 		return err
@@ -161,6 +165,25 @@ func (s *TrackService) GetTrackInfo(ctx context.Context, trackId int) (*entities
 	}
 
 	return track, nil
+}
+
+// Gets a single track's full info by its ID
+func (s *TrackService) GetTrackRecommendation(ctx context.Context, trackId int, artistId int) (entities.TrackInfo, error) {
+	rec, err := s.trackDatabaseRepo.ReadOneTrackById(ctx, trackId, artistId)
+	if err != nil {
+		return rec, fmt.Errorf("failed to read track info from database: %w", err)
+	}
+
+	if rec.R2ImageKey != "" {
+		url, err := s.portraitStorageRepo.GetSignedPortraitURL(ctx, rec.R2ImageKey, 15*time.Minute)
+		if err != nil {
+			log.Printf("[WARN] GetTrackRecommendation: could not get signed portrait url: %s", err)
+		} else {
+			rec.ArtistPortraitUrl = url
+		}
+	}
+
+	return rec, nil
 }
 
 // Streams a track by its track id
