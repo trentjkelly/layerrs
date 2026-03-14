@@ -46,7 +46,7 @@ func (r *LayerrsDatabaseRepository) ReadLayerrsWithTracks(ctx context.Context, a
 		JOIN artist a ON t.artist_id = a.id
 		LEFT JOIN waveform w ON w.track_id = t.id
 		LEFT JOIN artist_likes_track alt ON alt.track_id = t.id AND alt.artist_id = $1
-		WHERE l.artist_id = $1
+		WHERE l.artist_id = $1 AND t.is_valid = true
 		ORDER BY l.last_layerr_at DESC;
 	`
 

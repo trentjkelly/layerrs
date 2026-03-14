@@ -148,7 +148,7 @@ func (r *TrackDatabaseRepository) ReadOneTrackById(ctx context.Context, trackId 
 		JOIN artist a ON t.artist_id = a.id
 		LEFT JOIN waveform w ON w.track_id = t.id
 		LEFT JOIN artist_likes_track alt ON alt.track_id = t.id AND alt.artist_id = $2
-		WHERE t.id = $1;
+		WHERE t.id = $1 AND t.is_valid = true;
 	`
 
 	var rec entities.TrackInfo
@@ -181,6 +181,7 @@ func (r *TrackDatabaseRepository) ReadNTracksByDate(ctx context.Context, offset 
 		JOIN artist a ON t.artist_id = a.id
 		LEFT JOIN waveform w ON w.track_id = t.id
 		LEFT JOIN artist_likes_track alt ON alt.track_id = t.id AND alt.artist_id = $2
+		WHERE t.is_valid = true
 		ORDER BY t.created_at DESC
 		LIMIT 8 OFFSET $1;
 	`
@@ -222,6 +223,7 @@ func (r *TrackDatabaseRepository) ReadNTracksByLikes(ctx context.Context, offset
 		FROM track t
 		JOIN artist a ON t.artist_id = a.id
 		LEFT JOIN waveform w ON w.track_id = t.id
+		WHERE t.is_valid = true
 		ORDER BY t.likes DESC
 		LIMIT 8 OFFSET $1;
 	`

@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"time"
+	"os"
 
 	"github.com/trentjkelly/layerrs/internals/entities"
 	"github.com/trentjkelly/layerrs/internals/repository/computing"
@@ -70,11 +71,15 @@ func (s *TrackService) AddAndUploadTrack(ctx context.Context, audio multipart.Fi
 	trackIdStr := strconv.Itoa(track.Id)
 
 	// Audio file type conversions
-	// TODO: Remove filepaths after being done
 	flacPath, opusPath, aacPath, flacName, opusName, aacName, err := s.trackConversionRepo.ConvertAllTracks(audio, trackIdStr, audiofileExtension)
 	if err != nil {
 		return fmt.Errorf("failed to convert audio file to all formats: %w", err)
 	}
+	defer func() {
+		os.Remove(flacPath)
+		os.Remove(opusPath)
+		os.Remove(aacPath)
+	}()
 
 	// Add all tracks to R2
 	err = s.trackStorageRepo.CreateAllTracks(ctx, flacPath, opusPath, aacPath, flacName, opusName, aacName)
@@ -112,17 +117,35 @@ func (s *TrackService) AddAndUploadTrack(ctx context.Context, audio multipart.Fi
 		return fmt.Errorf("failed to create the waveform in the db: %w", err)
 	}
 
+	// Create a new graph for the track
+	graph := new(entities.Graph)
+	graph.TotalTracks = 1
+	err = s.treeDatabaseRepo.CreateGraph(ctx, graph)
+	if err != nil {
+		return err
+	}
+
+	// Insert the artist's track into a new graph
+	trackGraph := new(entities.TrackGraph)
+	trackGraph.TrackId = track.Id
+	trackGraph.GraphId = graph.Id
+	err = s.treeDatabaseRepo.AddTracktoGraph(ctx, trackGraph)
+	if err != nil {
+		return fmt.Errorf("failed to add track to graph: %w", err)
+	}
+
 	// Track has an array of parents, need to add that relationship to the database as well
-	if parentIDs != nil {
+	if len(parentIDs) > 0 {
 		var trackTrees []*entities.TrackTree
 		for _, parentId := range parentIDs {
 			trackTree := new(entities.TrackTree)
 			trackTree.RootId = parentId
 			trackTree.ChildId = track.Id
+			trackTree.DerivationTag = "layerr" //TODO: change this later
 			trackTrees = append(trackTrees, trackTree)
 		}
 
-		err = s.treeDatabaseRepo.CreateTrackTrees(ctx, trackTrees)
+		err = s.treeDatabaseRepo.CreateGraphRelationships(ctx, trackTrees, track)
 		if err != nil {
 			return fmt.Errorf("failed to create the track tree in the db: %w", err)
 		}

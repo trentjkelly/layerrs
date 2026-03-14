@@ -83,7 +83,7 @@ func (r *LikesDatabaseRepository) ReadLikedTracksFullByArtistId(ctx context.Cont
 		JOIN artist a ON t.artist_id = a.id
 		LEFT JOIN waveform w ON w.track_id = t.id
 		LEFT JOIN artist_likes_track alt2 ON alt2.track_id = t.id AND alt2.artist_id = $1
-		WHERE alt.artist_id = $1
+		WHERE alt.artist_id = $1 AND t.is_valid = true
 		ORDER BY alt.created_at DESC;
 	`
 
