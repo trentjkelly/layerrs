@@ -1,24 +1,23 @@
 import { get, writable } from "svelte/store"
 import { logger } from "../modules/lib/logger"
 
-// Defaults to production values
-export const environment = writable('PRODUCTION')
-export const urlBase = writable('https://layerrs.com')
-
-// Changes the environment based on the .env file (or Vite dev mode when .env is missing)
-export async function handleEnvironment(): Promise<void> {
+function resolveEnvironment(): { env: string; url: string } {
 	const envValue = import.meta.env.VITE_ENVIRONMENT
 	const isDev = import.meta.env.DEV
 	if (envValue === 'DEVELOPMENT' || (envValue == null && isDev)) {
-		urlBase.set('http://localhost:8080')
-		environment.set('DEVELOPMENT')
+		return { env: 'DEVELOPMENT', url: 'http://localhost:8080' }
 	} else if (envValue === 'PRODUCTION' || (envValue == null && !isDev)) {
-		urlBase.set('https://layerrs.com')
-		environment.set('PRODUCTION')
+		return { env: 'PRODUCTION', url: 'https://layerrs.com' }
 	} else {
 		logger.error('Could not set environment')
+		return { env: 'PRODUCTION', url: 'https://layerrs.com' }
 	}
 }
+
+const { env, url } = resolveEnvironment()
+export const environment = writable(env)
+export const urlBase = writable(url)
+
 
 export function getEnvironment(): string {
 	return get(environment)

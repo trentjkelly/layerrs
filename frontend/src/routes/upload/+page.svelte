@@ -5,7 +5,7 @@
     import { isLoggedIn, authInitialized } from "../../stores/auth";
     import { fetchWithAuth } from "../../modules/lib/fetch";
     import { isSidebarOpen } from "../../stores/player";
-    import { handleEnvironment, urlBase } from "../../stores/environment";
+    import { urlBase } from "../../stores/environment";
     import { logger } from "../../modules/lib/logger";
     import { onMount } from "svelte";
 
@@ -43,7 +43,6 @@
     let isLoading = $state(false);
 
     onMount(async () => {
-        await handleEnvironment();
         await getArtistLayerrs();
     })
 

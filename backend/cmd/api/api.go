@@ -68,6 +68,7 @@ func (app *application) mount() http.Handler {
 
 		r.Route("/track", func(r chi.Router) {
 			r.Options("/", app.trackController.TrackHandlerOptions)
+			r.Post("/batch", app.trackController.TrackBatchHandlerPost)
 			r.Route("/{id}", func(r chi.Router) {
 				r.Get("/audio", app.trackController.TrackAudioHandlerGet)
 				r.Group(func (r chi.Router) {
@@ -76,6 +77,7 @@ func (app *application) mount() http.Handler {
 				})
 				r.Get("/data", app.trackController.TrackerDataHandlerGet)
 				r.Get("/recommendation", app.trackController.TrackRecommendationHandlerGet)
+				r.Get("/graph", app.trackController.TrackGraphHandlerGet)
 
 				// r.Use(AuthJWTMiddleware)
 				// r.Put("/", app.trackController.)

@@ -2,7 +2,7 @@
     import { onMount, onDestroy, untrack } from 'svelte';
     import { goto } from '$app/navigation';
     import { logger } from '../modules/lib/logger';
-    import { getUrlBase, handleEnvironment } from '../stores/environment';
+    import { getUrlBase } from '../stores/environment';
     import type { TrackInfo } from '../models/types';
     import { audio, currentTrack, currentTrackId, isPlaying, currentTime as globalCurrentTime } from '../stores/player';
     import { getAudio } from '../modules/requests/track-requests';
@@ -11,13 +11,13 @@
     
     type ColorName = 'red' | 'orange' | 'yellow' | 'green' | 'blue' | 'violet';
 
-    const colorClasses: Record<ColorName, { text400: string; text500: string; hoverText500: string; border700: string }> = {
-        red:    { text400: 'text-red-400',    text500: 'text-red-500',    hoverText500: 'hover:text-red-500',    border700: 'border-red-700' },
-        orange: { text400: 'text-orange-400', text500: 'text-orange-500', hoverText500: 'hover:text-orange-500', border700: 'border-orange-700' },
-        yellow: { text400: 'text-yellow-400', text500: 'text-yellow-500', hoverText500: 'hover:text-yellow-500', border700: 'border-yellow-700' },
-        green:  { text400: 'text-green-400',  text500: 'text-green-500',  hoverText500: 'hover:text-green-500',  border700: 'border-green-700' },
-        blue:   { text400: 'text-blue-400',   text500: 'text-blue-500',   hoverText500: 'hover:text-blue-500',   border700: 'border-blue-700' },
-        violet: { text400: 'text-violet-400', text500: 'text-violet-500', hoverText500: 'hover:text-violet-500', border700: 'border-violet-700' },
+    const colorClasses: Record<ColorName, { text400: string; text500: string; hoverText500: string; border700: string; bg500: string; gradientBg: string; hoverShadow: string }> = {
+        red:    { text400: 'text-red-400',    text500: 'text-red-500',    hoverText500: 'hover:text-red-500',    border700: 'border-red-700',    bg500: 'bg-red-500',    gradientBg: 'bg-gradient-to-r from-red-600 to-red-400',    hoverShadow: 'hover:shadow-red-500/30' },
+        orange: { text400: 'text-orange-400', text500: 'text-orange-500', hoverText500: 'hover:text-orange-500', border700: 'border-orange-700', bg500: 'bg-orange-500', gradientBg: 'bg-gradient-to-r from-orange-600 to-orange-400', hoverShadow: 'hover:shadow-orange-500/30' },
+        yellow: { text400: 'text-yellow-400', text500: 'text-yellow-500', hoverText500: 'hover:text-yellow-500', border700: 'border-yellow-700', bg500: 'bg-yellow-500', gradientBg: 'bg-gradient-to-r from-yellow-600 to-yellow-400', hoverShadow: 'hover:shadow-yellow-500/30' },
+        green:  { text400: 'text-green-400',  text500: 'text-green-500',  hoverText500: 'hover:text-green-500',  border700: 'border-green-700',  bg500: 'bg-green-500',  gradientBg: 'bg-gradient-to-r from-green-600 to-green-400',  hoverShadow: 'hover:shadow-green-500/30' },
+        blue:   { text400: 'text-blue-400',   text500: 'text-blue-500',   hoverText500: 'hover:text-blue-500',   border700: 'border-blue-700',   bg500: 'bg-blue-500',   gradientBg: 'bg-gradient-to-r from-blue-600 to-blue-400',   hoverShadow: 'hover:shadow-blue-500/30' },
+        violet: { text400: 'text-violet-400', text500: 'text-violet-500', hoverText500: 'hover:text-violet-500', border700: 'border-violet-700', bg500: 'bg-violet-500', gradientBg: 'bg-gradient-to-r from-violet-600 to-violet-400', hoverShadow: 'hover:shadow-violet-500/30' },
     };
 
     // Inherits the track data from the page
@@ -84,7 +84,6 @@
 
     // When the component is loaded, sets up the environment and waveform
     onMount(async () => {
-        await handleEnvironment()
         urlBase = getUrlBase()
         changeWaveformWidth()
     })
@@ -249,19 +248,19 @@
 
 </script>
 
-<div class="w-3/4 max-w-[1200px] py-2">
+<div class="w-2/3 max-w-[1200px] py-2 mb-4 border-b border-zinc-700">
 
-    <div class="w-full h-8 mb-1 flex flex-row items-center">
+    <div class="w-full h-12 mb-1 flex flex-row items-center">
             {#if track.artistPortraitUrl}
-                <img src={track.artistPortraitUrl} alt={artistName} class="w-7 h-7 rounded-lg object-cover ml-2" />
+                <img src={track.artistPortraitUrl} alt={artistName} class="w-10 h-10 rounded-lg object-cover ml-2" />
             {/if}
-            <a class="ml-2 px-1 hover:bg-white text-lg transition-all duration-300 {colors.text500}" href={`/artist/${artistId}`}>{artistName}</a>
+            <a class="ml-2 px-1 rounded-md hover:bg-white text-lg transition-all duration-300 {colors.text500}" href={`/artist/${artistId}`}>{artistName}</a>
             <p class="ml-2 {colors.text400}">•</p>
-            <a class="ml-2 px-1 text-zinc-100 hover:bg-white text-lg transition-all duration-300 {colors.hoverText500}" href={`/track/${track.id}`}>{trackDescription}</a>
+            <a class="ml-2 px-1 rounded-md text-zinc-100 hover:bg-white text-lg transition-all duration-300 {colors.hoverText500}" href={`/track/${track.id}`}>{trackDescription}</a>
     </div>
     <!-- Waveform -->
     <div 
-        class="relative h-24 w-full hover:cursor-pointer flex flex-row items-center rounded-2xl py-1 px-1 border-2 {colors.border700}"
+        class="relative h-16 w-full hover:cursor-pointer flex flex-row items-center py-1 px-1"
         bind:clientWidth={waveformWidth}
         onmousemove={handleMouseMove}
         onmouseleave={handleMouseLeave}
@@ -287,7 +286,7 @@
     <!-- Track Information -->
     <div class="w-full h-12 flex flex-row items-center">
         <LikeButton trackId={track.id} numLikes={numLikes} isLiked={track.isLiked} color={track.color}></LikeButton>
-        <button class="py-1 px-2 ml-4 flex flex-row items-center justify-center hover:bg-white transition-all duration-300 text-white {colors.hoverText500}" onclick={navigateLayerr}>
+        <button class="py-1 px-3 ml-4 rounded-md flex flex-row items-center justify-center transition-all duration-200 text-white font-semibold tracking-wider text-sm hover:scale-105 active:scale-95 hover:shadow-md {colors.gradientBg} {colors.hoverShadow}" onclick={navigateLayerr}>
             <p class="text-md">BUILD ON THIS</p>
         </button>
     </div>

@@ -171,6 +171,41 @@ func (r *TrackTreeDatabaseRepository) CreateTrackTree(ctx context.Context, tx pg
 	return nil
 }
 
+// Gets all TrackTree relationships within the same graph as the given trackId
+func (r *TrackTreeDatabaseRepository) GetGraphTrackTrees(ctx context.Context, trackId int) ([]*entities.TrackTree, error) {
+	query := `
+		WITH graph_tracks AS (
+			SELECT tg.track_id
+			FROM track_graphs tg
+			WHERE tg.graph_id = (
+				SELECT graph_id FROM track_graphs WHERE track_id = $1
+			)
+		)
+		SELECT tt.root_id, tt.child_id, tt.tag
+		FROM track_tree tt
+		WHERE tt.root_id IN (SELECT track_id FROM graph_tracks)
+		   OR tt.child_id IN (SELECT track_id FROM graph_tracks)
+	`
+
+	rows, err := r.db.Query(ctx, query, trackId)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query graph track trees: %w", err)
+	}
+	defer rows.Close()
+
+	trackTrees := make([]*entities.TrackTree, 0)
+	for rows.Next() {
+		tt := new(entities.TrackTree)
+		err := rows.Scan(&tt.RootId, &tt.ChildId, &tt.DerivationTag)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan track tree row: %w", err)
+		}
+		trackTrees = append(trackTrees, tt)
+	}
+
+	return trackTrees, nil
+}
+
 // Gets all of the parents of a given track from the database
 func (r *TrackTreeDatabaseRepository) GetParents(ctx context.Context, trackTree *entities.TrackTree) error {
 	return nil

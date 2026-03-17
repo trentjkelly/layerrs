@@ -209,6 +209,36 @@ func (s *TrackService) GetTrackRecommendation(ctx context.Context, trackId int, 
 	return rec, nil
 }
 
+// Gets full track info for a batch of track IDs
+func (s *TrackService) GetTrackInfoBatch(ctx context.Context, trackIds []int, artistId int) ([]entities.TrackInfo, error) {
+	recs, err := s.trackDatabaseRepo.ReadTracksByIds(ctx, trackIds, artistId)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read tracks from database: %w", err)
+	}
+
+	for i, rec := range recs {
+		if rec.R2ImageKey != "" {
+			url, err := s.portraitStorageRepo.GetSignedPortraitURL(ctx, rec.R2ImageKey, 15*time.Minute)
+			if err != nil {
+				log.Printf("[WARN] GetTrackInfoBatch: could not get signed portrait url: %s", err)
+			} else {
+				recs[i].ArtistPortraitUrl = url
+			}
+		}
+	}
+
+	return recs, nil
+}
+
+// Gets all TrackTree relationships within the same graph as the given trackId
+func (s *TrackService) GetTrackGraphRelationships(ctx context.Context, trackId int) ([]*entities.TrackTree, error) {
+	trackTrees, err := s.treeDatabaseRepo.GetGraphTrackTrees(ctx, trackId)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get graph track trees: %w", err)
+	}
+	return trackTrees, nil
+}
+
 // Streams a track by its track id
 func (s *TrackService) GetStreamingSignedTrackURL(ctx context.Context, trackId int) (string, string, error) {
 	track := new(entities.Track)

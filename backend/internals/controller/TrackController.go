@@ -190,6 +190,55 @@ func (c *TrackController) TrackDownloadHandlerGet(w http.ResponseWriter, r *http
 		w.Write(buffer.Bytes())
 }
 
+// POST request -- returns full track info for a list of track IDs (POST /track/batch)
+func (c *TrackController) TrackBatchHandlerPost(w http.ResponseWriter, r *http.Request) {
+	var body struct {
+		TrackIds []int `json:"track_ids"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		log.Println("[ERROR] TrackBatchHandlerPost: ", err)
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	// Optional JWT — extract artistId for isLiked, default 0 for anon
+	artistId := 0
+	headerString := r.Header.Get("Authorization")
+	if headerString != "" {
+		parts := strings.Split(headerString, " ")
+		if len(parts) == 2 {
+			token, err := jwt.Parse(parts[1], func(token *jwt.Token) (interface{}, error) {
+				return []byte(os.Getenv("AUTH_SECRET_KEY")), nil
+			})
+			if err == nil && token.Valid {
+				if claims, ok := token.Claims.(jwt.MapClaims); ok {
+					if sub, ok := claims["sub"].(float64); ok {
+						artistId = int(sub)
+					}
+				}
+			}
+		}
+	}
+
+	recs, err := c.trackService.GetTrackInfoBatch(r.Context(), body.TrackIds, artistId)
+	if err != nil {
+		log.Println("[ERROR] TrackBatchHandlerPost: ", err)
+		http.Error(w, "Failed to get track info", http.StatusInternalServerError)
+		return
+	}
+
+	if recs == nil {
+		recs = []entities.TrackInfo{}
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(recs); err != nil {
+		log.Println("[ERROR] TrackBatchHandlerPost: ", err)
+		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+		return
+	}
+}
+
 // GET request -- returns recommendation-shaped data for a single track (GET /track/{id}/recommendation)
 func (c *TrackController) TrackRecommendationHandlerGet(w http.ResponseWriter, r *http.Request) {
 	trackIdStr := chi.URLParam(r, "id")
@@ -230,6 +279,32 @@ func (c *TrackController) TrackRecommendationHandlerGet(w http.ResponseWriter, r
 	err = json.NewEncoder(w).Encode(rec)
 	if err != nil {
 		log.Println("[ERROR] TrackRecommendationHandlerGet: ", err)
+		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+		return
+	}
+}
+
+// GET request -- returns all TrackTree relationships within the graph a track belongs to (GET /track/{id}/graph)
+func (c *TrackController) TrackGraphHandlerGet(w http.ResponseWriter, r *http.Request) {
+	trackIdStr := chi.URLParam(r, "id")
+	trackId, err := strconv.Atoi(trackIdStr)
+	if err != nil {
+		log.Println("[ERROR] TrackGraphHandlerGet: ", err)
+		http.Error(w, "Invalid track id", http.StatusBadRequest)
+		return
+	}
+
+	trackTrees, err := c.trackService.GetTrackGraphRelationships(r.Context(), trackId)
+	if err != nil {
+		log.Println("[ERROR] TrackGraphHandlerGet: ", err)
+		http.Error(w, "Failed to get track graph relationships", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(trackTrees)
+	if err != nil {
+		log.Println("[ERROR] TrackGraphHandlerGet: ", err)
 		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
 		return
 	}

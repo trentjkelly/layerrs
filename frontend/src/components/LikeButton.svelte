@@ -73,7 +73,7 @@
 
 </script>
 
-<button class="px-2 py-1 ml-2 flex flex-row items-center justify-center hover:bg-white transition-all duration-300 text-white {colors.hoverText500}" onclick={toggleLikedTrack}>
+<button class="px-2 py-1 ml-2 rounded-md flex flex-row items-center justify-center hover:bg-white transition-all duration-300 text-white {colors.hoverText500}" onclick={toggleLikedTrack}>
     {#if isTrackLiked}
         <p>LIKED</p>                   
     {:else}

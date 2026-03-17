@@ -4,7 +4,7 @@
     import NewTrackCard from "../components/NewTrackCard.svelte";
     import UserMenu from "../components/UserMenu.svelte";
     import { isSidebarOpen } from "../stores/player";
-    import { handleEnvironment, urlBase } from "../stores/environment";
+    import { urlBase } from "../stores/environment";
     import { username, email, portraitUrl } from "../stores/profile";
     import { audio } from "../stores/player";
     import { authInitialized } from "../stores/auth";
@@ -17,8 +17,6 @@
         const response = await fetchWithAuth(`${$urlBase}/api/recommendations/home`)
         const data = await response.json();
         tracks = data as TrackInfo[]
-		console.log('count of tracks', tracks.length)
-		console.log('tracks', tracks)
     }
 
     $effect(() => {
@@ -100,7 +98,7 @@
 	}
 
     onMount(async () => {
-        await handleEnvironment()
+        await fetchData()
         // handleHotkeys()
     })
 

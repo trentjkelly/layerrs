@@ -6,7 +6,7 @@
 	import SideBar from '../components/SideBar.svelte';
 	import { initializeAudio, audio } from '../stores/player';
 	import { jwt, refreshToken, isLoggedIn, authInitialized } from '../stores/auth';
-	import { handleEnvironment, urlBase } from '../stores/environment';
+	import { urlBase } from '../stores/environment';
 	import { loadProfile } from '../stores/profile';
 	import { logger } from '../modules/lib/logger';
 
@@ -14,7 +14,6 @@
 
 	// Initialize audio component across the entire session
 	onMount(async () => {
-		await handleEnvironment();
 		initializeAudio();
 		await loadCookies();
 		if ($page.url.pathname === '/login/callback') {
@@ -56,13 +55,11 @@
 
 		// Refresh token was invalid, so log out
 		if (status == 401 || status == 500) {
-			logger.debug("invalid refresh token, logging out")
 			await deleteTokens()
 			isLoggedIn.set(false)
 		} 
 		// Refresh token was valid, so stay logged in
 		else {
-			logger.debug("refresh token is valid, so staying logged in")
 			if (typeof newJWT !== 'string') {
 				logger.error("newJWT is not a string")
 			} else {
@@ -115,7 +112,7 @@
 
 </script>
 
-<div class="h-screen w-screen overflow-x-hidden flex flex-row bg-zinc-900 text-white font-body">
+<div class="h-screen w-screen overflow-hidden flex flex-row bg-zinc-900 text-white font-body">
 	<SideBar></SideBar>
 	{@render children()}
 	<!-- <AudioPlayer></AudioPlayer> -->

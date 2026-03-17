@@ -6,7 +6,7 @@
 
     import { goto } from '$app/navigation';
     import { page } from '$app/state';
-    import { handleEnvironment, getUrlBase } from "../../../stores/environment";
+    import { getUrlBase } from "../../../stores/environment";
     import { urlBase } from "../../../stores/environment";
     import { isLoggedIn, authInitialized } from "../../../stores/auth";
     import type { TrackInfo } from "../../../models/types";
@@ -27,7 +27,6 @@
     onMount(async () => {
         if (!track) {
             isLoadingTrack = true;
-            await handleEnvironment();
             track = await getTrackTrackInfo(getUrlBase(), slug) ?? undefined;
             isLoadingTrack = false;
         }

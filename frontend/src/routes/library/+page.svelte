@@ -7,7 +7,6 @@
     import { isLoggedIn, authInitialized } from "../../stores/auth";
     import { fetchWithAuth } from "../../modules/lib/fetch";
     import { urlBase } from "../../stores/environment";
-    import { handleEnvironment } from "../../stores/environment";
     import type { TrackInfo } from "../../models/types";
 
     $effect(() => {
@@ -23,18 +22,17 @@
         const response = await fetchWithAuth(`${$urlBase}/api/layerrs/`, { method: 'GET' });
         if (!response.ok) return;
         const data = await response.json();
-        layerrTracks = data as TrackInfo[];
+        layerrTracks = (data as TrackInfo[]) ?? [];
     }
 
     async function fetchLikes() {
         const response = await fetchWithAuth(`${$urlBase}/api/recommendations/library/likes`, { method: 'GET' });
         if (!response.ok) return;
         const data = await response.json();
-        likedTracks = data as TrackInfo[];
+        likedTracks = (data as TrackInfo[]) ?? [];
     }
 
     onMount(async () => {
-        await handleEnvironment();
         await Promise.all([fetchLayerrs(), fetchLikes()]);
     });
 </script>

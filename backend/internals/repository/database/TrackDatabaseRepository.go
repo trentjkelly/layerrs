@@ -216,6 +216,48 @@ func (r *TrackDatabaseRepository) ReadNTracksByDate(ctx context.Context, offset 
 	return recs, nil
 }
 
+// Gets full track info for a list of track IDs
+func (r *TrackDatabaseRepository) ReadTracksByIds(ctx context.Context, trackIds []int, artistId int) ([]entities.TrackInfo, error) {
+	query := `
+		SELECT t.id, t.description, t.artist_id, a.username, a.r2_image_key, t.likes, t.layerrs, t.duration, w.waveform_data, t.color,
+		CASE WHEN alt.artist_id IS NOT NULL THEN true ELSE false END as is_liked
+		FROM track t
+		JOIN artist a ON t.artist_id = a.id
+		LEFT JOIN waveform w ON w.track_id = t.id
+		LEFT JOIN artist_likes_track alt ON alt.track_id = t.id AND alt.artist_id = $2
+		WHERE t.is_valid = true AND t.id = ANY($1);
+	`
+
+	rows, err := r.db.Query(ctx, query, trackIds, artistId)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query rows in ReadTracksByIds: %w", err)
+	}
+	defer rows.Close()
+
+	var recs []entities.TrackInfo
+
+	for rows.Next() {
+		var rec entities.TrackInfo
+		var waveformData []int
+		var r2ImageKey sql.NullString
+		err = rows.Scan(&rec.Id, &rec.Description, &rec.ArtistId, &rec.ArtistName, &r2ImageKey, &rec.Likes, &rec.Layerrs, &rec.Duration, &waveformData, &rec.Color, &rec.IsLiked)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan rows in ReadTracksByIds: %w", err)
+		}
+		if r2ImageKey.Valid {
+			rec.R2ImageKey = r2ImageKey.String
+		}
+		if waveformData != nil {
+			rec.WaveformData = waveformData
+		} else {
+			rec.WaveformData = []int{}
+		}
+		recs = append(recs, rec)
+	}
+
+	return recs, nil
+}
+
 // Gets the top N tracks by likes with full track data -- used for recommendations algorithm
 func (r *TrackDatabaseRepository) ReadNTracksByLikes(ctx context.Context, offset int) ([]entities.TrackInfo, error) {
 	query := `
