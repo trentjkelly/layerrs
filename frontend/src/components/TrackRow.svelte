@@ -1,6 +1,5 @@
 <script>
     import LikeButton from "./LikeButton.svelte";
-    import LayerrButton from "./LayerrButton.svelte";
 
     // Track Details
     let imageURL = $state('')
@@ -33,5 +32,4 @@
     </div>
 
     <LikeButton trackId={trackId} numLikes={numLikes} />
-    <LayerrButton trackId={trackId} numLayerrs={numLayerrs} />
 </div>

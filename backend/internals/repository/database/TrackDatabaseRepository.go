@@ -26,8 +26,8 @@ func (r *TrackDatabaseRepository) CloseDB() {
 
 // Adds a Track to the database, but only the non-optional fields
 func (r *TrackDatabaseRepository) CreateTrack(ctx context.Context, track *entities.Track) error {
-	query := `INSERT INTO track (description, artist_id) VALUES ($1, $2) RETURNING id`
-	row := r.db.QueryRow(ctx, query, track.Description, track.ArtistId)
+	query := `INSERT INTO track (description, artist_id, color) VALUES ($1, $2, $3) RETURNING id`
+	row := r.db.QueryRow(ctx, query, track.Description, track.ArtistId, track.Color)
 	
 	err := row.Scan(&track.Id)
 	if err != nil {
@@ -39,15 +39,15 @@ func (r *TrackDatabaseRepository) CreateTrack(ctx context.Context, track *entiti
 
 // Gets a Track from the database based on their id
 func (r *TrackDatabaseRepository) ReadTrackById(ctx context.Context, track *entities.Track) error {
-	query := `SELECT id, description, artist_id, flac_r2_track_key, opus_r2_track_key, aac_r2_track_key, created_at, plays, likes, layerrs, is_valid, duration FROM track WHERE id=$1;`
+	query := `SELECT id, description, artist_id, flac_r2_track_key, opus_r2_track_key, aac_r2_track_key, created_at, plays, likes, layerrs, is_valid, duration, color FROM track WHERE id=$1;`
 	row := r.db.QueryRow(ctx, query, track.Id)
-	
+
 	// Potential NULL Values
 	var flacR2TrackKey sql.NullString
 	var opusR2TrackKey sql.NullString
 	var aacR2TrackKey sql.NullString
 
-	err := row.Scan(&track.Id, &track.Description, &track.ArtistId, &flacR2TrackKey, &opusR2TrackKey, &aacR2TrackKey, &track.CreatedAt, &track.Plays, &track.Likes, &track.Layerrs, &track.IsValid, &track.TrackDuration)
+	err := row.Scan(&track.Id, &track.Description, &track.ArtistId, &flacR2TrackKey, &opusR2TrackKey, &aacR2TrackKey, &track.CreatedAt, &track.Plays, &track.Likes, &track.Layerrs, &track.IsValid, &track.TrackDuration, &track.Color)
 	if err != nil {
 		return fmt.Errorf("failed to scan rows in ReadTrackByID: %w", err)
 	}
@@ -76,8 +76,8 @@ func (r *TrackDatabaseRepository) ReadTrackById(ctx context.Context, track *enti
 
 // Updates the information for a Track in the database
 func (r *TrackDatabaseRepository) UpdateTrack(ctx context.Context, track *entities.Track) error {
-	query := `UPDATE track SET description=$2, flac_r2_track_key=$3, opus_r2_track_key=$4, aac_r2_track_key=$5, is_valid=$6, duration=$7 WHERE id=$1 RETURNING description;`
-	row := r.db.QueryRow(ctx, query, track.Id, track.Description, track.FlacR2TrackKey, track.OpusR2TrackKey, track.AacR2TrackKey, track.IsValid, track.TrackDuration)
+	query := `UPDATE track SET description=$2, flac_r2_track_key=$3, opus_r2_track_key=$4, aac_r2_track_key=$5, is_valid=$6, duration=$7, color=$8 WHERE id=$1 RETURNING description;`
+	row := r.db.QueryRow(ctx, query, track.Id, track.Description, track.FlacR2TrackKey, track.OpusR2TrackKey, track.AacR2TrackKey, track.IsValid, track.TrackDuration, track.Color)
 	
 	err := row.Scan(&track.Description)
 	if err != nil {
@@ -139,15 +139,49 @@ func (r *TrackDatabaseRepository) DecrementLikes(ctx context.Context, track *ent
 	return nil
 }
 
-// Gets the top N most recent tracks with full track data -- used for recommendations algorithm
-func (r *TrackDatabaseRepository) ReadNTracksByDate(ctx context.Context, offset int, artistId int) ([]entities.Recommendation, error) {
+// Gets a single track's recommendation data by its ID
+func (r *TrackDatabaseRepository) ReadOneTrackById(ctx context.Context, trackId int, artistId int) (entities.TrackInfo, error) {
 	query := `
-		SELECT t.id, t.description, t.artist_id, a.username, t.likes, t.layerrs, t.duration, w.waveform_data,
+		SELECT t.id, t.description, t.artist_id, a.username, a.r2_image_key, t.likes, t.layerrs, t.duration, w.waveform_data, t.color,
 		CASE WHEN alt.artist_id IS NOT NULL THEN true ELSE false END as is_liked
 		FROM track t
 		JOIN artist a ON t.artist_id = a.id
 		LEFT JOIN waveform w ON w.track_id = t.id
 		LEFT JOIN artist_likes_track alt ON alt.track_id = t.id AND alt.artist_id = $2
+		WHERE t.id = $1 AND t.is_valid = true;
+	`
+
+	var rec entities.TrackInfo
+	var waveformData []int
+	var r2ImageKey sql.NullString
+	err := r.db.QueryRow(ctx, query, trackId, artistId).Scan(
+		&rec.Id, &rec.Description, &rec.ArtistId, &rec.ArtistName, &r2ImageKey,
+		&rec.Likes, &rec.Layerrs, &rec.Duration, &waveformData, &rec.Color, &rec.IsLiked,
+	)
+	if err != nil {
+		return rec, fmt.Errorf("failed to scan row in ReadOneTrackById: %w", err)
+	}
+	if r2ImageKey.Valid {
+		rec.R2ImageKey = r2ImageKey.String
+	}
+	if waveformData != nil {
+		rec.WaveformData = waveformData
+	} else {
+		rec.WaveformData = []int{}
+	}
+	return rec, nil
+}
+
+// Gets the top N most recent tracks with full track data -- used for recommendations algorithm
+func (r *TrackDatabaseRepository) ReadNTracksByDate(ctx context.Context, offset int, artistId int) ([]entities.TrackInfo, error) {
+	query := `
+		SELECT t.id, t.description, t.artist_id, a.username, a.r2_image_key, t.likes, t.layerrs, t.duration, w.waveform_data, t.color,
+		CASE WHEN alt.artist_id IS NOT NULL THEN true ELSE false END as is_liked
+		FROM track t
+		JOIN artist a ON t.artist_id = a.id
+		LEFT JOIN waveform w ON w.track_id = t.id
+		LEFT JOIN artist_likes_track alt ON alt.track_id = t.id AND alt.artist_id = $2
+		WHERE t.is_valid = true
 		ORDER BY t.created_at DESC
 		LIMIT 8 OFFSET $1;
 	`
@@ -158,14 +192,60 @@ func (r *TrackDatabaseRepository) ReadNTracksByDate(ctx context.Context, offset 
 	}
 	defer rows.Close()
 
-	var recs []entities.Recommendation
+	var recs []entities.TrackInfo
 
 	for rows.Next() {
-		var rec entities.Recommendation
+		var rec entities.TrackInfo
 		var waveformData []int
-		err = rows.Scan(&rec.Id, &rec.Description, &rec.ArtistId, &rec.ArtistName, &rec.Likes, &rec.Layerrs, &rec.Duration, &waveformData, &rec.IsLiked)
+		var r2ImageKey sql.NullString
+		err = rows.Scan(&rec.Id, &rec.Description, &rec.ArtistId, &rec.ArtistName, &r2ImageKey, &rec.Likes, &rec.Layerrs, &rec.Duration, &waveformData, &rec.Color, &rec.IsLiked)
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan rows in ReadNTracksByDate: %w", err)
+		}
+		if r2ImageKey.Valid {
+			rec.R2ImageKey = r2ImageKey.String
+		}
+		if waveformData != nil {
+			rec.WaveformData = waveformData
+		} else {
+			rec.WaveformData = []int{}
+		}
+		recs = append(recs, rec)
+	}
+
+	return recs, nil
+}
+
+// Gets full track info for a list of track IDs
+func (r *TrackDatabaseRepository) ReadTracksByIds(ctx context.Context, trackIds []int, artistId int) ([]entities.TrackInfo, error) {
+	query := `
+		SELECT t.id, t.description, t.artist_id, a.username, a.r2_image_key, t.likes, t.layerrs, t.duration, w.waveform_data, t.color,
+		CASE WHEN alt.artist_id IS NOT NULL THEN true ELSE false END as is_liked
+		FROM track t
+		JOIN artist a ON t.artist_id = a.id
+		LEFT JOIN waveform w ON w.track_id = t.id
+		LEFT JOIN artist_likes_track alt ON alt.track_id = t.id AND alt.artist_id = $2
+		WHERE t.is_valid = true AND t.id = ANY($1);
+	`
+
+	rows, err := r.db.Query(ctx, query, trackIds, artistId)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query rows in ReadTracksByIds: %w", err)
+	}
+	defer rows.Close()
+
+	var recs []entities.TrackInfo
+
+	for rows.Next() {
+		var rec entities.TrackInfo
+		var waveformData []int
+		var r2ImageKey sql.NullString
+		err = rows.Scan(&rec.Id, &rec.Description, &rec.ArtistId, &rec.ArtistName, &r2ImageKey, &rec.Likes, &rec.Layerrs, &rec.Duration, &waveformData, &rec.Color, &rec.IsLiked)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan rows in ReadTracksByIds: %w", err)
+		}
+		if r2ImageKey.Valid {
+			rec.R2ImageKey = r2ImageKey.String
 		}
 		if waveformData != nil {
 			rec.WaveformData = waveformData
@@ -179,12 +259,13 @@ func (r *TrackDatabaseRepository) ReadNTracksByDate(ctx context.Context, offset 
 }
 
 // Gets the top N tracks by likes with full track data -- used for recommendations algorithm
-func (r *TrackDatabaseRepository) ReadNTracksByLikes(ctx context.Context, offset int) ([]entities.Recommendation, error) {
+func (r *TrackDatabaseRepository) ReadNTracksByLikes(ctx context.Context, offset int) ([]entities.TrackInfo, error) {
 	query := `
-		SELECT t.id, t.description, t.artist_id, a.username, t.likes, t.layerrs, t.duration, w.waveform_data
+		SELECT t.id, t.description, t.artist_id, a.username, a.r2_image_key, t.likes, t.layerrs, t.duration, w.waveform_data, t.color
 		FROM track t
 		JOIN artist a ON t.artist_id = a.id
 		LEFT JOIN waveform w ON w.track_id = t.id
+		WHERE t.is_valid = true
 		ORDER BY t.likes DESC
 		LIMIT 8 OFFSET $1;
 	`
@@ -195,14 +276,18 @@ func (r *TrackDatabaseRepository) ReadNTracksByLikes(ctx context.Context, offset
 	}
 	defer rows.Close()
 
-	var recs []entities.Recommendation
+	var recs []entities.TrackInfo
 
 	for rows.Next() {
-		var rec entities.Recommendation
+		var rec entities.TrackInfo
 		var waveformData []int
-		err = rows.Scan(&rec.Id, &rec.Description, &rec.ArtistId, &rec.ArtistName, &rec.Likes, &rec.Layerrs, &rec.Duration, &waveformData)
+		var r2ImageKey sql.NullString
+		err = rows.Scan(&rec.Id, &rec.Description, &rec.ArtistId, &rec.ArtistName, &r2ImageKey, &rec.Likes, &rec.Layerrs, &rec.Duration, &waveformData, &rec.Color)
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan rows in ReadNTracksByLikes: %w", err)
+		}
+		if r2ImageKey.Valid {
+			rec.R2ImageKey = r2ImageKey.String
 		}
 		if waveformData != nil {
 			rec.WaveformData = waveformData

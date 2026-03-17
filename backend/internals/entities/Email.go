@@ -1,8 +1,8 @@
 package entities
 
 type LoginEmailInfo struct {
-	EmailSender string
+	EmailSender     string
 	EmailRecipients []string
-	EmailSubject string
-	EmailBodyHTML string
+	EmailSubject    string
+	EmailBodyHTML   string
 }

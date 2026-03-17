@@ -37,7 +37,7 @@
                 <!-- Profile section with original circle -->
                 <div class="px-4 py-4 border-b border-zinc-700">
                     <div class="flex items-center space-x-3">
-                        <div class="w-12 h-12 bg-violet-700 rounded-xl flex-shrink-0 shadow-lg overflow-hidden">
+                        <div class="w-12 h-12 bg-zinc-700 rounded-xl flex-shrink-0 shadow-lg overflow-hidden">
                             {#if portraitUrl}
                                 <img src={portraitUrl} alt="Profile" class="w-full h-full object-cover" />
                             {/if}
@@ -73,7 +73,7 @@
             </div>
         {:else}
             <!-- Default circle when not expanded -->
-            <div class="w-12 h-12 bg-violet-700 rounded-xl cursor-pointer shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 overflow-hidden">
+            <div class="w-12 h-12 bg-zinc-700 rounded-xl cursor-pointer shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 overflow-hidden">
                 {#if portraitUrl}
                     <img src={portraitUrl} alt="Profile" class="w-full h-full object-cover" />
                 {/if}

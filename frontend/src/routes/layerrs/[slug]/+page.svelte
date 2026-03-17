@@ -1,19 +1,40 @@
 <script lang="ts">
+    import { onMount } from 'svelte';
     import TopHeader from "../../../components/TopHeader.svelte";
     import { isSidebarOpen } from "../../../stores/player";
     import NewTrackCard from "../../../components/NewTrackCard.svelte";
 
+    import { goto } from '$app/navigation';
     import { page } from '$app/state';
+    import { getUrlBase } from "../../../stores/environment";
     import { urlBase } from "../../../stores/environment";
-    import { isLoggedIn, jwt } from "../../../stores/auth";
-    import LogInPopup from "../../../components/LogInPopup.svelte";
+    import { isLoggedIn, authInitialized } from "../../../stores/auth";
+    import type { TrackInfo } from "../../../models/types";
+    import { getTrackTrackInfo } from "../../../modules/requests/track-requests";
+    import { fetchWithAuth } from "../../../modules/lib/fetch";
+    import UploadTrackCard from "../../../components/UploadTrackCard.svelte";
+
+    $effect(() => {
+        if ($authInitialized && !$isLoggedIn) {
+            goto('/login');
+        }
+    });
 
     let slug = page.params.slug;
+    let track = $state<TrackInfo | undefined>(page.state.track);
+    let isLoadingTrack = $state(false);
+
+    onMount(async () => {
+        if (!track) {
+            isLoadingTrack = true;
+            track = await getTrackTrackInfo(getUrlBase(), slug) ?? undefined;
+            isLoadingTrack = false;
+        }
+    });
     let creditAgreement = $state(false);
     let noStealingAgreement = $state(false);
     let banAgreement = $state(false);
     let isSubmitting = $state(false);
-    let downloaded = $state(false);
     
     async function handleSubmit(event: Event) {
         event.preventDefault();
@@ -30,11 +51,7 @@
     }
 
     async function handleDownload() {
-        const response = await fetch(`${$urlBase}/api/track/${slug}/download`, {
-            headers: {
-                'Authorization': `Bearer ${$jwt}`
-            }
-        });
+        const response = await fetchWithAuth(`${$urlBase}/api/track/${slug}/download`);
 
         if (!response.ok) {
             alert('Failed to download track');
@@ -46,7 +63,7 @@
         if (res.url) {
             console.log(res.url);
             window.open(res.url);
-            downloaded = true;
+            goto('/upload');
 
         } else {
             alert('Failed to download track');
@@ -59,13 +76,19 @@
     <TopHeader pageName="" pageIcon=""></TopHeader>
     
     <section class="w-full flex flex-wrap justify-around pb-24">
+        {#if isLoadingTrack}
+            <div class="w-3/4 max-w-[1200px] pt-8">
+                <p class="text-zinc-400">Loading track info...</p>
+            </div>
+        {:else if track}
+            <div class="w-3/4 max-w-[1200px] pt-8">
+                <UploadTrackCard track={{ id: track.id, description: track.description, artistName: track.artistName, artistPortraitUrl: '' }} />
+            </div>
+        {/if}
         {#if $isLoggedIn}
-            <NewTrackCard trackId={slug}></NewTrackCard>
-
-            {#if !downloaded}
                 <form class="w-3/4 max-w-[1200px] py-8 px-6 bg-zinc-800 rounded-lg border-zinc-700 mt-8" onsubmit={handleSubmit}>
                     <div class="mb-6">
-                        <h2 class="text-3xl font-bold text-white mb-4 text-center">Flip This Track</h2>
+                        <h2 class="text-3xl font-bold text-white mb-4 text-center">Build on This Track</h2>
                         <div class="bg-zinc-700 rounded-lg p-4 mb-4">
                             <p class="text-zinc-200 text-sm leading-relaxed">
                                 <strong class="text-white">Note:</strong> This track will be added to "Your Layerrs" and should be given proper credit when uploading any track that uses any part of this file.
@@ -132,18 +155,6 @@
                         </button>
                     </div>
                 </form>
-            {:else}
-                <div class="w-3/4 max-w-[1200px] py-8 px-6 bg-zinc-800 rounded-lg border-zinc-700 mt-8">
-                    <div class="mb-6">
-                        <h2 class="text-3xl font-bold text-white mb-4 text-center">Successfully Downloaded!</h2>
-                        <p class="text-zinc-300 text-base leading-relaxed mb-6 text-center">
-                            This track has been added to "Your Layerrs" and should be given proper credit when uploading any track that uses any part of this file. You can give credit and create a connection to this track when using the upload track form.
-                        </p>
-                    </div>
-                </div>
-            {/if}
-        {:else}
-            <LogInPopup></LogInPopup>
         {/if}
     </section>
 </main>

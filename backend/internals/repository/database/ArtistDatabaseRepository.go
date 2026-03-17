@@ -3,11 +3,13 @@ package databaseRepository
 import (
 	"database/sql"
 	"context"
+	"errors"
 	"fmt"
 	"time"
 	"log"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/trentjkelly/layerrs/internals/entities"
 )
@@ -105,6 +107,10 @@ func (r *ArtistDatabaseRepository) UpdateArtist(ctx context.Context, artist *ent
 	err := row.Scan(&artist.UpdatedAt)
 
 	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
+			return entities.ErrUsernameTaken
+		}
 		return fmt.Errorf("failed to update artist in database: %w", err)
 	}
 
@@ -119,6 +125,10 @@ func (r *ArtistDatabaseRepository) UpdateArtistWithPortrait(ctx context.Context,
 	err := row.Scan(&artist.UpdatedAt)
 
 	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
+			return entities.ErrUsernameTaken
+		}
 		return fmt.Errorf("failed to update artist in database: %w", err)
 	}
 

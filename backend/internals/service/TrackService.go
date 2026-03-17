@@ -3,10 +3,12 @@ package service
 import (
 	"context"
 	"fmt"
+	"log"
 	"mime/multipart"
 	"path/filepath"
 	"strconv"
 	"time"
+	"os"
 
 	"github.com/trentjkelly/layerrs/internals/entities"
 	"github.com/trentjkelly/layerrs/internals/repository/computing"
@@ -20,6 +22,7 @@ const (
 
 type TrackService struct {
 	trackStorageRepo 		*storageRepository.TrackStorageRepository
+	portraitStorageRepo 	*storageRepository.PortraitStorageRepository
 	trackDatabaseRepo 		*databaseRepository.TrackDatabaseRepository
 	treeDatabaseRepo 		*databaseRepository.TrackTreeDatabaseRepository
 	trackConversionRepo 	*computingRepository.TrackConversionRepository
@@ -31,8 +34,9 @@ type TrackService struct {
 
 // Constructor for a new TrackService
 func NewTrackService(
-	trackStorageRepo 		*storageRepository.TrackStorageRepository, 
-	trackDatabaseRepo 		*databaseRepository.TrackDatabaseRepository, 
+	trackStorageRepo 		*storageRepository.TrackStorageRepository,
+	portraitStorageRepo 	*storageRepository.PortraitStorageRepository,
+	trackDatabaseRepo 		*databaseRepository.TrackDatabaseRepository,
 	treeDatabaseRepo 		*databaseRepository.TrackTreeDatabaseRepository,
 	trackConversionRepo 	*computingRepository.TrackConversionRepository,
 	waveformHeightsRepo 	*computingRepository.WaveformHeightsRepository,
@@ -42,6 +46,7 @@ func NewTrackService(
 ) *TrackService {
 	trackService := new(TrackService)
 	trackService.trackStorageRepo = trackStorageRepo
+	trackService.portraitStorageRepo = portraitStorageRepo
 	trackService.trackDatabaseRepo = trackDatabaseRepo
 	trackService.treeDatabaseRepo = treeDatabaseRepo
 	trackService.trackConversionRepo = trackConversionRepo
@@ -53,9 +58,9 @@ func NewTrackService(
 }
 
 // Adds all files and data for a new track -- called by TrackController for a POST request
-func (s *TrackService) AddAndUploadTrack(ctx context.Context, audio multipart.File, audioHeader *multipart.FileHeader, trackDescription string, artistId int, parentIDs []int) error {
+func (s *TrackService) AddAndUploadTrack(ctx context.Context, audio multipart.File, audioHeader *multipart.FileHeader, trackDescription string, artistId int, parentIDs []int, color string) error {
 	// Add track metadata to track table (get back ID)
-	track := entities.NewTrack(trackDescription, artistId)
+	track := entities.NewTrack(trackDescription, artistId, color)
 	err := s.trackDatabaseRepo.CreateTrack(ctx, track)
 	if err != nil {
 		return err
@@ -66,11 +71,15 @@ func (s *TrackService) AddAndUploadTrack(ctx context.Context, audio multipart.Fi
 	trackIdStr := strconv.Itoa(track.Id)
 
 	// Audio file type conversions
-	// TODO: Remove filepaths after being done
 	flacPath, opusPath, aacPath, flacName, opusName, aacName, err := s.trackConversionRepo.ConvertAllTracks(audio, trackIdStr, audiofileExtension)
 	if err != nil {
 		return fmt.Errorf("failed to convert audio file to all formats: %w", err)
 	}
+	defer func() {
+		os.Remove(flacPath)
+		os.Remove(opusPath)
+		os.Remove(aacPath)
+	}()
 
 	// Add all tracks to R2
 	err = s.trackStorageRepo.CreateAllTracks(ctx, flacPath, opusPath, aacPath, flacName, opusName, aacName)
@@ -108,17 +117,35 @@ func (s *TrackService) AddAndUploadTrack(ctx context.Context, audio multipart.Fi
 		return fmt.Errorf("failed to create the waveform in the db: %w", err)
 	}
 
+	// Create a new graph for the track
+	graph := new(entities.Graph)
+	graph.TotalTracks = 1
+	err = s.treeDatabaseRepo.CreateGraph(ctx, graph)
+	if err != nil {
+		return err
+	}
+
+	// Insert the artist's track into a new graph
+	trackGraph := new(entities.TrackGraph)
+	trackGraph.TrackId = track.Id
+	trackGraph.GraphId = graph.Id
+	err = s.treeDatabaseRepo.AddTracktoGraph(ctx, trackGraph)
+	if err != nil {
+		return fmt.Errorf("failed to add track to graph: %w", err)
+	}
+
 	// Track has an array of parents, need to add that relationship to the database as well
-	if parentIDs != nil {
+	if len(parentIDs) > 0 {
 		var trackTrees []*entities.TrackTree
 		for _, parentId := range parentIDs {
 			trackTree := new(entities.TrackTree)
 			trackTree.RootId = parentId
 			trackTree.ChildId = track.Id
+			trackTree.DerivationTag = "layerr" //TODO: change this later
 			trackTrees = append(trackTrees, trackTree)
 		}
 
-		err = s.treeDatabaseRepo.CreateTrackTrees(ctx, trackTrees)
+		err = s.treeDatabaseRepo.CreateGraphRelationships(ctx, trackTrees, track)
 		if err != nil {
 			return fmt.Errorf("failed to create the track tree in the db: %w", err)
 		}
@@ -161,6 +188,55 @@ func (s *TrackService) GetTrackInfo(ctx context.Context, trackId int) (*entities
 	}
 
 	return track, nil
+}
+
+// Gets a single track's full info by its ID
+func (s *TrackService) GetTrackRecommendation(ctx context.Context, trackId int, artistId int) (entities.TrackInfo, error) {
+	rec, err := s.trackDatabaseRepo.ReadOneTrackById(ctx, trackId, artistId)
+	if err != nil {
+		return rec, fmt.Errorf("failed to read track info from database: %w", err)
+	}
+
+	if rec.R2ImageKey != "" {
+		url, err := s.portraitStorageRepo.GetSignedPortraitURL(ctx, rec.R2ImageKey, 15*time.Minute)
+		if err != nil {
+			log.Printf("[WARN] GetTrackRecommendation: could not get signed portrait url: %s", err)
+		} else {
+			rec.ArtistPortraitUrl = url
+		}
+	}
+
+	return rec, nil
+}
+
+// Gets full track info for a batch of track IDs
+func (s *TrackService) GetTrackInfoBatch(ctx context.Context, trackIds []int, artistId int) ([]entities.TrackInfo, error) {
+	recs, err := s.trackDatabaseRepo.ReadTracksByIds(ctx, trackIds, artistId)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read tracks from database: %w", err)
+	}
+
+	for i, rec := range recs {
+		if rec.R2ImageKey != "" {
+			url, err := s.portraitStorageRepo.GetSignedPortraitURL(ctx, rec.R2ImageKey, 15*time.Minute)
+			if err != nil {
+				log.Printf("[WARN] GetTrackInfoBatch: could not get signed portrait url: %s", err)
+			} else {
+				recs[i].ArtistPortraitUrl = url
+			}
+		}
+	}
+
+	return recs, nil
+}
+
+// Gets all TrackTree relationships within the same graph as the given trackId
+func (s *TrackService) GetTrackGraphRelationships(ctx context.Context, trackId int) ([]*entities.TrackTree, error) {
+	trackTrees, err := s.treeDatabaseRepo.GetGraphTrackTrees(ctx, trackId)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get graph track trees: %w", err)
+	}
+	return trackTrees, nil
 }
 
 // Streams a track by its track id

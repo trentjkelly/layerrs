@@ -76,11 +76,11 @@ func main() {
 
 	// -- SERVICES --
 	authService := service.NewAuthService(passwordRepo, artistDatabaseRepo, authRepo, verificationEmailRepo, authDatabaseRepo, magicLink)
-	trackService := service.NewTrackService(trackStorageRepo, trackDatabaseRepo, trackTreeDatabaseRepo, trackConversionRepo, waveformRepo, waveformDatabaseRepo, layerrsDatabaseRepo, env)
-	recService := service.NewRecommendationsService(trackDatabaseRepo, likesDatabaseRepo)
+	trackService := service.NewTrackService(trackStorageRepo, portraitStorageRepo, trackDatabaseRepo, trackTreeDatabaseRepo, trackConversionRepo, waveformRepo, waveformDatabaseRepo, layerrsDatabaseRepo, env)
+	recService := service.NewRecommendationsService(trackDatabaseRepo, likesDatabaseRepo, portraitStorageRepo)
 	artistService := service.NewArtistService(artistDatabaseRepo, portraitStorageRepo, portraitConversionRepo)
 	likesService := service.NewLikesService(likesDatabaseRepo, trackDatabaseRepo)
-	layerrsService := service.NewLayerrsService(layerrsDatabaseRepo)
+	layerrsService := service.NewLayerrsService(layerrsDatabaseRepo, portraitStorageRepo)
 
 	// -- CONTROLLERS --
 	authController := controller.NewAuthController(authService, frontendUrl)

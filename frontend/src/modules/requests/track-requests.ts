@@ -1,5 +1,6 @@
 import { logger } from "../lib/logger";
-import type { TrackData } from "../../models/types";
+import { fetchWithAuth } from "../lib/fetch";
+import type { TrackData, TrackInfo } from "../../models/types";
 import { audio } from "../../stores/player";
 
 // Requests the metadata for the track
@@ -25,6 +26,20 @@ export async function getTrackData(urlBase: string, trackId: string): Promise<Tr
 
     } catch (error) {
         logger.error(`Error catching track data: ${error}`);
+        return null;
+    }
+}
+
+// Requests recommendation-shaped data for a single track
+export async function getTrackTrackInfo(urlBase: string, trackId: string): Promise<TrackInfo | null> {
+    try {
+        const response = await fetchWithAuth(`${urlBase}/api/track/${trackId}/recommendation`, { method: "GET" });
+        if (!response.ok) {
+            throw new Error("Failed to get track recommendation");
+        }
+        return await response.json() as TrackInfo;
+    } catch (error) {
+        logger.error(`Error getting track recommendation: ${error}`);
         return null;
     }
 }

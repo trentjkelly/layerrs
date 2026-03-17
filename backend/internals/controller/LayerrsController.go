@@ -34,7 +34,7 @@ func (c *LayerrsController) LayerrsHandlerGet(w http.ResponseWriter, r *http.Req
 	artistIdFloat := r.Context().Value(entities.ArtistIdKey).(float64)
 	artistId := int(artistIdFloat)
 
-	// Get the artist's layerrs
+	// Get the artist's layerrs with track info
 	layerrs, err := c.layerrsService.GetArtistLayerrs(r.Context(), artistId)
 	if err != nil {
 		log.Printf("[ERROR] LayerrsHandlerGet: %s", err)

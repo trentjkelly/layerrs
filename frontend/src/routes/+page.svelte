@@ -4,24 +4,19 @@
     import NewTrackCard from "../components/NewTrackCard.svelte";
     import UserMenu from "../components/UserMenu.svelte";
     import { isSidebarOpen } from "../stores/player";
-    import { handleEnvironment, urlBase } from "../stores/environment";
+    import { urlBase } from "../stores/environment";
     import { username, email, portraitUrl } from "../stores/profile";
     import { audio } from "../stores/player";
-    import { isLoggedIn, jwt, authInitialized } from "../stores/auth";
-    import type { Recommendation } from "../models/types";
+    import { authInitialized } from "../stores/auth";
+    import { fetchWithAuth } from "../modules/lib/fetch";
+    import type { TrackInfo } from "../models/types";
 
-    let tracks: Recommendation[] = $state([]);
+    let tracks: TrackInfo[] = $state([]);
 
     async function fetchData() {
-        const headers: Record<string, string> = {}
-        if ($isLoggedIn) {
-            headers['Authorization'] = `Bearer ${$jwt}`
-        }
-        const response = await fetch(`${$urlBase}/api/recommendations/home`, { headers })
+        const response = await fetchWithAuth(`${$urlBase}/api/recommendations/home`)
         const data = await response.json();
-        tracks = data as Recommendation[]
-		console.log('count of tracks', tracks.length)
-		console.log('tracks', tracks)
+        tracks = data as TrackInfo[]
     }
 
     $effect(() => {
@@ -103,7 +98,7 @@
 	}
 
     onMount(async () => {
-        await handleEnvironment()
+        await fetchData()
         // handleHotkeys()
     })
 
@@ -123,7 +118,7 @@
     <!-- Where the songs go -->
     <section class="w-full flex flex-wrap justify-around pb-24">
         {#each tracks as track}
-            <NewTrackCard track={track}></NewTrackCard>
+            <NewTrackCard {track}></NewTrackCard>
         {/each}
     </section>
 </main>

@@ -116,7 +116,6 @@ func (s *AuthService) VerifyArtist(ctx context.Context, token string) (string, s
 
 // Refresh a JWT token using a refresh token
 func (s *AuthService) RefreshJWT(ctx context.Context, refreshToken string) (string, error) {
-	log.Println(refreshToken)
 	token, err := s.authRepository.ValidateJWT(ctx, refreshToken)
 	if err != nil {
 		return "", entities.ErrInvalidToken

@@ -2,6 +2,8 @@ package databaseRepository
 
 import (
 	"context"
+	"database/sql"
+	"fmt"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/trentjkelly/layerrs/internals/entities"
 )
@@ -69,6 +71,52 @@ func (r *LikesDatabaseRepository) ReadLikeByTrackIdArtistId(ctx context.Context,
 	return nil
 }
 
+
+// Gets full track info for all tracks liked by an artist, sorted most recently liked first
+func (r *LikesDatabaseRepository) ReadLikedTracksFullByArtistId(ctx context.Context, artistId int) ([]entities.TrackInfo, error) {
+	query := `
+		SELECT t.id, t.description, t.artist_id, a.username, a.r2_image_key,
+		       t.likes, t.layerrs, t.duration, w.waveform_data, t.color,
+		       CASE WHEN alt.artist_id IS NOT NULL THEN true ELSE false END as is_liked
+		FROM artist_likes_track alt
+		JOIN track t ON alt.track_id = t.id
+		JOIN artist a ON t.artist_id = a.id
+		LEFT JOIN waveform w ON w.track_id = t.id
+		LEFT JOIN artist_likes_track alt2 ON alt2.track_id = t.id AND alt2.artist_id = $1
+		WHERE alt.artist_id = $1 AND t.is_valid = true
+		ORDER BY alt.created_at DESC;
+	`
+
+	rows, err := r.db.Query(ctx, query, artistId)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query liked tracks from database: %w", err)
+	}
+	defer rows.Close()
+
+	var tracks []entities.TrackInfo
+	for rows.Next() {
+		var track entities.TrackInfo
+		var waveformData []int
+		var r2ImageKey sql.NullString
+		err = rows.Scan(
+			&track.Id, &track.Description, &track.ArtistId, &track.ArtistName, &r2ImageKey,
+			&track.Likes, &track.Layerrs, &track.Duration, &waveformData, &track.Color, &track.IsLiked,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan liked tracks from database: %w", err)
+		}
+		if r2ImageKey.Valid {
+			track.R2ImageKey = r2ImageKey.String
+		}
+		if waveformData != nil {
+			track.WaveformData = waveformData
+		} else {
+			track.WaveformData = []int{}
+		}
+		tracks = append(tracks, track)
+	}
+	return tracks, nil
+}
 
 // Deletes a like from the database based on the like's artistId & trackId
 func (r *LikesDatabaseRepository) DeleteLike(ctx context.Context, like *entities.Like) error {

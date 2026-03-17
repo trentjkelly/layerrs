@@ -1,47 +1,65 @@
 <script lang="ts">
     import { goto } from "$app/navigation";
     import TopHeader from "../../components/TopHeader.svelte";
-    import { isLoggedIn, jwt } from "../../stores/auth";
+    import LayerrsTrackCard from "../../components/LayerrsTrackCard.svelte";
+    import { isLoggedIn, authInitialized } from "../../stores/auth";
+    import { fetchWithAuth } from "../../modules/lib/fetch";
     import { isSidebarOpen } from "../../stores/player";
-    import { handleEnvironment, urlBase } from "../../stores/environment";
+    import { urlBase } from "../../stores/environment";
     import { logger } from "../../modules/lib/logger";
     import { onMount } from "svelte";
-    import LogInPopup from "../../components/LogInPopup.svelte";
+
+    type LayerrTrack = {
+        id: number;
+        description: string;
+        artistName: string;
+        artistPortraitUrl: string;
+    };
+
+    type ColorName = 'red' | 'orange' | 'yellow' | 'green' | 'blue' | 'violet';
+
+    const colorOptions: { name: ColorName; bg: string }[] = [
+        { name: 'red',    bg: 'bg-red-500' },
+        { name: 'orange', bg: 'bg-orange-500' },
+        { name: 'yellow', bg: 'bg-yellow-500' },
+        { name: 'green',  bg: 'bg-green-500' },
+        { name: 'blue',   bg: 'bg-blue-500' },
+        { name: 'violet', bg: 'bg-violet-500' },
+    ];
+
+    $effect(() => {
+        if ($authInitialized && !$isLoggedIn) {
+            goto('/login');
+        }
+    });
 
     let audioFiles = $state<FileList | null>(null);
-    let artistLayerrs = $state<Array<string>>([]);
-    let layerrs = $state<Array<string>>([]);
+    let artistLayerrs = $state<Array<LayerrTrack>>([]);
+    let layerrs = $state<Array<number>>([]);
     let description = $state<string>('');
+    let selectedColor = $state<ColorName>('violet');
     let isUploaded = $state(false);
     let isDragOver = $state(false);
     let isLoading = $state(false);
 
     onMount(async () => {
-        await handleEnvironment();
         await getArtistLayerrs();
     })
 
     async function getArtistLayerrs() {
-        const response = await fetch(`${$urlBase}/api/layerrs`, {
-            headers: {
-                'Authorization': `Bearer ${$jwt}`
-            }
-        });
+        const response = await fetchWithAuth(`${$urlBase}/api/layerrs`);
         if (!response.ok) {
             throw new Error("Failed to get artist layerrs");
         }
-        const layerrsData : Array<any> = await response.json();
-
-        console.log(layerrsData);
-
-        artistLayerrs = layerrsData.map(layerr => layerr.trackId);
+        const layerrsData: Array<LayerrTrack> = await response.json();
+        artistLayerrs = layerrsData ?? [];
     }
 
     function removeAudioFile() {
         audioFiles = null;
     }
 
-    function addlayerr(trackId: string) {
+    function addlayerr(trackId: number) {
         if (layerrs.includes(trackId)) {
             layerrs = layerrs.filter(id => id !== trackId);
         } else {
@@ -101,12 +119,10 @@
             form.append('audioFile', audioFile)
             form.append('description', description)
             form.append('layerrIDs', JSON.stringify(layerrs))
+            form.append('color', selectedColor)
 
-            const res = await fetch(`${$urlBase}/api/track/`, { 
-                method: "POST", 
-                headers: {
-                    'Authorization': `Bearer ${$jwt}`
-                },
+            const res = await fetchWithAuth(`${$urlBase}/api/track/`, {
+                method: "POST",
                 body: form
             });
             if (res.status == 201) {
@@ -199,22 +215,33 @@
                                 You haven't downloaded any tracks yet
                             </div>
                         {:else}
-                            {#each artistLayerrs as trackId}
-                                <button
-                                    type="button"
-                                    onclick={() => addlayerr(trackId)}
-                                    class="w-full flex items-center justify-between px-4 py-3 text-left text-white border-b border-zinc-600 last:border-b-0 cursor-pointer transition-colors {layerrs.includes(trackId) ? 'bg-violet-900/30 hover:bg-violet-900/50' : 'hover:bg-zinc-600'}"
-                                >
-                                    <span>{trackId}</span>
-                                    {#if layerrs.includes(trackId)}
-                                        <span class="text-violet-400 font-bold">✓</span>
-                                    {/if}
-                                </button>
+                            {#each artistLayerrs as track}
+                                <LayerrsTrackCard
+                                    {track}
+                                    isSelected={layerrs.includes(track.id)}
+                                    ontoggle={addlayerr}
+                                />
                             {/each}
                         {/if}
                     </div>
                 </div>
                 
+                <!-- Color Selector -->
+                <div class="w-full mb-4">
+                    <h3 class="text-xl font-semibold text-white mb-1">Color</h3>
+                    <p class="text-sm text-zinc-400 mt-1 mb-3">Choose the accent color for your track.</p>
+                    <div class="flex flex-row gap-4">
+                        {#each colorOptions as option}
+                            <button
+                                type="button"
+                                onclick={() => selectedColor = option.name}
+                                class="w-8 h-8 rounded-full {option.bg} transition-all duration-200 {selectedColor === option.name ? 'ring-2 ring-offset-2 ring-offset-zinc-800 ring-white scale-110' : 'opacity-60 hover:opacity-100'}"
+                                aria-label={option.name}
+                            ></button>
+                        {/each}
+                    </div>
+                </div>
+
                 <button
                     class="mt-8 px-8 py-4 bg-indigo-600 hover:bg-indigo-700 rounded-full text-white font-semibold text-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-3"
                     onclick={submitFile}
@@ -239,8 +266,6 @@
                 </div>
             {/if}
         </div>
-        {:else}
-            <LogInPopup />
         {/if}
     </section>
 </main>

@@ -1,10 +1,23 @@
-<script>
-    import { jwt } from "../stores/auth";
+<script lang="ts">
     import { goto } from "$app/navigation";
     import { urlBase } from "../stores/environment";
     import { logger } from "../modules/lib/logger";
+    import { fetchWithAuth } from "../modules/lib/fetch";
 
-    let { trackId, numLikes, isLiked = false } = $props()
+    type ColorName = 'red' | 'orange' | 'yellow' | 'green' | 'blue' | 'violet';
+
+    const colorClasses: Record<ColorName, { hoverText500: string }> = {
+        red:    { hoverText500: 'hover:text-red-500' },
+        orange: { hoverText500: 'hover:text-orange-500' },
+        yellow: { hoverText500: 'hover:text-yellow-500' },
+        green:  { hoverText500: 'hover:text-green-500' },
+        blue:   { hoverText500: 'hover:text-blue-500' },
+        violet: { hoverText500: 'hover:text-violet-500' },
+    };
+
+    let { trackId, numLikes, isLiked = false, color = 'violet' } = $props()
+
+    const colors = $derived(colorClasses[(color as ColorName) ?? 'violet']);
     let isTrackLiked = $state(isLiked)
 
     // Changes the like button image, numLikes, and requests backend to save a like
@@ -26,11 +39,8 @@
         formData.append('trackId', trackId)
 
         try {
-            const res = await fetch(`${$urlBase}/api/likes`, {
+            const res = await fetchWithAuth(`${$urlBase}/api/likes`, {
                 method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${$jwt}`
-                },
                 body: formData
             })
 
@@ -50,12 +60,7 @@
         })
 
         try {
-            const res = await fetch(`${$urlBase}/api/likes?${params}`, {
-                method: 'DELETE',
-                headers: {
-                    'Authorization': `Bearer ${$jwt}`
-                }
-            })
+            const res = await fetchWithAuth(`${$urlBase}/api/likes?${params}`, { method: 'DELETE' })
 
             if (res.status == 401) {
                 goto('/login')
@@ -68,7 +73,7 @@
 
 </script>
 
-<button class="px-2 py-1 ml-2 flex flex-row items-center justify-center hover:bg-white transition-all duration-300 text-white hover:text-violet-500" onclick={toggleLikedTrack}>
+<button class="px-2 py-1 ml-2 rounded-md flex flex-row items-center justify-center hover:bg-white transition-all duration-300 text-white {colors.hoverText500}" onclick={toggleLikedTrack}>
     {#if isTrackLiked}
         <p>LIKED</p>                   
     {:else}
