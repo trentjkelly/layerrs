@@ -112,7 +112,7 @@
 
 </script>
 
-<div class="h-screen w-screen overflow-hidden flex flex-row bg-zinc-900 text-white font-body">
+<div class="h-screen w-screen flex flex-row bg-zinc-900 text-white font-body">
 	<SideBar></SideBar>
 	{@render children()}
 	<!-- <AudioPlayer></AudioPlayer> -->

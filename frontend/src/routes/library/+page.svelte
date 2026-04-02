@@ -37,7 +37,7 @@
     });
 </script>
 
-<main class={`transition-all duration-300 h-full w-full ${$isSidebarOpen ? 'ml-64' : 'ml-0'} bg-zinc-900`}>
+<main class={`transition-all duration-300 h-screen overflow-y-auto overflow-x-hidden w-full ${$isSidebarOpen ? 'ml-64' : 'ml-0'} bg-zinc-900`}>
     <TopHeader pageName="Your Library" pageIcon="/vinyl.png"></TopHeader>
 
     <section class="w-full h-full flex flex-row justify-center pb-24">
