@@ -27,10 +27,7 @@
 
     // State variables for the page
     let newAudioURL = $state('');
-    let trackDescription = $state(track.description);
-    let artistId = $state(track.artistId);
-    let artistName = $state(track.artistName);
-    
+
     let parentTrackName = $state('');
     let parentTrackId = $state(0);
     let parentTrackArist = $state('Yer');
@@ -43,17 +40,14 @@
     let sourceBuffer = $state<SourceBuffer | null>(null);
     let isLoading = $state(false);
     let currentOffset = $state(0);
-    let numLikes = $state(track.likes);
     let urlBase = $state('');
 
     // Waveform container width
     let waveformWidth = $state(0);
-    let waveformBars = $state(track.waveformData);
     let visibleBars = $state([0]);
     let timePerBar = $state(0);
 
     // Track data
-    let trackDuration = $state(track.duration);
     let currentTime = $state(0);
     let cursorTime = $state(0);
     let cursorPercentage = $state(0);
@@ -71,7 +65,7 @@
             const updateTime = () => {
                 currentTime = $audio.currentTime
                 globalCurrentTime.set($audio.currentTime)
-                currentSongPercentage = currentTime / trackDuration * 100
+                currentSongPercentage = currentTime / track.duration * 100
             }
 
             $audio.addEventListener('timeupdate', updateTime);
@@ -113,14 +107,14 @@
             const totalBarWidth = barWidth + barMargin;
             const numBars = Math.floor(waveformWidth / totalBarWidth);
             const selectedIndices = getSelectedIndices(numBars)
-            visibleBars = selectedIndices.map(index => waveformBars[index])
-            timePerBar = trackDuration / numBars
+            visibleBars = selectedIndices.map(index => track.waveformData[index])
+            timePerBar = track.duration / numBars
         }
     }
 
     function getSelectedIndices(numBars: number) {
             const selectedIndices = []
-            const length = waveformBars.length
+            const length = track.waveformData.length
             
             for (let i = 0; i < numBars; i++) {
                 let index = Math.round(length * i / numBars)
@@ -199,7 +193,7 @@
     }
 
     function getSongPercentage() {
-        return currentTime / trackDuration
+        return currentTime / track.duration
     }
 
     function handleMouseMove(event: MouseEvent) {
@@ -212,7 +206,7 @@
             percentage = 1
         }
         cursorPercentage = percentage * 100
-        cursorTime = percentage * trackDuration
+        cursorTime = percentage * track.duration
     }
 
     function handleMouseLeave(event: MouseEvent) {
@@ -252,11 +246,11 @@
 
     <div class="w-full h-12 mb-1 flex flex-row items-center">
             {#if track.artistPortraitUrl}
-                <img src={track.artistPortraitUrl} alt={artistName} class="w-10 h-10 rounded-lg object-cover ml-2" />
+                <img src={track.artistPortraitUrl} alt={track.artistName} class="w-10 h-10 rounded-lg object-cover ml-2" />
             {/if}
-            <a class="ml-2 px-1 rounded-md hover:bg-white text-lg transition-all duration-300 {colors.text500}" href={`/artist/${artistId}`}>{artistName}</a>
+            <a class="ml-2 px-1 rounded-md hover:bg-white text-lg transition-all duration-300 {colors.text500}" href={`/artist/${track.artistId}`}>{track.artistName}</a>
             <p class="ml-2 {colors.text400}">•</p>
-            <a class="ml-2 px-1 rounded-md text-zinc-100 hover:bg-white text-lg transition-all duration-300 {colors.hoverText500}" href={`/track/${track.id}`}>{trackDescription}</a>
+            <a class="ml-2 px-1 rounded-md text-zinc-100 hover:bg-white text-lg transition-all duration-300 {colors.hoverText500}" href={`/track/${track.id}`}>{track.description}</a>
     </div>
     <!-- Waveform -->
     <div 
@@ -285,7 +279,7 @@
 
     <!-- Track Information -->
     <div class="w-full h-12 flex flex-row items-center">
-        <LikeButton trackId={track.id} numLikes={numLikes} isLiked={track.isLiked} color={track.color}></LikeButton>
+        <LikeButton trackId={track.id} numLikes={track.likes} isLiked={track.isLiked} color={track.color}></LikeButton>
         <button class="py-1 px-3 ml-4 rounded-md flex flex-row items-center justify-center transition-all duration-200 text-white font-semibold tracking-wider text-sm hover:scale-105 active:scale-95 hover:shadow-md {colors.gradientBg} {colors.hoverShadow}" onclick={navigateLayerr}>
             <p class="text-md">BUILD ON THIS</p>
         </button>

@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { untrack } from 'svelte';
     import { goto } from "$app/navigation";
     import { urlBase } from "../stores/environment";
     import { logger } from "../modules/lib/logger";
@@ -18,7 +19,7 @@
     let { trackId, numLikes, isLiked = false, color = 'violet' } = $props()
 
     const colors = $derived(colorClasses[(color as ColorName) ?? 'violet']);
-    let isTrackLiked = $state(isLiked)
+    let isTrackLiked = $state(untrack(() => isLiked))
 
     // Changes the like button image, numLikes, and requests backend to save a like
     async function toggleLikedTrack() {
