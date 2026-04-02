@@ -71,30 +71,28 @@ func (s *TrackService) AddAndUploadTrack(ctx context.Context, audio multipart.Fi
 	trackIdStr := strconv.Itoa(track.Id)
 
 	// Audio file type conversions
-	flacPath, opusPath, aacPath, flacName, opusName, aacName, err := s.trackConversionRepo.ConvertAllTracks(audio, trackIdStr, audiofileExtension)
+	flacPath, aacPath, flacName, aacName, err := s.trackConversionRepo.ConvertAllTracks(audio, trackIdStr, audiofileExtension)
 	if err != nil {
 		return fmt.Errorf("failed to convert audio file to all formats: %w", err)
 	}
 	defer func() {
 		os.Remove(flacPath)
-		os.Remove(opusPath)
 		os.Remove(aacPath)
 	}()
 
 	// Add all tracks to R2
-	err = s.trackStorageRepo.CreateAllTracks(ctx, flacPath, opusPath, aacPath, flacName, opusName, aacName)
+	err = s.trackStorageRepo.CreateAllTracks(ctx, flacPath, aacPath, flacName, aacName)
 	if err != nil {
 		return fmt.Errorf("failed to create all tracks in the storage bucket: %w", err)
 	}
 
 	duration, err := s.trackConversionRepo.GetAACTrackDuration(aacPath)
 	if err != nil {
-		return fmt.Errorf("failed to get the OPUS Track duration: %w", err)
+		return fmt.Errorf("failed to get the AAC Track duration: %w", err)
 	}
 
 	track.AacR2TrackKey = aacName
 	track.FlacR2TrackKey = flacName
-	track.OpusR2TrackKey = opusName
 	track.TrackDuration = duration
 
 	err = s.trackDatabaseRepo.UpdateTrack(ctx, track)
@@ -253,7 +251,7 @@ func (s *TrackService) GetStreamingSignedTrackURL(ctx context.Context, trackId i
 		return "", "", fmt.Errorf("track is not valid")
 	}
 
-	url, expiresAt, err := s.trackStorageRepo.GetSignedOpusURL(ctx, track.OpusR2TrackKey, 10*time.Minute)
+	url, expiresAt, err := s.trackStorageRepo.GetSignedAacURL(ctx, track.AacR2TrackKey, 10*time.Minute)
 	if err != nil {
 		return "", "", fmt.Errorf("failed to get signed url for track: %w", err)
 	}

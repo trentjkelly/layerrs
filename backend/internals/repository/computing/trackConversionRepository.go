@@ -18,43 +18,41 @@ func NewTrackConversionRepository() *TrackConversionRepository {
 	return trackConversionRepository
 }
 
-func (r *TrackConversionRepository) ConvertAllTracks(audio multipart.File, trackId string, audioExtension string) (string, string, string, string, string, string, error) {
+func (r *TrackConversionRepository) ConvertAllTracks(audio multipart.File, trackId string, audioExtension string) ( string, string, string, string, error) {
 	tempDirPath, err := os.MkdirTemp("", trackId)
 	if err != nil {
-		return "", "", "", "", "", "", fmt.Errorf("failed to create temp path: %w", err)
+		return "", "", "", "", fmt.Errorf("failed to create temp path: %w", err)
 	}
 
 	tempFilePath := filepath.Join(tempDirPath, fmt.Sprintf("%s.%s", trackId, audioExtension))
 	if tempFilePath == "" {
-		return "", "", "", "", "", "", fmt.Errorf("tempFilePath could not be created")
+		return "", "", "", "", fmt.Errorf("tempFilePath could not be created")
 	}
 
 	err = r.WriteFileToTempPath(audio, tempFilePath)
 	if err != nil {
-		return "", "", "", "", "", "", fmt.Errorf("could not write file: %w", err)
+		return "", "", "", "", fmt.Errorf("could not write file: %w", err)
 	}
 
-	flacPath, aacPath, opusPath, flacName, opusName, aacName := r.CreatePathNames(tempDirPath, trackId)
+	flacPath, aacPath, flacName, aacName := r.CreatePathNames(tempDirPath, trackId)
 
-	err = r.FFMPEGConversions(tempFilePath, flacPath, opusPath, aacPath) 
+	err = r.FFMPEGConversions(tempFilePath, flacPath, aacPath) 
 	if err != nil {
-		return "", "", "", "", "", "", fmt.Errorf("could not convert tracks to different types: %w", err)
+		return "", "", "", "", fmt.Errorf("could not convert tracks to different types: %w", err)
 	}
 
-	return flacPath, opusPath, aacPath, flacName, opusName, aacName, nil
+	return flacPath, aacPath, flacName, aacName, nil
 }
 
-func (r *TrackConversionRepository) CreatePathNames(tempDirPath string, trackId string) (string, string, string, string, string, string) {
+func (r *TrackConversionRepository) CreatePathNames(tempDirPath string, trackId string) (string, string, string, string) {
 	flacName := fmt.Sprintf("%s.flac", trackId)
-	opusName := fmt.Sprintf("%s.opus", trackId)
 	aacName := fmt.Sprintf("%s.aac", trackId)
 	flacPath := filepath.Join(tempDirPath, flacName)
 	aacPath := filepath.Join(tempDirPath, aacName)
-	opusPath := filepath.Join(tempDirPath, opusName)
-	return flacPath, aacPath, opusPath, flacName, opusName, aacName
+	return flacPath, aacPath, flacName, aacName
 }
 
-func (r *TrackConversionRepository) FFMPEGConversions(inputPath string, flacPath string, opusPath string, aacPath string) error {
+func (r *TrackConversionRepository) FFMPEGConversions(inputPath string, flacPath string, aacPath string) error {
 	err := r.ConvertTrackToFLAC(inputPath, flacPath)
 	if err != nil {
 		return fmt.Errorf("failed to convert track to FLAC: %w", err)
@@ -65,11 +63,6 @@ func (r *TrackConversionRepository) FFMPEGConversions(inputPath string, flacPath
 		return fmt.Errorf("failed to convert track to AAC: %w", err)
 	}
 	
-	
-	err = r.ConvertTrackToOPUS(flacPath, opusPath)
-	if err != nil {
-		return fmt.Errorf("failed to convert track to OPUS: %w", err)
-	}
 
 	err = os.Remove(inputPath)
 	if err != nil {
@@ -151,30 +144,6 @@ func (r *TrackConversionRepository) ConvertTrackToFLAC(inputPath string, outputP
 	err := cmd.Run()
 	if err != nil {
 		return fmt.Errorf("failed to convert track to FLAC: %w", err)
-	}
-
-	return nil
-}
-
-func (r *TrackConversionRepository) ConvertTrackToOPUS(inputPath string, outputPath string) error {
-	cmd := exec.Command(
-		"ffmpeg", 
-		"-i", 
-		inputPath, 
-		"-codec:a", 
-		"libopus", 
-		"-b:a", 
-		"256k", 
-		"-vbr", 
-		"on", 
-		"-application", 
-		"audio", 
-		outputPath,
-	)
-
-	err := cmd.Run()
-	if err != nil {
-		return fmt.Errorf("failed to convert track to OPUS: %w", err)
 	}
 
 	return nil
