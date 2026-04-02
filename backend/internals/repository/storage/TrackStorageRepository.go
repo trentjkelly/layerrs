@@ -21,8 +21,8 @@ type TrackStorageRepository struct {
 	r2Config		*aws.Config
 	r2Client		*s3.Client
 	r2Presigner		*s3.PresignClient
-	trackOpusBucketName *string
 	trackFlacBucketName *string
+	trackAacBucketName  *string
 	environment		string
 }
 
@@ -32,14 +32,14 @@ func NewTrackStorageRepository(environment string) *TrackStorageRepository {
 	trackStorageRepository.r2Config = config.CreateR2Config()
 	trackStorageRepository.r2Client = config.CreateR2Client(trackStorageRepository.r2Config)
 	trackStorageRepository.r2Presigner = config.CreateR2Presigner(trackStorageRepository.r2Client)
-	trackStorageRepository.trackOpusBucketName = aws.String(os.Getenv(fmt.Sprintf("TRACK_AUDIO_OPUS_BUCKET_NAME_%s", environment)))
 	trackStorageRepository.trackFlacBucketName = aws.String(os.Getenv(fmt.Sprintf("TRACK_AUDIO_FLAC_BUCKET_NAME_%s", environment)))
+	trackStorageRepository.trackAacBucketName = aws.String(os.Getenv(fmt.Sprintf("TRACK_AUDIO_AAC_BUCKET_NAME_%s", environment)))
 	trackStorageRepository.environment = environment
 	return trackStorageRepository
 }
 
 // Uploads all tracks to R2
-func (r *TrackStorageRepository) CreateAllTracks(ctx context.Context, flacPath string, opusPath string, aacPath string, flacKey string, opusKey string, aacKey string) error {
+func (r *TrackStorageRepository) CreateAllTracks(ctx context.Context, flacPath string, aacPath string, flacKey string, aacKey string) error {
 	envName := strings.ToLower(r.environment)
 	
 	// Upload FLAC file
@@ -68,19 +68,6 @@ func (r *TrackStorageRepository) CreateAllTracks(ctx context.Context, flacPath s
 	}
 	file.Close()
 
-	// Upload OPUS file
-	file, err = os.Open(opusPath)
-	if err != nil {
-		return fmt.Errorf("could not open the aac file: %w", err)
-	}
-
-	opusBucketName := fmt.Sprintf("track-audio-opus-%s", envName)
-	err = r.CreateTrack(ctx, file, opusKey, opusBucketName)
-	if err != nil {
-		return fmt.Errorf("failed to upload flac file to R2: %w", err)
-	}
-	file.Close()
-
 	return nil
 }
 
@@ -99,25 +86,6 @@ func (r *TrackStorageRepository) CreateTrack(ctx context.Context, file multipart
 	}
 
 	return nil
-}
-
-// Gets a track from storage (to be streamed)
-func (r *TrackStorageRepository) ReadOpusTrack(ctx context.Context, trackName *string, startByte int, endByte int) (io.ReadCloser, error) {
-	rangeString := fmt.Sprintf("bytes=%d-%d", startByte, endByte)
-
-	input := &s3.GetObjectInput{
-		Bucket: r.trackOpusBucketName,
-		Key: trackName,
-		Range: aws.String(rangeString),
-	}
-
-	res, err := r.r2Client.GetObject(ctx, input)
-
-	if err != nil {
-		return nil, err
-	}
-
-	return res.Body, nil
 }
 
 // Gets a track from storage (to be streamed)
@@ -140,11 +108,11 @@ func (r *TrackStorageRepository) ReadFlacTrack(ctx context.Context, trackName *s
 }
 
 // Gets a signed url for a track
-func ( r*TrackStorageRepository) GetSignedOpusURL(ctx context.Context, objectKey string, expirationTime time.Duration) (string, time.Duration, error) {
+func (r *TrackStorageRepository) GetSignedAacURL(ctx context.Context, objectKey string, expirationTime time.Duration) (string, time.Duration, error) {
 
 	log.Println("[DEBUG] Getting signed url for track: ", objectKey)
 	input := &s3.GetObjectInput{
-		Bucket: r.trackOpusBucketName,
+		Bucket: r.trackAacBucketName,
 		Key: &objectKey,
 	}
 
@@ -154,6 +122,8 @@ func ( r*TrackStorageRepository) GetSignedOpusURL(ctx context.Context, objectKey
 	if err != nil {
 		return "", 0, fmt.Errorf("failed to get presigned url: %w", err)
 	}
+
+	log.Println("[DEBUG] Signed url for track: ", req.URL)
 
 	return req.URL, expirationTime, nil
 }
