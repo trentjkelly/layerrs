@@ -34,31 +34,31 @@ func (r *TrackConversionRepository) ConvertAllTracks(audio multipart.File, track
 		return "", "", "", "", fmt.Errorf("could not write file: %w", err)
 	}
 
-	flacPath, aacPath, flacName, aacName := r.CreatePathNames(tempDirPath, trackId)
+	wavPath, aacPath, wavName, aacName := r.CreatePathNames(tempDirPath, trackId)
 
-	err = r.FFMPEGConversions(tempFilePath, flacPath, aacPath) 
+	err = r.FFMPEGConversions(tempFilePath, wavPath, aacPath) 
 	if err != nil {
 		return "", "", "", "", fmt.Errorf("could not convert tracks to different types: %w", err)
 	}
 
-	return flacPath, aacPath, flacName, aacName, nil
+	return wavPath, aacPath, wavName, aacName, nil
 }
 
 func (r *TrackConversionRepository) CreatePathNames(tempDirPath string, trackId string) (string, string, string, string) {
-	flacName := fmt.Sprintf("%s.flac", trackId)
+	wavName := fmt.Sprintf("%s.wav", trackId)
 	aacName := fmt.Sprintf("%s.aac", trackId)
-	flacPath := filepath.Join(tempDirPath, flacName)
+	wavPath := filepath.Join(tempDirPath, wavName)
 	aacPath := filepath.Join(tempDirPath, aacName)
-	return flacPath, aacPath, flacName, aacName
+	return wavPath, aacPath, wavName, aacName
 }
 
-func (r *TrackConversionRepository) FFMPEGConversions(inputPath string, flacPath string, aacPath string) error {
-	err := r.ConvertTrackToFLAC(inputPath, flacPath)
+func (r *TrackConversionRepository) FFMPEGConversions(inputPath string, wavPath string, aacPath string) error {
+	err := r.ConvertTrackToWAV(inputPath, wavPath)
 	if err != nil {
-		return fmt.Errorf("failed to convert track to FLAC: %w", err)
+		return fmt.Errorf("failed to convert track to WAV: %w", err)
 	}
 	
-	err = r.ConvertTrackToAAC(flacPath, aacPath)
+	err = r.ConvertTrackToAAC(wavPath, aacPath)
 	if err != nil {
 		return fmt.Errorf("failed to convert track to AAC: %w", err)
 	}
@@ -129,22 +129,20 @@ func (r *TrackConversionRepository) ConvertTrackToAAC(inputPath string, outputPa
 	return nil
 }
 
-func (r *TrackConversionRepository) ConvertTrackToFLAC(inputPath string, outputPath string) error {
-	cmd := exec.Command(
-		"ffmpeg", 
-		"-i", 
-		inputPath, 
-		"-codec:a", 
-		"flac", 
-		"-compression_level", 
-		"8",
-		outputPath,
-	)
+func (r *TrackConversionRepository) ConvertTrackToWAV(inputPath string, outputPath string) error {
+    cmd := exec.Command(
+        "ffmpeg",
+        "-i",
+        inputPath,
+        "-codec:a",
+        "pcm_s16le",
+        outputPath,
+    )
 
-	err := cmd.Run()
-	if err != nil {
-		return fmt.Errorf("failed to convert track to FLAC: %w", err)
-	}
+    err := cmd.Run()
+    if err != nil {
+        return fmt.Errorf("failed to convert track to WAV: %w", err)
+    }
 
-	return nil
+    return nil
 }

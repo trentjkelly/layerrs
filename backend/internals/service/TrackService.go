@@ -71,17 +71,17 @@ func (s *TrackService) AddAndUploadTrack(ctx context.Context, audio multipart.Fi
 	trackIdStr := strconv.Itoa(track.Id)
 
 	// Audio file type conversions
-	flacPath, aacPath, flacName, aacName, err := s.trackConversionRepo.ConvertAllTracks(audio, trackIdStr, audiofileExtension)
+	wavPath, aacPath, wavName, aacName, err := s.trackConversionRepo.ConvertAllTracks(audio, trackIdStr, audiofileExtension)
 	if err != nil {
 		return fmt.Errorf("failed to convert audio file to all formats: %w", err)
 	}
 	defer func() {
-		os.Remove(flacPath)
+		os.Remove(wavPath)
 		os.Remove(aacPath)
 	}()
 
 	// Add all tracks to R2
-	err = s.trackStorageRepo.CreateAllTracks(ctx, flacPath, aacPath, flacName, aacName)
+	err = s.trackStorageRepo.CreateAllTracks(ctx, wavPath, aacPath, wavName, aacName)
 	if err != nil {
 		return fmt.Errorf("failed to create all tracks in the storage bucket: %w", err)
 	}
@@ -92,7 +92,7 @@ func (s *TrackService) AddAndUploadTrack(ctx context.Context, audio multipart.Fi
 	}
 
 	track.AacR2TrackKey = aacName
-	track.FlacR2TrackKey = flacName
+	track.WavR2TrackKey = wavName
 	track.TrackDuration = duration
 
 	err = s.trackDatabaseRepo.UpdateTrack(ctx, track)
@@ -102,7 +102,7 @@ func (s *TrackService) AddAndUploadTrack(ctx context.Context, audio multipart.Fi
 
 	// Waveform generation
 	waveformEntity := new(entities.Waveform)
-	waveform, err := s.waveformHeightsRepo.CreateWaveform(flacPath)
+	waveform, err := s.waveformHeightsRepo.CreateWaveform(wavPath)
 	if err != nil {
 		return fmt.Errorf("failed to create the waveform for the audio file: %w", err)
 	}
@@ -284,7 +284,7 @@ func (s *TrackService) GetDownloadSignedTrackURL(ctx context.Context, trackId in
 		return "", "", fmt.Errorf("failed to create layerr in the db: %w", err)
 	}
 
-	url, expiresAt, err := s.trackStorageRepo.GetSignedFlacURL(ctx, track.FlacR2TrackKey, 1*time.Minute)
+	url, expiresAt, err := s.trackStorageRepo.GetSignedWavURL(ctx, track.WavR2TrackKey, 1*time.Minute)
 	if err != nil {
 		return "", "", fmt.Errorf("failed to get signed url for track: %w", err)
 	}

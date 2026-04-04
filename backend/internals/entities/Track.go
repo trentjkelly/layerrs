@@ -8,7 +8,7 @@ type Track struct {
 	Id             int       `json:"id"`
 	Description    string    `json:"description"`
 	ArtistId       int       `json:"artistId"`
-	FlacR2TrackKey string    `json:"flacR2TrackKey"`
+	WavR2TrackKey string    `json:"wavR2TrackKey"`
 	AacR2TrackKey  string    `json:"aacR2TrackKey"`
 	CreatedAt      time.Time `json:"createdAt"`
 	Plays          int       `json:"plays"`
