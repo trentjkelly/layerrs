@@ -29,6 +29,7 @@ type TrackService struct {
 	waveformHeightsRepo 	*computingRepository.WaveformHeightsRepository
 	waveformDatabaseRepo 	*databaseRepository.WaveformDatabaseRepository
 	layerrsDatabaseRepo 	*databaseRepository.LayerrsDatabaseRepository
+	artistDatabaseRepo *databaseRepository.ArtistDatabaseRepository
 	environment				string
 }
 
@@ -42,6 +43,7 @@ func NewTrackService(
 	waveformHeightsRepo 	*computingRepository.WaveformHeightsRepository,
 	waveformDatabaseRepo 	*databaseRepository.WaveformDatabaseRepository,
 	layerrsDatabaseRepo 	*databaseRepository.LayerrsDatabaseRepository,
+	artistDatabaseRepo *databaseRepository.ArtistDatabaseRepository,
 	environment				string,
 ) *TrackService {
 	trackService := new(TrackService)
@@ -53,15 +55,32 @@ func NewTrackService(
 	trackService.waveformHeightsRepo = waveformHeightsRepo
 	trackService.waveformDatabaseRepo = waveformDatabaseRepo
 	trackService.layerrsDatabaseRepo = layerrsDatabaseRepo
+	trackService.artistDatabaseRepo = artistDatabaseRepo
 	trackService.environment = environment
 	return trackService
 }
 
 // Adds all files and data for a new track -- called by TrackController for a POST request
 func (s *TrackService) AddAndUploadTrack(ctx context.Context, audio multipart.File, audioHeader *multipart.FileHeader, trackDescription string, artistId int, parentIDs []int, color string) error {
+
+	artist := new(entities.Artist)
+	artist.Id = artistId
+	err := s.artistDatabaseRepo.ReadArtistById(ctx, artist)
+	if err != nil {
+		return fmt.Errorf("failed to read artist from database: %w", err)
+	}
+
+	if artist.Username == "" {
+			return fmt.Errorf("Artist has no username")
+	}
+
+	if artist.Username == "" {
+		return fmt.Errorf("Artist has no username")
+	}
+
 	// Add track metadata to track table (get back ID)
 	track := entities.NewTrack(trackDescription, artistId, color)
-	err := s.trackDatabaseRepo.CreateTrack(ctx, track)
+	err = s.trackDatabaseRepo.CreateTrack(ctx, track)
 	if err != nil {
 		return err
 	}
@@ -291,3 +310,5 @@ func (s *TrackService) GetDownloadSignedTrackURL(ctx context.Context, trackId in
 
 	return url, expiresAt.String(), nil
 }
+
+
