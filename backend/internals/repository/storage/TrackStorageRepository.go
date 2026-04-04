@@ -21,7 +21,7 @@ type TrackStorageRepository struct {
 	r2Config		*aws.Config
 	r2Client		*s3.Client
 	r2Presigner		*s3.PresignClient
-	trackFlacBucketName *string
+	trackWavBucketName *string
 	trackAacBucketName  *string
 	environment		string
 }
@@ -32,26 +32,26 @@ func NewTrackStorageRepository(environment string) *TrackStorageRepository {
 	trackStorageRepository.r2Config = config.CreateR2Config()
 	trackStorageRepository.r2Client = config.CreateR2Client(trackStorageRepository.r2Config)
 	trackStorageRepository.r2Presigner = config.CreateR2Presigner(trackStorageRepository.r2Client)
-	trackStorageRepository.trackFlacBucketName = aws.String(os.Getenv(fmt.Sprintf("TRACK_AUDIO_FLAC_BUCKET_NAME_%s", environment)))
+	trackStorageRepository.trackWavBucketName = aws.String(os.Getenv(fmt.Sprintf("TRACK_AUDIO_WAV_BUCKET_NAME_%s", environment)))
 	trackStorageRepository.trackAacBucketName = aws.String(os.Getenv(fmt.Sprintf("TRACK_AUDIO_AAC_BUCKET_NAME_%s", environment)))
 	trackStorageRepository.environment = environment
 	return trackStorageRepository
 }
 
 // Uploads all tracks to R2
-func (r *TrackStorageRepository) CreateAllTracks(ctx context.Context, flacPath string, aacPath string, flacKey string, aacKey string) error {
+func (r *TrackStorageRepository) CreateAllTracks(ctx context.Context, wavPath string, aacPath string, wavKey string, aacKey string) error {
 	envName := strings.ToLower(r.environment)
 	
-	// Upload FLAC file
-	file, err := os.Open(flacPath)
+	// Upload WAV file
+	file, err := os.Open(wavPath)
 	if err != nil {
-		return fmt.Errorf("could not open the flac file: %w", err)
+		return fmt.Errorf("could not open the wav file: %w", err)
 	}
 
-	flacBucketName := fmt.Sprintf("track-audio-flac-%s", envName)
-	err = r.CreateTrack(ctx, file, flacKey, flacBucketName)
+	wavBucketName := fmt.Sprintf("track-audio-wav-%s", envName)
+	err = r.CreateTrack(ctx, file, wavKey, wavBucketName)
 	if err != nil {
-		return fmt.Errorf("failed to upload flac file to R2: %w", err)
+		return fmt.Errorf("failed to upload wav file to R2: %w", err)
 	}
 	file.Close()
 
@@ -64,7 +64,7 @@ func (r *TrackStorageRepository) CreateAllTracks(ctx context.Context, flacPath s
 	aacBucketName := fmt.Sprintf("track-audio-aac-%s", envName)
 	err = r.CreateTrack(ctx, file, aacKey, aacBucketName)
 	if err != nil {
-		return fmt.Errorf("failed to upload flac file to R2: %w", err)
+		return fmt.Errorf("failed to upload wav file to R2: %w", err)
 	}
 	file.Close()
 
@@ -89,11 +89,11 @@ func (r *TrackStorageRepository) CreateTrack(ctx context.Context, file multipart
 }
 
 // Gets a track from storage (to be streamed)
-func (r *TrackStorageRepository) ReadFlacTrack(ctx context.Context, trackName *string, startByte int, endByte int) (io.ReadCloser, error) {
+func (r *TrackStorageRepository) ReadWavTrack(ctx context.Context, trackName *string, startByte int, endByte int) (io.ReadCloser, error) {
 	rangeString := fmt.Sprintf("bytes=%d-%d", startByte, endByte)
 
 	input := &s3.GetObjectInput{
-		Bucket: r.trackFlacBucketName,
+		Bucket: r.trackWavBucketName,
 		Key: trackName,
 		Range: aws.String(rangeString),
 	}
@@ -129,11 +129,11 @@ func (r *TrackStorageRepository) GetSignedAacURL(ctx context.Context, objectKey 
 }
 
 // Gets a signed url for a track
-func ( r*TrackStorageRepository) GetSignedFlacURL(ctx context.Context, objectKey string, expirationTime time.Duration) (string, time.Duration, error) {
+func ( r*TrackStorageRepository) GetSignedWavURL(ctx context.Context, objectKey string, expirationTime time.Duration) (string, time.Duration, error) {
 
 	log.Println("[DEBUG] Getting signed url for track: ", objectKey)
 	input := &s3.GetObjectInput{
-		Bucket: r.trackFlacBucketName,
+		Bucket: r.trackWavBucketName,
 		Key: &objectKey,
 	}
 

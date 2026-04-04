@@ -39,23 +39,23 @@ func (r *TrackDatabaseRepository) CreateTrack(ctx context.Context, track *entiti
 
 // Gets a Track from the database based on their id
 func (r *TrackDatabaseRepository) ReadTrackById(ctx context.Context, track *entities.Track) error {
-	query := `SELECT id, description, artist_id, flac_r2_track_key, aac_r2_track_key, created_at, plays, likes, layerrs, is_valid, duration, color FROM track WHERE id=$1;`
+	query := `SELECT id, description, artist_id, wav_r2_track_key, aac_r2_track_key, created_at, plays, likes, layerrs, is_valid, duration, color FROM track WHERE id=$1;`
 	row := r.db.QueryRow(ctx, query, track.Id)
 
 	// Potential NULL Values
-	var flacR2TrackKey sql.NullString
+	var wavR2TrackKey sql.NullString
 	var aacR2TrackKey sql.NullString
 
-	err := row.Scan(&track.Id, &track.Description, &track.ArtistId, &flacR2TrackKey, &aacR2TrackKey, &track.CreatedAt, &track.Plays, &track.Likes, &track.Layerrs, &track.IsValid, &track.TrackDuration, &track.Color)
+	err := row.Scan(&track.Id, &track.Description, &track.ArtistId, &wavR2TrackKey, &aacR2TrackKey, &track.CreatedAt, &track.Plays, &track.Likes, &track.Layerrs, &track.IsValid, &track.TrackDuration, &track.Color)
 	if err != nil {
 		return fmt.Errorf("failed to scan rows in ReadTrackByID: %w", err)
 	}
 
 	// Potential NULL values converted to empty strings
-	if flacR2TrackKey.Valid {
-		track.FlacR2TrackKey = flacR2TrackKey.String
+	if wavR2TrackKey.Valid {
+		track.WavR2TrackKey = wavR2TrackKey.String
 	} else {
-		track.FlacR2TrackKey = ""
+		track.WavR2TrackKey = ""
 	}
 
 	if aacR2TrackKey.Valid {
@@ -69,8 +69,8 @@ func (r *TrackDatabaseRepository) ReadTrackById(ctx context.Context, track *enti
 
 // Updates the information for a Track in the database
 func (r *TrackDatabaseRepository) UpdateTrack(ctx context.Context, track *entities.Track) error {
-	query := `UPDATE track SET description=$2, flac_r2_track_key=$3, aac_r2_track_key=$4, is_valid=$5, duration=$6, color=$7 WHERE id=$1 RETURNING description;`
-	row := r.db.QueryRow(ctx, query, track.Id, track.Description, track.FlacR2TrackKey, track.AacR2TrackKey, track.IsValid, track.TrackDuration, track.Color)
+	query := `UPDATE track SET description=$2, wav_r2_track_key=$3, aac_r2_track_key=$4, is_valid=$5, duration=$6, color=$7 WHERE id=$1 RETURNING description;`
+	row := r.db.QueryRow(ctx, query, track.Id, track.Description, track.WavR2TrackKey, track.AacR2TrackKey, track.IsValid, track.TrackDuration, track.Color)
 	
 	err := row.Scan(&track.Description)
 	if err != nil {
