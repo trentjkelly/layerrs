@@ -8,6 +8,8 @@
     import { urlBase } from "../../stores/environment";
     import { logger } from "../../modules/lib/logger";
     import { onMount } from "svelte";
+    import { get } from "svelte/store";
+    import { username as usernameStore, loadProfile} from "../../stores/profile";
 
     type LayerrTrack = {
         id: number;
@@ -41,10 +43,26 @@
     let isUploaded = $state(false);
     let isDragOver = $state(false);
     let isLoading = $state(false);
+    let username = $state('');
 
     onMount(async () => {
         await getArtistLayerrs();
+        await getArtistUsername();
     })
+
+    async function getArtistUsername() {
+        username = get(usernameStore);
+        if(username != ''){
+            return;
+        }
+        usernameStore.set('');
+        await loadProfile();
+        username = get(usernameStore);
+        if (username == '') {
+            alert('You must set a username before continuing.');
+            goto('/profile');
+        }
+    }
 
     async function getArtistLayerrs() {
         const response = await fetchWithAuth(`${$urlBase}/api/layerrs`);
