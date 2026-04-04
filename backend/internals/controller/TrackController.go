@@ -17,6 +17,7 @@ import (
 
 type TrackController struct {
 	trackService *service.TrackService
+	artistService *service.ArtistService
 }
 
 // Constructor for a new TrackController
