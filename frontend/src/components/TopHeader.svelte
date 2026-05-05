@@ -12,7 +12,7 @@
 <section class="h-20 w-full flex flex-row items-center pl-8">
 
     {#if !$isSidebarOpen}
-        <button onclick={toggleSidebar} class="h-8 w-8 text-white rounded rounded-xl shadow hover:bg-zinc-600">
+        <button onclick={toggleSidebar} class="h-8 w-8 text-white rounded-sm rounded-xl shadow-sm hover:bg-zinc-600">
             <img src="/sidebar-out.png" alt="Open sidebar">
         </button>    
     {/if}

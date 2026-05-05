@@ -1,19 +1,22 @@
 <script lang="ts">
     import { onMount } from "svelte";
     import { get } from "svelte/store";
+    import { page } from "$app/state";
     import TopHeader from "../../components/TopHeader.svelte";
     import { isSidebarOpen } from "../../stores/player";
     import { urlBase } from "../../stores/environment";
     import { fetchWithAuth } from "../../modules/lib/fetch";
     import { logger } from "../../modules/lib/logger";
-    import { username as usernameStore, email, bio as bioStore, portraitUrl, loadProfile } from "../../stores/profile";
+    import { usernameStore, emailStore, bioStore, validStripeSellerStore, portraitUrlStore, loadProfile } from "../../stores/profile";
 
     let username = $state('');
     let bio = $state('');
+    let validStripeSeller = $state(false);
 
-    let profilePhotoSrc = $state<string | null>(null);
+    let portraitUrl = $state<string | null>(null);
     let photoFile = $state<File | null>(null);
     let isSaving = $state(false);
+    let isOnboarding = $state(false);
     let saveError = $state<string | null>(null);
     let saveSuccess = $state(false);
     let usernameError = $state<string | null>(null);
@@ -22,8 +25,20 @@
         await loadProfile();
         username = get(usernameStore);
         bio = get(bioStore);
-        profilePhotoSrc = get(portraitUrl) || null;
+        portraitUrl = get(portraitUrlStore) || null;
+        validStripeSeller = get(validStripeSellerStore);
+
+        const onboarding = page.url.searchParams.get('onboarding');
+        if (onboarding === 'complete') {
+            onboardingComplete();
+        } else if (onboarding === 'refresh') {
+            await onboardSeller();
+        }
     });
+
+    function onboardingComplete() {
+        console.log('stripe account is complete');
+    }
 
     function handlePhotoChange(event: Event) {
         const input = event.target as HTMLInputElement;
@@ -54,7 +69,7 @@
             canvas.toBlob((blob) => {
                 if (!blob) return;
                 photoFile = new File([blob], file.name, { type: outputType });
-                profilePhotoSrc = URL.createObjectURL(photoFile);
+                portraitUrl = URL.createObjectURL(photoFile);
             }, outputType, 0.9);
         };
 
@@ -63,7 +78,27 @@
 
     function removeNewPhoto() {
         photoFile = null;
-        profilePhotoSrc = null;
+        portraitUrl = null;
+    }
+
+    async function onboardSeller() {
+        isOnboarding = true;
+        try {
+            const res = await fetchWithAuth(`${$urlBase}/api/seller/onboard`, {
+                method: 'POST'
+            });
+
+            if (res.status === 200) {
+                const url = await res.json();
+                window.location.href = url;
+            } else {
+                logger.error(`Failed to onboard seller: ${res.status}`);
+                isOnboarding = false;
+            }
+        } catch (err) {
+            logger.error(`Error onboarding seller: ${err}`);
+            isOnboarding = false;
+        }
     }
 
     async function saveChanges() {
@@ -97,7 +132,7 @@
                 await loadProfile();
                 username = get(usernameStore);
                 bio = get(bioStore);
-                profilePhotoSrc = get(portraitUrl) || null;
+                portraitUrl = get(portraitUrlStore) || null;
                 photoFile = null;
             } else if (res.status === 409) {
                 usernameError = 'Username is already taken.';
@@ -118,14 +153,14 @@
     <TopHeader pageName="Profile" pageIcon=""></TopHeader>
 
     <section class="w-full flex flex-row justify-center pb-32">
-        <div class="outline outline-zinc-600 rounded-3xl w-2/3 max-w-4xl flex flex-col items-center p-8">
+        <div class="outline-solid outline-zinc-600 rounded-3xl w-2/3 max-w-4xl flex flex-col items-center p-8">
             <h2 class="mb-8 text-3xl font-bold text-white">Edit Profile</h2>
 
             <!-- Email (read-only) -->
             <div class="w-full mb-6">
                 <h3 class="text-xl font-semibold text-white mb-1">Email</h3>
                 <p class="w-full px-3 py-2 rounded-lg bg-zinc-800 text-zinc-400 border border-zinc-700 select-none">
-                    {$email}
+                    {$emailStore}
                 </p>
             </div>
 
@@ -133,7 +168,7 @@
             <div class="w-full mb-6">
                 <h3 class="text-xl font-semibold text-white mb-1">Username</h3>
                 <input
-                    class="w-full px-3 py-2 rounded-lg bg-zinc-700 text-white placeholder-zinc-400 border border-zinc-600 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                    class="w-full px-3 py-2 rounded-lg bg-zinc-700 text-white placeholder-zinc-400 border border-zinc-600 focus:border-indigo-500 focus:outline-hidden focus:ring-2 focus:ring-indigo-500/20"
                     type="text"
                     bind:value={username}
                     placeholder="Your username"
@@ -149,7 +184,7 @@
             <div class="w-full mb-6">
                 <h3 class="text-xl font-semibold text-white mb-1">Bio</h3>
                 <textarea
-                    class="w-full px-3 py-2 rounded-lg bg-zinc-700 text-white placeholder-zinc-400 border border-zinc-600 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 resize-none"
+                    class="w-full px-3 py-2 rounded-lg bg-zinc-700 text-white placeholder-zinc-400 border border-zinc-600 focus:border-indigo-500 focus:outline-hidden focus:ring-2 focus:ring-indigo-500/20 resize-none"
                     rows={4}
                     bind:value={bio}
                     placeholder="Tell people a bit about yourself..."
@@ -164,8 +199,8 @@
                 <h3 class="text-xl font-semibold text-white mb-1">Profile Photo</h3>
                 <div class="flex flex-row h-20 w-full items-center items-end gap-4">
                     <div class="h-20 w-20 shrink-0 rounded-xl bg-zinc-700 border border-zinc-600 overflow-hidden">
-                        {#if profilePhotoSrc}
-                            <img src={profilePhotoSrc} alt="Profile preview" class="h-full w-full object-cover" />
+                        {#if portraitUrl}
+                            <img src={portraitUrl} alt="Profile preview" class="h-full w-full object-cover" />
                         {/if}
                     </div>
                     <label for="photo" class="cursor-pointer h-10 ml-4 px-4 py-2 text-sm font-semibold bg-indigo-600 hover:bg-indigo-700 border border-zinc-600 rounded-lg text-white transition-colors flex items-center">
@@ -174,6 +209,28 @@
                     <input id="photo" class="hidden" type="file" accept="image/*" onchange={handlePhotoChange} />
                 </div>
             </div>
+
+            <!-- Stripe Account Setup -->
+            <div class="w-full mb-6">
+                <h3 class="text-xl font-semibold text-white mb-1">Seller Account</h3>
+                <p class="text-sm text-zinc-400 mb-3">Set up your Stripe account to start selling on Layerrs.</p>
+                <button
+                    onclick={onboardSeller}
+                    disabled={isOnboarding}
+                    class="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg text-white font-semibold text-sm transition-colors flex items-center gap-2"
+                >
+                    {#if isOnboarding}
+                        <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                        </svg>
+                        Redirecting...
+                    {:else}
+                        Set Up Seller Account
+                    {/if}
+                </button>
+            </div>
+
 
             <!-- Feedback -->
             {#if saveSuccess}

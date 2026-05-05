@@ -12,6 +12,7 @@ require (
 	github.com/lib/pq v1.10.9
 	github.com/pressly/goose/v3 v3.24.3
 	github.com/resend/resend-go/v2 v2.28.0
+	github.com/stripe/stripe-go/v85 v85.0.0
 	golang.org/x/crypto v0.38.0
 )
 

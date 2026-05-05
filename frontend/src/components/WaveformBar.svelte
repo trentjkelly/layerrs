@@ -26,12 +26,12 @@
 
 {#if shouldHighlight}
     <div
-        class="w-[2px] mr-[2px] rounded rounded-xl {isCursorActive ? colors.bg500 : colors.bg300}"
+        class="w-[2px] mr-[2px] rounded-sm rounded-xl {isCursorActive ? colors.bg500 : colors.bg300}"
         style="height: {height}%"
     ></div>
 {:else}
     <div
-        class="w-[2px] bg-white mr-[2px] rounded rounded-xl"
+        class="w-[2px] bg-white mr-[2px] rounded-sm rounded-xl"
         style="height: {height}%"
     ></div>
 {/if}

@@ -5,7 +5,7 @@
     import UserMenu from "../components/UserMenu.svelte";
     import { isSidebarOpen } from "../stores/player";
     import { urlBase } from "../stores/environment";
-    import { username, email, portraitUrl } from "../stores/profile";
+    import { usernameStore, emailStore, portraitUrlStore } from "../stores/profile";
     import { audio } from "../stores/player";
     import { authInitialized } from "../stores/auth";
     import { fetchWithAuth } from "../modules/lib/fetch";
@@ -108,12 +108,12 @@
 
 </script>
 
-<main class={`transition-all duration-300 h-auto w-full ${$isSidebarOpen ? 'ml-64' : 'ml-0'} bg-zinc-900`}>
+<main class={`transition-all duration-300 h-auto w-full ${$isSidebarOpen ? 'ml-64' : 'ml-0'} bg-olive-400`}>
 
     <TopHeader pageName="Home" pageIcon="home.png"></TopHeader>
 
     <!-- User Menu -->
-    <UserMenu username={$username} email={$email} portraitUrl={$portraitUrl} />
+    <UserMenu username={$usernameStore} email={$emailStore} portraitUrl={$portraitUrlStore} />
 
     <!-- Where the songs go -->
     <section class="w-full flex flex-wrap justify-around pb-24">

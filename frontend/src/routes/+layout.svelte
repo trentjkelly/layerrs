@@ -6,11 +6,18 @@
 	import SideBar from '../components/SideBar.svelte';
 	import { initializeAudio, audio } from '../stores/player';
 	import { jwt, refreshToken, isLoggedIn, authInitialized } from '../stores/auth';
-	import { urlBase } from '../stores/environment';
+	import { urlBase, stripePublishableKey } from '../stores/environment';
 	import { loadProfile } from '../stores/profile';
 	import { logger } from '../modules/lib/logger';
+	import { loadStripe } from '../modules/lib/stripe';
 
 	let { data, children } = $props();
+
+	onMount(async () => {
+		if ($stripePublishableKey) {
+			await loadStripe($stripePublishableKey);
+		}
+	});
 
 	// Initialize audio component across the entire session
 	onMount(async () => {

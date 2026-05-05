@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"log"
 	"mime/multipart"
+	"os"
 	"path/filepath"
 	"strconv"
 	"time"
-	"os"
 
 	"github.com/trentjkelly/layerrs/internals/entities"
 	"github.com/trentjkelly/layerrs/internals/repository/computing"
@@ -21,28 +21,28 @@ const (
 )
 
 type TrackService struct {
-	trackStorageRepo 		*storageRepository.TrackStorageRepository
-	portraitStorageRepo 	*storageRepository.PortraitStorageRepository
-	trackDatabaseRepo 		*databaseRepository.TrackDatabaseRepository
-	treeDatabaseRepo 		*databaseRepository.TrackTreeDatabaseRepository
-	trackConversionRepo 	*computingRepository.TrackConversionRepository
-	waveformHeightsRepo 	*computingRepository.WaveformHeightsRepository
-	waveformDatabaseRepo 	*databaseRepository.WaveformDatabaseRepository
-	layerrsDatabaseRepo 	*databaseRepository.LayerrsDatabaseRepository
-	environment				string
+	trackStorageRepo     *storageRepository.TrackStorageRepository
+	portraitStorageRepo  *storageRepository.PortraitStorageRepository
+	trackDatabaseRepo    *databaseRepository.TrackDatabaseRepository
+	treeDatabaseRepo     *databaseRepository.TrackTreeDatabaseRepository
+	trackConversionRepo  *computingRepository.TrackConversionRepository
+	waveformHeightsRepo  *computingRepository.WaveformHeightsRepository
+	waveformDatabaseRepo *databaseRepository.WaveformDatabaseRepository
+	layerrsDatabaseRepo  *databaseRepository.LayerrsDatabaseRepository
+	environment          string
 }
 
 // Constructor for a new TrackService
 func NewTrackService(
-	trackStorageRepo 		*storageRepository.TrackStorageRepository,
-	portraitStorageRepo 	*storageRepository.PortraitStorageRepository,
-	trackDatabaseRepo 		*databaseRepository.TrackDatabaseRepository,
-	treeDatabaseRepo 		*databaseRepository.TrackTreeDatabaseRepository,
-	trackConversionRepo 	*computingRepository.TrackConversionRepository,
-	waveformHeightsRepo 	*computingRepository.WaveformHeightsRepository,
-	waveformDatabaseRepo 	*databaseRepository.WaveformDatabaseRepository,
-	layerrsDatabaseRepo 	*databaseRepository.LayerrsDatabaseRepository,
-	environment				string,
+	trackStorageRepo *storageRepository.TrackStorageRepository,
+	portraitStorageRepo *storageRepository.PortraitStorageRepository,
+	trackDatabaseRepo *databaseRepository.TrackDatabaseRepository,
+	treeDatabaseRepo *databaseRepository.TrackTreeDatabaseRepository,
+	trackConversionRepo *computingRepository.TrackConversionRepository,
+	waveformHeightsRepo *computingRepository.WaveformHeightsRepository,
+	waveformDatabaseRepo *databaseRepository.WaveformDatabaseRepository,
+	layerrsDatabaseRepo *databaseRepository.LayerrsDatabaseRepository,
+	environment string,
 ) *TrackService {
 	trackService := new(TrackService)
 	trackService.trackStorageRepo = trackStorageRepo
@@ -269,7 +269,7 @@ func (s *TrackService) GetDownloadSignedTrackURL(ctx context.Context, trackId in
 	if err != nil {
 		return "", "", fmt.Errorf("failed to read track from database: %w", err)
 	}
-	
+
 	if !track.IsValid {
 		return "", "", fmt.Errorf("track is not valid")
 	}
@@ -290,4 +290,33 @@ func (s *TrackService) GetDownloadSignedTrackURL(ctx context.Context, trackId in
 	}
 
 	return url, expiresAt.String(), nil
+}
+
+func (s *TrackService) UpdateTrackPrice(ctx context.Context, trackId int, artistId int, priceInCents int) error {
+	track := new(entities.Track)
+	track.Id = trackId
+
+	err := s.trackDatabaseRepo.ReadTrackById(ctx, track)
+	if err != nil {
+		return fmt.Errorf("failed to read track: %w", err)
+	}
+
+	if track.ArtistId != artistId {
+		return fmt.Errorf("you do not own this track")
+	}
+
+	if priceInCents < 0 {
+		return fmt.Errorf("price cannot be negative")
+	}
+
+	if priceInCents%100 != 0 {
+		return fmt.Errorf("price must be in whole dollar amounts")
+	}
+
+	err = s.trackDatabaseRepo.UpdateTrackPrice(ctx, trackId, priceInCents)
+	if err != nil {
+		return fmt.Errorf("failed to update track price: %w", err)
+	}
+
+	return nil
 }

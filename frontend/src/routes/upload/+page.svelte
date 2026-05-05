@@ -40,10 +40,39 @@
     let layerrs = $state<Array<number>>([]);
     let description = $state<string>('');
     let selectedColor = $state<ColorName>('violet');
+    let priceInCents = $state<number>(0);
+    let priceInputValue = $state<string>('0');
     let isUploaded = $state(false);
     let isDragOver = $state(false);
     let isLoading = $state(false);
     let username = $state('');
+
+     let dollars = $state(0);
+
+    function display(d) {
+        return d.toLocaleString() + '.00';
+    }
+
+    function onKeydown(e) {
+        if (e.key === 'Backspace') {
+        e.preventDefault();
+        dollars = Math.floor(dollars / 10);
+        }
+    }
+
+    function onInput(e) {
+        const digit = (e.data || '').replace(/\D/g, '');
+        if (!digit) return;
+        const next = dollars * 10 + parseInt(digit, 10);
+        if (next <= 9999999) dollars = next;
+    }
+
+    function onPaste(e) {
+        e.preventDefault();
+        const pasted = e.clipboardData.getData('text');
+        const digits = pasted.replace(/\D/g, '').slice(0, 7);
+        if (digits) dollars = parseInt(digits, 10);
+    }
 
     onMount(async () => {
         await getArtistLayerrs();
@@ -144,6 +173,18 @@
                 body: form
             });
             if (res.status == 201) {
+                const trackData = await res.json();
+                const trackId = trackData.id;
+
+                if (priceInCents >= 0) {
+                    const priceInCentsValue = priceInCents * 100;
+                    await fetchWithAuth(`${$urlBase}/api/track/${trackId}/price`, {
+                        method: "PUT",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ priceInCents: priceInCentsValue })
+                    });
+                }
+
                 isUploaded = true
             }
         } else {
@@ -164,7 +205,7 @@
 
     <section class="w-full flex flex-row justify-center pb-32">
         {#if $isLoggedIn}
-            <div class="outline outline-zinc-600 rounded-3xl w-2/3 max-w-4xl flex flex-col items-center p-8">
+            <div class="outline-solid outline-zinc-600 rounded-3xl w-2/3 max-w-4xl flex flex-col items-center p-8">
                 {#if !isUploaded}
                 <h2 class="mb-4 text-3xl font-bold text-white">Upload a Track</h2>
 
@@ -193,7 +234,7 @@
                                         <span class="text-zinc-300">{audioFiles[0].name}</span>
                                         <button 
                                             onclick={removeAudioFile}
-                                            class="ml-2 px-2 py-1 text-xs bg-red-500 hover:bg-red-600 rounded text-white"
+                                            class="ml-2 px-2 py-1 text-xs bg-red-500 hover:bg-red-600 rounded-sm text-white"
                                         >
                                             Remove
                                         </button>
@@ -211,7 +252,7 @@
                 <div class="w-full mb-6">
                     <h3 class="text-xl font-semibold text-white mb-1">Description</h3>
                     <input
-                        class="w-full px-2 py-2 rounded-lg bg-zinc-700 text-white placeholder-zinc-400 border border-zinc-600 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                        class="w-full px-2 py-2 rounded-lg bg-zinc-700 text-white placeholder-zinc-400 border border-zinc-600 focus:border-indigo-500 focus:outline-hidden focus:ring-2 focus:ring-indigo-500/20"
                         type="text"
                         bind:value={description}
                         placeholder="Give your track a short description..."
@@ -257,6 +298,25 @@
                                 aria-label={option.name}
                             ></button>
                         {/each}
+                    </div>
+                </div>
+
+                <!-- Price Input -->
+                <div class="w-full mb-4">
+                    <h3 class="text-xl font-semibold text-white mb-1">Price (optional)</h3>
+                    <p class="text-sm text-zinc-400 mt-1 mb-3">Set a price in USD to sell your track. Leave at $0 for free.</p>
+                    <div class="flex items-center gap-2">
+                        <span class="text-zinc-400 text-lg">$</span>
+                            <input
+                            class="bg-slate-800"
+                            type="text"
+                            inputmode="numeric"
+                            value={display(dollars)}
+                            onkeydown={onKeydown}
+                            oninput={onInput}
+                            onpaste={onPaste}
+                            />
+                        <span class="text-zinc-400">USD</span>
                     </div>
                 </div>
 

@@ -124,8 +124,20 @@ func (c *ArtistController) ArtistHandlerGet(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
+	artistDTO := entities.ArtistDTO{
+		Id: artist.Id,
+		Username: artist.Username,
+		Email: artist.Email,
+		Bio: artist.Bio,
+		PortraitUrl: artist.PortraitUrl,
+		CanPost: artist.CanPost,
+		CreatedAt: artist.CreatedAt,
+		UpdatedAt: artist.UpdatedAt,
+		ValidStripeSeller: artist.StripeAccountId != "" && artist.StripeAccountStatus == "active",
+	}
+
 	// Send the data
-	err = json.NewEncoder(w).Encode(artist)
+	err = json.NewEncoder(w).Encode(artistDTO)
 	if err != nil {
 		log.Printf("[ERROR] ArtistHandlerGet: %s", err)
 		http.Error(w, "Could not send artist data", http.StatusInternalServerError)

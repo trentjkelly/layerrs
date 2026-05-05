@@ -13,4 +13,5 @@ type TrackInfo struct {
 	WaveformData      []int   `json:"waveformData"`
 	IsLiked           bool    `json:"isLiked"`
 	Color             string  `json:"color"`
+	PriceInCents      int     `json:"priceInCents"`
 }
