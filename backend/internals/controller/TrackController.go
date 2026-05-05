@@ -3,6 +3,7 @@ package controller
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -29,9 +30,9 @@ func NewTrackController(trackService *service.TrackService) *TrackController {
 // OPTIONS request for browsers when they test for CORS before PUT request
 func (c *TrackController) TrackHandlerOptions(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
-    w.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS")
-    w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
-    w.WriteHeader(http.StatusNoContent)
+	w.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+	w.WriteHeader(http.StatusNoContent)
 }
 
 // POST request -- creating a new track (POST /track)
@@ -40,7 +41,7 @@ func (c *TrackController) TrackHandlerPost(w http.ResponseWriter, r *http.Reques
 	err := r.ParseMultipartForm(32 << 20)
 	if err != nil {
 		log.Printf("[ERROR] TrackHandlerPost: failed to parse form: %s", err)
-		http.Error(w, "Failed to parse form" + err.Error(), http.StatusBadRequest)
+		http.Error(w, "Failed to parse form"+err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -132,11 +133,11 @@ func (c *TrackController) TrackAudioHandlerGet(w http.ResponseWriter, r *http.Re
 		http.Error(w, "Failed to stream track", http.StatusInternalServerError)
 		return
 	}
-	
+
 	// Encode response
 	var buffer bytes.Buffer
 	err = json.NewEncoder(&buffer).Encode(map[string]string{
-		"url": url,
+		"url":       url,
 		"expiresAt": expiresAt,
 	})
 	if err != nil {
@@ -152,42 +153,42 @@ func (c *TrackController) TrackAudioHandlerGet(w http.ResponseWriter, r *http.Re
 
 // GET request -- streams the audio for a given track id (GET /track/{id}/download)
 func (c *TrackController) TrackDownloadHandlerGet(w http.ResponseWriter, r *http.Request) {
-		// Get trackId from request URL
-		trackIdStr := chi.URLParam(r, "id")
-		trackId, err := strconv.Atoi(trackIdStr)
-		if err != nil {
-			log.Println("[ERROR] TrackAudioHandlerGet: ", err)
-			http.Error(w, "Invalid track id", http.StatusBadRequest)
-			return
-		}
+	// Get trackId from request URL
+	trackIdStr := chi.URLParam(r, "id")
+	trackId, err := strconv.Atoi(trackIdStr)
+	if err != nil {
+		log.Println("[ERROR] TrackAudioHandlerGet: ", err)
+		http.Error(w, "Invalid track id", http.StatusBadRequest)
+		return
+	}
 
-		// Get artistId from context
-		artistIdFloat := r.Context().Value(entities.ArtistIdKey).(float64)
-		artistIdInt := int(artistIdFloat)
-	
-		// Get audio from storage
-		url, expiresAt, err := c.trackService.GetDownloadSignedTrackURL(r.Context(), trackId, artistIdInt)
-		if err != nil {
-			log.Println("[ERROR] TrackAudioHandlerGet: ", err)
-			http.Error(w, "Failed to stream track", http.StatusInternalServerError)
-			return
-		}
-		
-		// Encode response
-		var buffer bytes.Buffer
-		err = json.NewEncoder(&buffer).Encode(map[string]string{
-			"url": url,
-			"expiresAt": expiresAt,
-		})
-		if err != nil {
-			log.Println("[ERROR] TrackAudioHandlerGet: ", err)
-			http.Error(w, "Failed to encode response", http.StatusInternalServerError)
-			return
-		}
-	
-		// Set headers and send response
-		w.Header().Set("Content-Type", "application/json")
-		w.Write(buffer.Bytes())
+	// Get artistId from context
+	artistIdFloat := r.Context().Value(entities.ArtistIdKey).(float64)
+	artistIdInt := int(artistIdFloat)
+
+	// Get audio from storage
+	url, expiresAt, err := c.trackService.GetDownloadSignedTrackURL(r.Context(), trackId, artistIdInt)
+	if err != nil {
+		log.Println("[ERROR] TrackAudioHandlerGet: ", err)
+		http.Error(w, "Failed to stream track", http.StatusInternalServerError)
+		return
+	}
+
+	// Encode response
+	var buffer bytes.Buffer
+	err = json.NewEncoder(&buffer).Encode(map[string]string{
+		"url":       url,
+		"expiresAt": expiresAt,
+	})
+	if err != nil {
+		log.Println("[ERROR] TrackAudioHandlerGet: ", err)
+		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+		return
+	}
+
+	// Set headers and send response
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(buffer.Bytes())
 }
 
 // POST request -- returns full track info for a list of track IDs (POST /track/batch)
@@ -311,7 +312,7 @@ func (c *TrackController) TrackGraphHandlerGet(w http.ResponseWriter, r *http.Re
 }
 
 func (c *TrackController) TrackerDataHandlerGet(w http.ResponseWriter, r *http.Request) {
-		
+
 	// Get trackId from request URL
 	trackIdStr := chi.URLParam(r, "id")
 	trackId, err := strconv.Atoi(trackIdStr)
@@ -329,11 +330,54 @@ func (c *TrackController) TrackerDataHandlerGet(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	// Encode track and send json 
+	// Encode track and send json
 	err = json.NewEncoder(w).Encode(track)
 	if err != nil {
 		log.Println("[ERROR] TrackerDataHandlerGet: ", err)
 		http.Error(w, "Failed at encoding json", http.StatusInternalServerError)
 		return
 	}
+}
+
+type UpdatePriceRequest struct {
+	PriceInCents int `json:"priceInCents"`
+}
+
+func (c *TrackController) UpdateTrackPriceHandlerOptions(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "PUT, OPTIONS")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func (c *TrackController) UpdateTrackPriceHandlerPut(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Content-Type", "application/json")
+
+	trackIdStr := chi.URLParam(r, "id")
+	trackId, err := strconv.Atoi(trackIdStr)
+	if err != nil {
+		log.Println("[ERROR] UpdateTrackPriceHandlerPut: ", err)
+		http.Error(w, "Invalid track id", http.StatusBadRequest)
+		return
+	}
+
+	artistIdFloat := r.Context().Value(entities.ArtistIdKey).(float64)
+	artistIdInt := int(artistIdFloat)
+
+	var req UpdatePriceRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		log.Println("[ERROR] UpdateTrackPriceHandlerPut: ", err)
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	err = c.trackService.UpdateTrackPrice(r.Context(), trackId, artistIdInt, req.PriceInCents)
+	if err != nil {
+		log.Println("[ERROR] UpdateTrackPriceHandlerPut: ", err)
+		http.Error(w, fmt.Sprintf("Failed to update price: %s", err.Error()), http.StatusBadRequest)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
 }

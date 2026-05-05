@@ -67,15 +67,16 @@ func (r *ArtistDatabaseRepository) GetArtistByEmail(ctx context.Context, email s
 
 // Gets an Artist from the database based on their id
 func (r *ArtistDatabaseRepository) ReadArtistById(ctx context.Context, artist *entities.Artist) error {
-	query := `SELECT username, email, bio, r2_image_key, can_post, created_at, updated_at FROM artist WHERE id=$1;`
+	query := `SELECT username, email, bio, r2_image_key, can_post, created_at, updated_at, stripe_account_id FROM artist WHERE id=$1;`
 	row := r.db.QueryRow(ctx, query, artist.Id)
 
 	// Potential NULL Values
 	var username sql.NullString
 	var bio sql.NullString
 	var r2ImageKey sql.NullString
+	var stripeAccountId sql.NullString
 
-	err := row.Scan(&username, &artist.Email, &bio, &r2ImageKey, &artist.CanPost, &artist.CreatedAt, &artist.UpdatedAt)
+	err := row.Scan(&username, &artist.Email, &bio, &r2ImageKey, &artist.CanPost, &artist.CreatedAt, &artist.UpdatedAt, &stripeAccountId)
 
 	if err != nil {
 		return fmt.Errorf("failed to query artist from database: %w", err)
@@ -95,6 +96,12 @@ func (r *ArtistDatabaseRepository) ReadArtistById(ctx context.Context, artist *e
 		artist.R2ImageKey = r2ImageKey.String
 	} else {
 		artist.R2ImageKey = ""
+	}
+
+	if stripeAccountId.Valid {
+		artist.StripeAccountId = stripeAccountId.String
+	} else {
+		artist.StripeAccountId = ""
 	}
 
 	return nil
@@ -130,6 +137,28 @@ func (r *ArtistDatabaseRepository) UpdateArtistWithPortrait(ctx context.Context,
 			return entities.ErrUsernameTaken
 		}
 		return fmt.Errorf("failed to update artist in database: %w", err)
+	}
+
+	return nil
+}
+
+func (r *ArtistDatabaseRepository) UpdateArtistWithStripeAccountDetails(ctx context.Context, artist *entities.Artist) error {
+	query := `UPDATE artist SET updated_at=$2, stripe_account_id=$3, stripe_account_status=$4 WHERE id=$1 RETURNING updated_at;`
+	row := r.db.QueryRow(ctx, query, artist.Id, time.Now(), artist.StripeAccountId, artist.StripeAccountStatus)
+	err := row.Scan(&artist.UpdatedAt)
+	if err != nil {
+		return fmt.Errorf("failed to update artist stripe account information in database: %w", err)
+	}
+
+	return nil
+}
+
+func (r *ArtistDatabaseRepository) UpdateArtistWithStripeWebhook(ctx context.Context, artist *entities.Artist) error {
+	query := `UPDATE artist SET updated_at=$2, stripe_account_status=$3 WHERE stripe_account_id=$1 RETURNING updated_at;`
+	row := r.db.QueryRow(ctx, query, artist.StripeAccountId, time.Now(), artist.StripeAccountStatus)
+	err := row.Scan(&artist.UpdatedAt)
+	if err != nil {
+		return fmt.Errorf("failed to update artist stripe account information in database: %w", err)
 	}
 
 	return nil

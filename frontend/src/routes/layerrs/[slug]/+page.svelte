@@ -27,7 +27,11 @@
     onMount(async () => {
         if (!track) {
             isLoadingTrack = true;
-            track = await getTrackTrackInfo(getUrlBase(), slug) ?? undefined;
+            if (slug){
+                track = await getTrackTrackInfo(getUrlBase(), slug) ?? undefined;
+            } else {
+                console.error("No slug provided")
+            }
             isLoadingTrack = false;
         }
     });
@@ -105,7 +109,7 @@
                                 type="checkbox" 
                                 id="credit-checkbox"
                                 bind:checked={creditAgreement}
-                                class="mt-1 w-5 h-5 text-violet-600 bg-zinc-700 border-zinc-600 rounded focus:ring-violet-500 hover:cursor-pointer focus:ring-2"
+                                class="mt-1 w-5 h-5 text-violet-600 bg-zinc-700 border-zinc-600 rounded-sm focus:ring-violet-500 hover:cursor-pointer focus:ring-2"
                             />
                             <label for="credit-checkbox" class="text-zinc-300 text-base leading-relaxed cursor-pointer">
                                 When uploading a track that uses any part of this one, I will <strong class="text-white">give proper credit in the upload track form</strong>.
@@ -117,7 +121,7 @@
                                 type="checkbox" 
                                 id="no-stealing-checkbox"
                                 bind:checked={noStealingAgreement}
-                                class="mt-1 w-5 h-5 text-violet-600 bg-zinc-700 border-zinc-600 rounded focus:ring-violet-500 hover:cursor-pointer focus:ring-2"
+                                class="mt-1 w-5 h-5 text-violet-600 bg-zinc-700 border-zinc-600 rounded-sm focus:ring-violet-500 hover:cursor-pointer focus:ring-2"
                             />
                             <label for="no-stealing-checkbox" class="text-zinc-300 text-base leading-relaxed cursor-pointer">
                                 I will <strong class="text-white">not steal the artist's work</strong> or claim it as my own.
@@ -129,7 +133,7 @@
                                 type="checkbox" 
                                 id="ban-checkbox"
                                 bind:checked={banAgreement}
-                                class="mt-1 w-5 h-5 text-violet-600 bg-zinc-700 border-zinc-600 rounded focus:ring-violet-500 hover:cursor-pointer focus:ring-2"
+                                class="mt-1 w-5 h-5 text-violet-600 bg-zinc-700 border-zinc-600 rounded-sm focus:ring-violet-500 hover:cursor-pointer focus:ring-2"
                             />
                             <label for="ban-checkbox" class="text-zinc-300 text-base leading-relaxed cursor-pointer">
                                 I understand that <strong class="text-white">failure to abide by these terms may result in a permanent ban</strong>.

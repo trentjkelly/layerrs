@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 
+	"github.com/stripe/stripe-go/v85"
 	"github.com/trentjkelly/layerrs/internals/config"
 	"github.com/trentjkelly/layerrs/internals/controller"
 	"github.com/trentjkelly/layerrs/internals/repository/auth"
@@ -15,7 +16,7 @@ import (
 const (
 	ENVIRONMENT = "ENV"
 	DEVELOPMENT = "DEVELOPMENT"
-	PRODUCTION = "PRODUCTION"
+	PRODUCTION  = "PRODUCTION"
 )
 
 const (
@@ -48,6 +49,13 @@ func main() {
 		frontendUrl = "https://layerrs.com"
 	}
 
+	// Setting global Stripe API Key
+	stripeConfig, err := config.NewStripeConfig(env, frontendUrl)
+	if err != nil {
+		log.Fatalf("Could not create the Stripe config: %v", err)
+	}
+	stripe.Key = stripeConfig.SecretKey
+
 	// -- REPOSITORIES --
 	log.Println("Creating the repositories, services, and controllers")
 
@@ -69,6 +77,7 @@ func main() {
 	waveformDatabaseRepo := databaseRepository.NewWaveformDatabaseRepository(pool)
 	layerrsDatabaseRepo := databaseRepository.NewLayerrsDatabaseRepository(pool)
 	authDatabaseRepo := databaseRepository.NewAuthDatabaseRepository(pool)
+	purchaseDatabaseRepo := databaseRepository.NewPurchaseRepository(pool)
 
 	// Storage Repositories
 	portraitStorageRepo := storageRepository.NewPortraitStorageRepository(env)
@@ -81,6 +90,8 @@ func main() {
 	artistService := service.NewArtistService(artistDatabaseRepo, portraitStorageRepo, portraitConversionRepo)
 	likesService := service.NewLikesService(likesDatabaseRepo, trackDatabaseRepo)
 	layerrsService := service.NewLayerrsService(layerrsDatabaseRepo, portraitStorageRepo)
+	sellerService := service.NewSellerService(artistDatabaseRepo, stripeConfig.ReturnURL, stripeConfig.RefreshURL)
+	purchaseService := service.NewPurchaseService(purchaseDatabaseRepo, trackStorageRepo, stripeConfig.ReturnURL, stripeConfig.RefreshURL)
 
 	// -- CONTROLLERS --
 	authController := controller.NewAuthController(authService, frontendUrl)
@@ -89,20 +100,26 @@ func main() {
 	likesController := controller.NewLikesController(likesService)
 	artistController := controller.NewArtistController(artistService)
 	layerrsController := controller.NewLayerrsController(layerrsService)
-	
+	sellerController := controller.NewSellerController(sellerService)
+	webhookController := controller.NewWebhookController(sellerService, stripeConfig.WebhookSecret)
+	purchaseController := controller.NewPurchaseController(purchaseService)
+
 	// -- CONFIGURATION --
 	cfg := appConfig{
-		addr : ":8080",
+		addr: ":8080",
 	}
 
 	app := &application{
-		config		: cfg,
-		trackController: trackController,
+		config:                    cfg,
+		trackController:           trackController,
 		recommendationsController: recController,
-		authController: authController,
-		likesController: likesController,
-		artistController: artistController,
-		layerrsController: layerrsController,
+		authController:            authController,
+		likesController:           likesController,
+		artistController:          artistController,
+		layerrsController:         layerrsController,
+		sellerController:          sellerController,
+		webhookController:         webhookController,
+		purchaseController:        purchaseController,
 	}
 
 	// Mount and run the application

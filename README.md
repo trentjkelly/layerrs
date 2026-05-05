@@ -5,3 +5,8 @@ Layerrs.com is a music platform that empowers artists, producers, and listeners 
 
 ## Tech Stack
 Layerrs.com is a full-stack project with a Go backend for streaming and API, a PostgreSQL database, and a frontend using Sveltekit. It is deployed on a VPS using Nginx, Docker, and Github Actions.
+
+## Doing Stripe Flows in Development Environment
+You need stripe CLI installed to do the following:
+1. stripe login
+2. stripe listen --forward-to localhost:8080/api/webhooks/stripe

@@ -14,9 +14,17 @@ function resolveEnvironment(): { env: string; url: string } {
 	}
 }
 
+function resolveStripePublishableKey(env: string): string {
+	if (env === 'DEVELOPMENT') {
+		return import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY_DEVELOPMENT || ''
+	}
+	return import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY_PRODUCTION || ''
+}
+
 const { env, url } = resolveEnvironment()
 export const environment = writable(env)
 export const urlBase = writable(url)
+export const stripePublishableKey = writable(resolveStripePublishableKey(env))
 
 
 export function getEnvironment(): string {
@@ -25,4 +33,8 @@ export function getEnvironment(): string {
 
 export function getUrlBase(): string {
 	return get(urlBase)
+}
+
+export function getStripePublishableKey(): string {
+	return get(stripePublishableKey)
 }

@@ -12,12 +12,12 @@
     type ColorName = 'red' | 'orange' | 'yellow' | 'green' | 'blue' | 'violet';
 
     const colorClasses: Record<ColorName, { text400: string; text500: string; hoverText500: string; border700: string; bg500: string; gradientBg: string; hoverShadow: string }> = {
-        red:    { text400: 'text-red-400',    text500: 'text-red-500',    hoverText500: 'hover:text-red-500',    border700: 'border-red-700',    bg500: 'bg-red-500',    gradientBg: 'bg-gradient-to-r from-red-600 to-red-400',    hoverShadow: 'hover:shadow-red-500/30' },
-        orange: { text400: 'text-orange-400', text500: 'text-orange-500', hoverText500: 'hover:text-orange-500', border700: 'border-orange-700', bg500: 'bg-orange-500', gradientBg: 'bg-gradient-to-r from-orange-600 to-orange-400', hoverShadow: 'hover:shadow-orange-500/30' },
-        yellow: { text400: 'text-yellow-400', text500: 'text-yellow-500', hoverText500: 'hover:text-yellow-500', border700: 'border-yellow-700', bg500: 'bg-yellow-500', gradientBg: 'bg-gradient-to-r from-yellow-600 to-yellow-400', hoverShadow: 'hover:shadow-yellow-500/30' },
-        green:  { text400: 'text-green-400',  text500: 'text-green-500',  hoverText500: 'hover:text-green-500',  border700: 'border-green-700',  bg500: 'bg-green-500',  gradientBg: 'bg-gradient-to-r from-green-600 to-green-400',  hoverShadow: 'hover:shadow-green-500/30' },
-        blue:   { text400: 'text-blue-400',   text500: 'text-blue-500',   hoverText500: 'hover:text-blue-500',   border700: 'border-blue-700',   bg500: 'bg-blue-500',   gradientBg: 'bg-gradient-to-r from-blue-600 to-blue-400',   hoverShadow: 'hover:shadow-blue-500/30' },
-        violet: { text400: 'text-violet-400', text500: 'text-violet-500', hoverText500: 'hover:text-violet-500', border700: 'border-violet-700', bg500: 'bg-violet-500', gradientBg: 'bg-gradient-to-r from-violet-600 to-violet-400', hoverShadow: 'hover:shadow-violet-500/30' },
+        red:    { text400: 'text-red-400',    text500: 'text-red-500',    hoverText500: 'hover:text-red-500',    border700: 'border-red-700',    bg500: 'bg-red-500',    gradientBg: 'bg-linear-to-r from-red-600 to-red-400',    hoverShadow: 'hover:shadow-red-500/30' },
+        orange: { text400: 'text-orange-400', text500: 'text-orange-500', hoverText500: 'hover:text-orange-500', border700: 'border-orange-700', bg500: 'bg-orange-500', gradientBg: 'bg-linear-to-r from-orange-600 to-orange-400', hoverShadow: 'hover:shadow-orange-500/30' },
+        yellow: { text400: 'text-yellow-400', text500: 'text-yellow-500', hoverText500: 'hover:text-yellow-500', border700: 'border-yellow-700', bg500: 'bg-yellow-500', gradientBg: 'bg-linear-to-r from-yellow-600 to-yellow-400', hoverShadow: 'hover:shadow-yellow-500/30' },
+        green:  { text400: 'text-green-400',  text500: 'text-green-500',  hoverText500: 'hover:text-green-500',  border700: 'border-green-700',  bg500: 'bg-green-500',  gradientBg: 'bg-linear-to-r from-green-600 to-green-400',  hoverShadow: 'hover:shadow-green-500/30' },
+        blue:   { text400: 'text-blue-400',   text500: 'text-blue-500',   hoverText500: 'hover:text-blue-500',   border700: 'border-blue-700',   bg500: 'bg-blue-500',   gradientBg: 'bg-linear-to-r from-blue-600 to-blue-400',   hoverShadow: 'hover:shadow-blue-500/30' },
+        violet: { text400: 'text-violet-400', text500: 'text-violet-500', hoverText500: 'hover:text-violet-500', border700: 'border-violet-700', bg500: 'bg-violet-500', gradientBg: 'bg-linear-to-r from-violet-600 to-violet-400', hoverShadow: 'hover:shadow-violet-500/30' },
     };
 
     // Inherits the track data from the page
