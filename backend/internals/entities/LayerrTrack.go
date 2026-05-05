@@ -14,6 +14,5 @@ type LayerrTrack struct {
 	Duration          float64   `json:"duration"`
 	WaveformData      []int     `json:"waveformData"`
 	IsLiked           bool      `json:"isLiked"`
-	Color             string    `json:"color"`
 	LastLayerrAt      time.Time `json:"lastLayerrAt"`
 }

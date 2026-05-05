@@ -81,4 +81,8 @@
         {/if}
     </div>
 </div>
+{:else}
+    <div class="fixed top-5 right-8 z-50 outline">
+        <button class="w-full h-full hover:cursor-pointer px-4 py-2" onclick={handleLogout}>Login</button>
+    </div>
 {/if}

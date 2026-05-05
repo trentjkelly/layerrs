@@ -18,17 +18,6 @@
         artistPortraitUrl: string;
     };
 
-    type ColorName = 'red' | 'orange' | 'yellow' | 'green' | 'blue' | 'violet';
-
-    const colorOptions: { name: ColorName; bg: string }[] = [
-        { name: 'red',    bg: 'bg-red-500' },
-        { name: 'orange', bg: 'bg-orange-500' },
-        { name: 'yellow', bg: 'bg-yellow-500' },
-        { name: 'green',  bg: 'bg-green-500' },
-        { name: 'blue',   bg: 'bg-blue-500' },
-        { name: 'violet', bg: 'bg-violet-500' },
-    ];
-
     $effect(() => {
         if ($authInitialized && !$isLoggedIn) {
             goto('/login');
@@ -39,7 +28,6 @@
     let artistLayerrs = $state<Array<LayerrTrack>>([]);
     let layerrs = $state<Array<number>>([]);
     let description = $state<string>('');
-    let selectedColor = $state<ColorName>('violet');
     let priceInCents = $state<number>(0);
     let priceInputValue = $state<string>('0');
     let isUploaded = $state(false);
@@ -166,7 +154,6 @@
             form.append('audioFile', audioFile)
             form.append('description', description)
             form.append('layerrIDs', JSON.stringify(layerrs))
-            form.append('color', selectedColor)
 
             const res = await fetchWithAuth(`${$urlBase}/api/track/`, {
                 method: "POST",
@@ -282,22 +269,6 @@
                                 />
                             {/each}
                         {/if}
-                    </div>
-                </div>
-                
-                <!-- Color Selector -->
-                <div class="w-full mb-4">
-                    <h3 class="text-xl font-semibold text-white mb-1">Color</h3>
-                    <p class="text-sm text-zinc-400 mt-1 mb-3">Choose the accent color for your track.</p>
-                    <div class="flex flex-row gap-4">
-                        {#each colorOptions as option}
-                            <button
-                                type="button"
-                                onclick={() => selectedColor = option.name}
-                                class="w-8 h-8 rounded-full {option.bg} transition-all duration-200 {selectedColor === option.name ? 'ring-2 ring-offset-2 ring-offset-zinc-800 ring-white scale-110' : 'opacity-60 hover:opacity-100'}"
-                                aria-label={option.name}
-                            ></button>
-                        {/each}
                     </div>
                 </div>
 

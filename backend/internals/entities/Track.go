@@ -17,15 +17,13 @@ type Track struct {
 	IsValid       bool      `json:"isValid"`
 	WaveformData  []int     `json:"waveformData"`
 	TrackDuration float64   `json:"trackDuration"`
-	Color         string    `json:"color"`
 	PriceInCents  int       `json:"priceInCents"`
 }
 
 // Constructor for a new track
-func NewTrack(description string, artistId int, color string) *Track {
+func NewTrack(description string, artistId int) *Track {
 	track := new(Track)
 	track.Description = description
 	track.ArtistId = artistId
-	track.Color = color
 	return track
 }

@@ -58,9 +58,9 @@ func NewTrackService(
 }
 
 // Adds all files and data for a new track -- called by TrackController for a POST request
-func (s *TrackService) AddAndUploadTrack(ctx context.Context, audio multipart.File, audioHeader *multipart.FileHeader, trackDescription string, artistId int, parentIDs []int, color string) error {
+func (s *TrackService) AddAndUploadTrack(ctx context.Context, audio multipart.File, audioHeader *multipart.FileHeader, trackDescription string, artistId int, parentIDs []int) error {
 	// Add track metadata to track table (get back ID)
-	track := entities.NewTrack(trackDescription, artistId, color)
+	track := entities.NewTrack(trackDescription, artistId)
 	err := s.trackDatabaseRepo.CreateTrack(ctx, track)
 	if err != nil {
 		return err
