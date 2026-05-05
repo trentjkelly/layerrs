@@ -50,11 +50,6 @@ func (c *TrackController) TrackHandlerPost(w http.ResponseWriter, r *http.Reques
 	artistIdFloat := r.Context().Value(entities.ArtistIdKey).(float64)
 	layerrsIdStr := r.FormValue("layerrIDs") // Optional - could have no layerrs to credit
 
-	trackColor := r.FormValue("color")
-	validColors := map[string]bool{"red": true, "orange": true, "yellow": true, "green": true, "blue": true, "violet": true}
-	if !validColors[trackColor] {
-		trackColor = "violet"
-	}
 
 	if trackDescription == "" {
 		log.Println("[ERROR] TrackHandlerPost: track description is required")
@@ -105,7 +100,7 @@ func (c *TrackController) TrackHandlerPost(w http.ResponseWriter, r *http.Reques
 	}
 
 	// Passing to Service layer
-	err = c.trackService.AddAndUploadTrack(r.Context(), audioFile, audioHeader, trackDescription, artistIdInt, layerrsIdArr, trackColor)
+	err = c.trackService.AddAndUploadTrack(r.Context(), audioFile, audioHeader, trackDescription, artistIdInt, layerrsIdArr)
 	if err != nil {
 		log.Printf("[ERROR] TrackHandlerPost: %s", err)
 		http.Error(w, "Failed to create track", http.StatusInternalServerError)

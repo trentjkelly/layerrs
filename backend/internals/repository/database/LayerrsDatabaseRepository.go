@@ -40,7 +40,7 @@ func (r *LayerrsDatabaseRepository) ReadLayerrsWithTracks(ctx context.Context, a
 		SELECT t.id, t.description, t.artist_id, a.username, a.r2_image_key,
 		       t.likes, t.layerrs, t.duration, w.waveform_data,
 		       CASE WHEN alt.artist_id IS NOT NULL THEN true ELSE false END as is_liked,
-		       t.color, l.last_layerr_at
+		       l.last_layerr_at
 		FROM layerrs l
 		JOIN track t ON l.track_id = t.id
 		JOIN artist a ON t.artist_id = a.id
@@ -63,7 +63,7 @@ func (r *LayerrsDatabaseRepository) ReadLayerrsWithTracks(ctx context.Context, a
 		err = rows.Scan(
 			&lt.Id, &lt.Description, &lt.ArtistId, &lt.ArtistName, &lt.R2ImageKey,
 			&lt.Likes, &lt.Layerrs, &lt.Duration, &waveformData, &lt.IsLiked,
-			&lt.Color, &lt.LastLayerrAt,
+			&lt.LastLayerrAt,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan layerrs with tracks from database: %w", err)

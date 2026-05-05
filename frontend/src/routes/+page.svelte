@@ -1,8 +1,7 @@
 <script lang="ts">
     import { onMount } from "svelte";
     import TopHeader from "../components/TopHeader.svelte";
-    import NewTrackCard from "../components/NewTrackCard.svelte";
-    import UserMenu from "../components/UserMenu.svelte";
+	import UserMenu from "../components/UserMenu.svelte";
     import { isSidebarOpen } from "../stores/player";
     import { urlBase } from "../stores/environment";
     import { usernameStore, emailStore, portraitUrlStore } from "../stores/profile";
@@ -10,6 +9,7 @@
     import { authInitialized } from "../stores/auth";
     import { fetchWithAuth } from "../modules/lib/fetch";
     import type { TrackInfo } from "../models/types";
+    import FinalTrackCard from "../components/FinalTrackCard.svelte";
 
     let tracks: TrackInfo[] = $state([]);
 
@@ -118,7 +118,8 @@
     <!-- Where the songs go -->
     <section class="w-full flex flex-wrap justify-around pb-24">
         {#each tracks as track}
-            <NewTrackCard {track}></NewTrackCard>
+            <!-- <NewTrackCard {track}></NewTrackCard> -->
+			 <FinalTrackCard></FinalTrackCard>
         {/each}
     </section>
 </main>
