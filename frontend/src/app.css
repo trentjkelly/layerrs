@@ -38,7 +38,7 @@
 }
 
 body {
-    background-color: rgb(24, 24, 27);
+    background-color: oklch(73.7% 0.021 106.9);
 }
 
 /* Dark mode scrollbar */

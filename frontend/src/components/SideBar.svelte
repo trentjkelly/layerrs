@@ -1,6 +1,7 @@
 <script>  
     import { isSidebarOpen } from "../stores/player";
     import { goto } from "$app/navigation";
+    import { page } from "$app/stores";
 
     function toggleSidebar() {
       $isSidebarOpen = !$isSidebarOpen;
@@ -16,10 +17,6 @@
 
     function navigateUpload() {
         goto('/upload')
-    }
-
-    function navigateSignIn() {
-        goto('/login')
     }
     
 </script>
@@ -40,24 +37,25 @@
         </div>
         
         <ul class="space-y-2 px-4">
-            <li class="hover:bg-zinc-700 rounded-sm">
+            <li class="hover:bg-olive-600" class:bg-olive-600={$page.url.pathname === '/'}>
                 <button class="flex flex-row hover:cursor-pointer w-full h-full p-2" onclick={navigateHome}>
                     <img class="h-6 w-6" src="/home.png" alt="Home" />
                     <p class="pl-3 text-lg">Home</p>
                 </button>
             </li>
-            <li class="hover:bg-zinc-700 rounded-sm">
+            <li class="hover:bg-olive-600" class:bg-olive-600={$page.url.pathname === '/library'}>
                 <button class="flex flex-row hover:cursor-pointer w-full h-full p-2" onclick={navigateLibrary}>
                     <img class="h-6 w-6" src="/vinyl.png" alt="Library" />
                     <p class="pl-3 text-lg">Library</p>
                 </button>
             </li>
-            <li class="hover:bg-zinc-700 rounded-sm">
+            <li class="hover:bg-olive-600" class:bg-olive-600={$page.url.pathname === '/upload'}>
                 <button class="flex flex-row hover:cursor-pointer w-full h-full p-2" onclick={navigateUpload}>
                     <img class="h-6 w-6" src="/upload.png" alt="Upload" />
                     <p class="pl-3 text-lg">Upload</p>
                 </button>
             </li>
+            
         </ul>  
     </div>
 </div>
