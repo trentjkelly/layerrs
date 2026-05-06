@@ -1,6 +1,7 @@
 <script lang="ts">
 	import '../app.css';
 	import { onMount } from 'svelte';
+	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
 	import AudioPlayer from '../components/AudioPlayer.svelte';
 	import SideBar from '../components/SideBar.svelte';
@@ -13,12 +14,6 @@
 
 	let { data, children } = $props();
 
-	onMount(async () => {
-		if ($stripePublishableKey) {
-			await loadStripe($stripePublishableKey);
-		}
-	});
-
 	// Initialize audio component across the entire session
 	onMount(async () => {
 		initializeAudio();
@@ -28,11 +23,19 @@
 			return;
 		}
 		await handleSessionStart();
-		authInitialized.set(true);
 		if ($isLoggedIn) {
 			await loadProfile();
 		}
+		if ($stripePublishableKey) {
+			await loadStripe($stripePublishableKey);
+		}
 		authInitialized.set(true);
+	});
+
+	$effect(() => {
+		if ($authInitialized && !$isLoggedIn && $page.url.pathname !== '/' && !$page.url.pathname.startsWith('/login')) {
+			goto('/login');
+		}
 	});
 
 	async function loadCookies() {
@@ -119,8 +122,9 @@
 
 </script>
 
-<div class="h-screen w-screen flex flex-row bg-zinc-900 text-white font-body">
+<div class="h-screen w-screen flex flex-row bg-olive-400 text-white font-body">
 	<SideBar></SideBar>
-	{@render children()}
-	<!-- <AudioPlayer></AudioPlayer> -->
+	{#if $authInitialized}
+		{@render children()}
+	{/if}
 </div>
