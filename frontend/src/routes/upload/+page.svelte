@@ -9,7 +9,7 @@
     import { logger } from "../../modules/lib/logger";
     import { onMount } from "svelte";
     import { get } from "svelte/store";
-    import { username as usernameStore, loadProfile} from "../../stores/profile";
+    import { usernameStore, loadProfile} from "../../stores/profile";
 
     type LayerrTrack = {
         id: number;
@@ -18,53 +18,60 @@
         artistPortraitUrl: string;
     };
 
+    let audioFiles = $state<FileList | null>(null);
+    let artistLayerrs = $state<Array<LayerrTrack>>([]);
+    let layerrs = $state<Array<number>>([]);
+    let description = $state<string>('');
+    let priceInCents = $state<number>(0);
+    let isUploaded = $state(false);
+    let isDragOver = $state(false);
+    let isLoading = $state(false);
+    let username = $state('');
+
+    let dollars = $state(0);
+    let isPageLoaded = $state(false);
+    
     $effect(() => {
         if ($authInitialized && !$isLoggedIn) {
             goto('/login');
         }
     });
 
-    let audioFiles = $state<FileList | null>(null);
-    let artistLayerrs = $state<Array<LayerrTrack>>([]);
-    let layerrs = $state<Array<number>>([]);
-    let description = $state<string>('');
-    let priceInCents = $state<number>(0);
-    let priceInputValue = $state<string>('0');
-    let isUploaded = $state(false);
-    let isDragOver = $state(false);
-    let isLoading = $state(false);
-    let username = $state('');
-
-     let dollars = $state(0);
-
-    function display(d) {
+    function display(d: number) {
         return d.toLocaleString() + '.00';
     }
 
-    function onKeydown(e) {
+    function onKeydown(e: KeyboardEvent) {
         if (e.key === 'Backspace') {
         e.preventDefault();
         dollars = Math.floor(dollars / 10);
         }
     }
 
-    function onInput(e) {
+    function onInput(e: any) {
         const digit = (e.data || '').replace(/\D/g, '');
         if (!digit) return;
         const next = dollars * 10 + parseInt(digit, 10);
         if (next <= 9999999) dollars = next;
     }
 
-    function onPaste(e) {
+    function onPaste(e: ClipboardEvent) {
         e.preventDefault();
-        const pasted = e.clipboardData.getData('text');
-        const digits = pasted.replace(/\D/g, '').slice(0, 7);
-        if (digits) dollars = parseInt(digits, 10);
+        if (e.clipboardData) {
+            const pasted = e.clipboardData.getData('text');
+            const digits = pasted.replace(/\D/g, '').slice(0, 7);
+            if (digits) dollars = parseInt(digits, 10);
+        } else {
+            console.error("Clipboard data is null");
+            dollars = 0;
+        }
     }
 
     onMount(async () => {
-        await getArtistLayerrs();
-        await getArtistUsername();
+        if ($isLoggedIn) {
+            await getArtistLayerrs();
+            await getArtistUsername();
+        }
     })
 
     async function getArtistUsername() {
@@ -184,138 +191,145 @@
         goto('/')
     }
 
+    $effect(() => {
+        if ($authInitialized && $isLoggedIn) {
+            isPageLoaded = true;
+        }
+    });
+
 </script>
 
-<main class={`transition-all duration-300 h-screen overflow-y-auto w-full ${$isSidebarOpen ? 'ml-64' : 'ml-0'} bg-zinc-900`}>
+{#if isPageLoaded}
+    <main class={`transition-all duration-300 h-screen overflow-y-auto w-full ${$isSidebarOpen ? 'ml-64' : 'ml-0'} bg-olive-400`}>
 
-    <TopHeader pageName="Upload" pageIcon="/upload.png"></TopHeader>
+        <TopHeader pageName="Upload" pageIcon="/upload.png"></TopHeader>
 
-    <section class="w-full flex flex-row justify-center pb-32">
-        {#if $isLoggedIn}
-            <div class="outline-solid outline-zinc-600 rounded-3xl w-2/3 max-w-4xl flex flex-col items-center p-8">
-                {#if !isUploaded}
-                <h2 class="mb-4 text-3xl font-bold text-white">Upload a Track</h2>
+        <section class="w-full flex flex-row justify-center pb-32">
+            {#if $isLoggedIn}
+                <div class="outline-solid outline-zinc-600 rounded-3xl w-2/3 max-w-4xl flex flex-col items-center p-8">
+                    {#if !isUploaded}
+                    <h2 class="mb-4 text-3xl font-bold text-white">Upload a Track</h2>
 
-                <!-- Audio Upload Box -->
-                <div class="w-full mb-4">
-                    <h3 class="text-xl font-semibold text-white mb-1">Audio File</h3>
-                    <label for="audio" class="block">
-                        <div 
-                            role="button"
-                            tabindex="0"
-                            class="w-full h-48 border-2 border-dashed border-zinc-400 rounded-xl flex flex-col items-center justify-center transition-all duration-200 cursor-pointer hover:border-indigo-400 hover:bg-zinc-700/50 {isDragOver && !audioFiles ? 'border-indigo-500 bg-indigo-500/20' : ''}"
-                            ondragover={handleDragOver}
-                            ondragleave={handleDragLeave}
-                            ondrop={handleDrop}
-                        >
-                            {#if !audioFiles}
-                                <div class="text-center">
-                                    <p class="text-lg text-zinc-300">Drop your audio file here</p>
-                                    <p class="text-sm text-zinc-300">or click to browse</p>
-                                    <p class="text-sm text-zinc-400 mt-6">Only FLAC and WAV files are supported</p>
+                    <!-- Audio Upload Box -->
+                    <div class="w-full mb-4">
+                        <h3 class="text-xl font-semibold text-white mb-1">Audio File</h3>
+                        <label for="audio" class="block">
+                            <div 
+                                role="button"
+                                tabindex="0"
+                                class="w-full h-48 border-2 border-dashed border-zinc-400 rounded-xl flex flex-col items-center justify-center transition-all duration-200 cursor-pointer hover:border-indigo-400 hover:bg-zinc-700/50 {isDragOver && !audioFiles ? 'border-indigo-500 bg-indigo-500/20' : ''}"
+                                ondragover={handleDragOver}
+                                ondragleave={handleDragLeave}
+                                ondrop={handleDrop}
+                            >
+                                {#if !audioFiles}
+                                    <div class="text-center">
+                                        <p class="text-lg text-zinc-300">Drop your audio file here</p>
+                                        <p class="text-sm text-zinc-300">or click to browse</p>
+                                        <p class="text-sm text-zinc-400 mt-6">Only FLAC and WAV files are supported</p>
+                                    </div>
+                                {:else}
+                                    <div class="text-center w-full">
+                                        <div class="flex items-center justify-center space-x-2">
+                                            <span class="text-green-400">✓</span>
+                                            <span class="text-zinc-300">{audioFiles[0].name}</span>
+                                            <button 
+                                                onclick={removeAudioFile}
+                                                class="ml-2 px-2 py-1 text-xs bg-red-500 hover:bg-red-600 rounded-sm text-white"
+                                            >
+                                                Remove
+                                            </button>
+                                        </div>
+                                    </div>
+                                {/if}
+                            </div>
+                        </label>
+                        
+                        <!-- Hidden audio file input -->
+                        <input id="audio" class="hidden" type="file" accept="audio/*" bind:files={audioFiles} />
+                    </div>
+                    
+                    <!-- Description Input -->
+                    <div class="w-full mb-6">
+                        <h3 class="text-xl font-semibold text-white mb-1">Description</h3>
+                        <input
+                            class="w-full px-2 py-2 rounded-lg bg-zinc-700 text-white placeholder-zinc-400 border border-zinc-600 focus:border-indigo-500 focus:outline-hidden focus:ring-2 focus:ring-indigo-500/20"
+                            type="text"
+                            bind:value={description}
+                            placeholder="Give your track a short description..."
+                            maxlength={100}
+                        />
+                        <p class="text-sm mt-1 {description.length === 0 ? 'text-zinc-400' : (description.length < 10 || description.length > 100 ? 'text-red-400' : 'text-zinc-400')}">
+                            {description.length}/100 characters (minimum 10)
+                        </p>
+                    </div>
+
+                    <!-- Add layerrs Section -->
+                    <div class="w-full mb-4">
+                        <h3 class="text-xl font-semibold text-white mb-1">Add Layerrs</h3>
+                        <p class="text-sm text-zinc-400 mt-1 mb-3">Layerrs are any other artist's tracks you've used for samples, vocals, sounds, remixes, covers, in this track.</p>
+                        
+                        <div class="h-48 overflow-y-auto bg-zinc-700 border border-zinc-600 rounded-lg">
+                            {#if artistLayerrs.length === 0}
+                                <div class="h-full flex items-center justify-center px-4 py-3 text-zinc-400 text-center">
+                                    You haven't downloaded any tracks yet
                                 </div>
                             {:else}
-                                <div class="text-center w-full">
-                                    <div class="flex items-center justify-center space-x-2">
-                                        <span class="text-green-400">✓</span>
-                                        <span class="text-zinc-300">{audioFiles[0].name}</span>
-                                        <button 
-                                            onclick={removeAudioFile}
-                                            class="ml-2 px-2 py-1 text-xs bg-red-500 hover:bg-red-600 rounded-sm text-white"
-                                        >
-                                            Remove
-                                        </button>
-                                    </div>
-                                </div>
+                                {#each artistLayerrs as track}
+                                    <LayerrsTrackCard
+                                        {track}
+                                        isSelected={layerrs.includes(track.id)}
+                                        ontoggle={addlayerr}
+                                    />
+                                {/each}
                             {/if}
                         </div>
-                    </label>
-                    
-                    <!-- Hidden audio file input -->
-                    <input id="audio" class="hidden" type="file" accept="audio/*" bind:files={audioFiles} />
-                </div>
-                
-                <!-- Description Input -->
-                <div class="w-full mb-6">
-                    <h3 class="text-xl font-semibold text-white mb-1">Description</h3>
-                    <input
-                        class="w-full px-2 py-2 rounded-lg bg-zinc-700 text-white placeholder-zinc-400 border border-zinc-600 focus:border-indigo-500 focus:outline-hidden focus:ring-2 focus:ring-indigo-500/20"
-                        type="text"
-                        bind:value={description}
-                        placeholder="Give your track a short description..."
-                        maxlength={100}
-                    />
-                    <p class="text-sm mt-1 {description.length === 0 ? 'text-zinc-400' : (description.length < 10 || description.length > 100 ? 'text-red-400' : 'text-zinc-400')}">
-                        {description.length}/100 characters (minimum 10)
-                    </p>
-                </div>
+                    </div>
 
-                <!-- Add layerrs Section -->
-                <div class="w-full mb-4">
-                    <h3 class="text-xl font-semibold text-white mb-1">Add Layerrs</h3>
-                    <p class="text-sm text-zinc-400 mt-1 mb-3">Layerrs are any other artist's tracks you've used for samples, vocals, sounds, remixes, covers, in this track.</p>
-                    
-                    <div class="h-48 overflow-y-auto bg-zinc-700 border border-zinc-600 rounded-lg">
-                        {#if artistLayerrs.length === 0}
-                            <div class="h-full flex items-center justify-center px-4 py-3 text-zinc-400 text-center">
-                                You haven't downloaded any tracks yet
-                            </div>
-                        {:else}
-                            {#each artistLayerrs as track}
-                                <LayerrsTrackCard
-                                    {track}
-                                    isSelected={layerrs.includes(track.id)}
-                                    ontoggle={addlayerr}
+                    <!-- Price Input -->
+                    <div class="w-full mb-4">
+                        <h3 class="text-xl font-semibold text-white mb-1">Price (optional)</h3>
+                        <p class="text-sm text-zinc-400 mt-1 mb-3">Set a price in USD to sell your track. Leave at $0 for free.</p>
+                        <div class="flex items-center gap-2">
+                            <span class="text-zinc-400 text-lg">$</span>
+                                <input
+                                class="bg-slate-800"
+                                type="text"
+                                inputmode="numeric"
+                                value={display(dollars)}
+                                onkeydown={onKeydown}
+                                oninput={onInput}
+                                onpaste={onPaste}
                                 />
-                            {/each}
+                            <span class="text-zinc-400">USD</span>
+                        </div>
+                    </div>
+
+                    <button
+                        class="mt-8 px-8 py-4 bg-indigo-600 hover:bg-indigo-700 rounded-full text-white font-semibold text-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-3"
+                        onclick={submitFile}
+                        disabled={!audioFiles || description.length < 10 || description.length > 100 || isLoading}
+                    >
+                        {#if isLoading}
+                            <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                            </svg>
+                            Uploading...
+                        {:else}
+                            Upload Track
                         {/if}
-                    </div>
-                </div>
-
-                <!-- Price Input -->
-                <div class="w-full mb-4">
-                    <h3 class="text-xl font-semibold text-white mb-1">Price (optional)</h3>
-                    <p class="text-sm text-zinc-400 mt-1 mb-3">Set a price in USD to sell your track. Leave at $0 for free.</p>
-                    <div class="flex items-center gap-2">
-                        <span class="text-zinc-400 text-lg">$</span>
-                            <input
-                            class="bg-slate-800"
-                            type="text"
-                            inputmode="numeric"
-                            value={display(dollars)}
-                            onkeydown={onKeydown}
-                            oninput={onInput}
-                            onpaste={onPaste}
-                            />
-                        <span class="text-zinc-400">USD</span>
-                    </div>
-                </div>
-
-                <button
-                    class="mt-8 px-8 py-4 bg-indigo-600 hover:bg-indigo-700 rounded-full text-white font-semibold text-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-3"
-                    onclick={submitFile}
-                    disabled={!audioFiles || description.length < 10 || description.length > 100 || isLoading}
-                >
-                    {#if isLoading}
-                        <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-                        </svg>
-                        Uploading...
-                    {:else}
-                        Upload Track
-                    {/if}
-                </button>
-            {:else}
-                <div class="w-full h-full flex flex-col items-center justify-center">
-                    <h2 class="mb-4 text-3xl font-bold text-white">Track successfully uploaded!</h2>
-                    <button class="bg-indigo-600 hover:bg-indigo-700 mb-2 px-8 py-4 rounded-full text-white font-semibold transition-colors" onclick={navigateHome}>
-                        Return Home
                     </button>
-                </div>
+                {:else}
+                    <div class="w-full h-full flex flex-col items-center justify-center">
+                        <h2 class="mb-4 text-3xl font-bold text-white">Track successfully uploaded!</h2>
+                        <button class="bg-indigo-600 hover:bg-indigo-700 mb-2 px-8 py-4 rounded-full text-white font-semibold transition-colors" onclick={navigateHome}>
+                            Return Home
+                        </button>
+                    </div>
+                {/if}
+            </div>
             {/if}
-        </div>
-        {/if}
-    </section>
-</main>
-
+        </section>
+    </main>
+{/if}
