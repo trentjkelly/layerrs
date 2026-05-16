@@ -4,26 +4,25 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"log"
 	"mime/multipart"
 	"os"
-	"log"
-	"strings"
 	"time"
 
 	"github.com/trentjkelly/layerrs/internals/config"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/service/s3"
 	_ "github.com/aws/aws-sdk-go-v2/aws/signer/v4"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 )
 
 type TrackStorageRepository struct {
-	r2Config		*aws.Config
-	r2Client		*s3.Client
-	r2Presigner		*s3.PresignClient
+	r2Config           *aws.Config
+	r2Client           *s3.Client
+	r2Presigner        *s3.PresignClient
 	trackWavBucketName *string
-	trackAacBucketName  *string
-	environment		string
+	trackAacBucketName *string
+	environment        string
 }
 
 // Constructor for new TrackRepository
@@ -40,16 +39,13 @@ func NewTrackStorageRepository(environment string) *TrackStorageRepository {
 
 // Uploads all tracks to R2
 func (r *TrackStorageRepository) CreateAllTracks(ctx context.Context, wavPath string, aacPath string, wavKey string, aacKey string) error {
-	envName := strings.ToLower(r.environment)
-	
 	// Upload WAV file
 	file, err := os.Open(wavPath)
 	if err != nil {
 		return fmt.Errorf("could not open the wav file: %w", err)
 	}
 
-	wavBucketName := fmt.Sprintf("track-audio-wav-%s", envName)
-	err = r.CreateTrack(ctx, file, wavKey, wavBucketName)
+	err = r.CreateTrack(ctx, file, wavKey, *r.trackWavBucketName)
 	if err != nil {
 		return fmt.Errorf("failed to upload wav file to R2: %w", err)
 	}
@@ -61,8 +57,7 @@ func (r *TrackStorageRepository) CreateAllTracks(ctx context.Context, wavPath st
 		return fmt.Errorf("could not open the aac file: %w", err)
 	}
 
-	aacBucketName := fmt.Sprintf("track-audio-aac-%s", envName)
-	err = r.CreateTrack(ctx, file, aacKey, aacBucketName)
+	err = r.CreateTrack(ctx, file, aacKey, *r.trackAacBucketName)
 	if err != nil {
 		return fmt.Errorf("failed to upload wav file to R2: %w", err)
 	}
@@ -74,9 +69,9 @@ func (r *TrackStorageRepository) CreateAllTracks(ctx context.Context, wavPath st
 // Uploads a single track to R2
 func (r *TrackStorageRepository) CreateTrack(ctx context.Context, file multipart.File, filename string, bucketName string) error {
 	input := &s3.PutObjectInput{
-		Bucket:	&bucketName,
-		Key:	&filename,
-		Body:	file,
+		Bucket: &bucketName,
+		Key:    &filename,
+		Body:   file,
 	}
 
 	_, err := r.r2Client.PutObject(ctx, input)
@@ -94,8 +89,8 @@ func (r *TrackStorageRepository) ReadWavTrack(ctx context.Context, trackName *st
 
 	input := &s3.GetObjectInput{
 		Bucket: r.trackWavBucketName,
-		Key: trackName,
-		Range: aws.String(rangeString),
+		Key:    trackName,
+		Range:  aws.String(rangeString),
 	}
 
 	res, err := r.r2Client.GetObject(ctx, input)
@@ -113,7 +108,7 @@ func (r *TrackStorageRepository) GetSignedAacURL(ctx context.Context, objectKey 
 	log.Println("[DEBUG] Getting signed url for track: ", objectKey)
 	input := &s3.GetObjectInput{
 		Bucket: r.trackAacBucketName,
-		Key: &objectKey,
+		Key:    &objectKey,
 	}
 
 	req, err := r.r2Presigner.PresignGetObject(ctx, input, func(opts *s3.PresignOptions) {
@@ -129,12 +124,12 @@ func (r *TrackStorageRepository) GetSignedAacURL(ctx context.Context, objectKey 
 }
 
 // Gets a signed url for a track
-func ( r*TrackStorageRepository) GetSignedWavURL(ctx context.Context, objectKey string, expirationTime time.Duration) (string, time.Duration, error) {
+func (r *TrackStorageRepository) GetSignedWavURL(ctx context.Context, objectKey string, expirationTime time.Duration) (string, time.Duration, error) {
 
 	log.Println("[DEBUG] Getting signed url for track: ", objectKey)
 	input := &s3.GetObjectInput{
 		Bucket: r.trackWavBucketName,
-		Key: &objectKey,
+		Key:    &objectKey,
 	}
 
 	req, err := r.r2Presigner.PresignGetObject(ctx, input, func(opts *s3.PresignOptions) {
