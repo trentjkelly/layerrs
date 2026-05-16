@@ -239,7 +239,10 @@
             <p class="ml-2">•</p>
             <a class="ml-2 px-1 rounded-md text-zinc-100 hover:bg-white text-lg transition-all duration-300" href={`/track/${track.id}`}>{track.description}</a>
     </div>
-    <!-- Waveform -->
+
+    
+
+    <!-- Waveforms -->
     <div 
         class="relative h-16 w-full hover:cursor-pointer flex flex-row items-center py-1 px-1"
         bind:clientWidth={waveformWidth}
@@ -259,7 +262,6 @@
                 index={index}
                 cursorTime={cursorTime}
                 isCursorHovered={isCursorHovered}
-                color={"violet"}
             />
         {/each}
     </div>

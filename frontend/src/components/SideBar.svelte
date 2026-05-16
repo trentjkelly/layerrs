@@ -25,18 +25,18 @@
     <div class={`fixed top-0 left-0 h-full bg-olive-500 text-white w-64 transform transition-transform duration-300 
         ${$isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div class="h-20 flex flex-row items-center justify-between">
-            <button onclick={navigateHome} class="flex flex-row items-center ml-4 p-4 hover:cursor-pointer">
+            <button onclick={navigateHome} class="flex flex-row ml-4 p-4 hover:cursor-pointer">
                 <!-- <img class="h-8 w-8" src="/vinyls.png" alt="Layerr Logo"> -->
-                <h2 class="text-2xl font-humankind font-space tracking-wider">layerrs</h2>
+                <h2 class="text-2xl font-humankind font-space tracking-wider leading-none">layerrs</h2>
             </button>
             {#if $isSidebarOpen}
-                <button class="mr-4 h-8 w-8 hover:cursor-pointer text-white rounded-sm rounded-xl shadow-sm hover:bg-taupe-300 transform flex flex-row items-center justify-center" onclick={toggleSidebar}>
-                    <img src="/sidebar-in.png" alt="Close sidebar"/>
+                <button class="mr-4 h-8 w-8 hover:cursor-pointer text-white hover:bg-olive-600 transform flex flex-row items-center justify-center" onclick={toggleSidebar}>
+                    <img src="/sidebar-in.png" alt="Close sidebar" class="h-4 w-4" />
                 </button>
             {/if}
         </div>
         
-        <ul class="space-y-2 px-4">
+        <ul class="space-y-1 px-4">
             <li class="hover:bg-olive-600" class:bg-olive-600={$page.url.pathname === '/'}>
                 <button class="flex flex-row hover:cursor-pointer w-full h-full p-2" onclick={navigateHome}>
                     <img class="h-6 w-6" src="/home.png" alt="Home" />

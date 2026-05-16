@@ -117,9 +117,13 @@
 
     <!-- Where the songs go -->
     <section class="w-full flex flex-wrap justify-around pb-24">
-        {#each tracks as track}
-            <!-- <NewTrackCard {track}></NewTrackCard> -->
-			 <FinalTrackCard></FinalTrackCard>
-        {/each}
+		<div class="h-full w-1/2">
+			{#each tracks as track}
+				<!-- <NewTrackCard {track}></NewTrackCard> -->
+				 <FinalTrackCard {track}></FinalTrackCard>
+			{/each}
+		</div>
+		
+		<!-- <FinalTrackCard track={tracks[0]}></FinalTrackCard> -->
     </section>
 </main>

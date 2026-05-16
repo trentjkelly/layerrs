@@ -153,13 +153,13 @@
     <TopHeader pageName="Profile" pageIcon=""></TopHeader>
 
     <section class="w-full flex flex-row justify-center pb-32">
-        <div class="outline-solid outline-zinc-600 rounded-3xl w-2/3 max-w-4xl flex flex-col items-center p-8">
+        <div class="bg-olive-500 border border-white w-2/3 max-w-4xl flex flex-col items-center p-8">
             <h2 class="mb-8 text-3xl font-bold text-white">Edit Profile</h2>
 
             <!-- Email (read-only) -->
             <div class="w-full mb-6">
                 <h3 class="text-xl font-semibold text-white mb-1">Email</h3>
-                <p class="w-full px-3 py-2 rounded-lg bg-zinc-800 text-zinc-400 border border-zinc-700 select-none">
+                <p class="w-full px-3 py-2 bg-olive-600 text-white border border-white select-none">
                     {$emailStore}
                 </p>
             </div>
@@ -168,13 +168,13 @@
             <div class="w-full mb-6">
                 <h3 class="text-xl font-semibold text-white mb-1">Username</h3>
                 <input
-                    class="w-full px-3 py-2 rounded-lg bg-zinc-700 text-white placeholder-zinc-400 border border-zinc-600 focus:border-indigo-500 focus:outline-hidden focus:ring-2 focus:ring-indigo-500/20"
+                    class="w-full px-3 py-2 bg-olive-600 text-white placeholder-white border border-white focus:border-white focus:outline-hidden"
                     type="text"
                     bind:value={username}
                     placeholder="Your username"
                     maxlength={30}
                 />
-                <p class="text-sm mt-1 text-zinc-400">{username.length}/30 characters</p>
+                <p class="text-sm mt-1 text-white">{username.length}/30 characters</p>
                 {#if usernameError}
                     <p class="text-sm mt-1 text-red-400">{usernameError}</p>
                 {/if}
@@ -184,26 +184,26 @@
             <div class="w-full mb-6">
                 <h3 class="text-xl font-semibold text-white mb-1">Bio</h3>
                 <textarea
-                    class="w-full px-3 py-2 rounded-lg bg-zinc-700 text-white placeholder-zinc-400 border border-zinc-600 focus:border-indigo-500 focus:outline-hidden focus:ring-2 focus:ring-indigo-500/20 resize-none"
+                    class="w-full px-3 py-2 bg-olive-600 text-white placeholder-white border border-white focus:border-white focus:outline-hidden resize-none"
                     rows={4}
                     bind:value={bio}
                     placeholder="Tell people a bit about yourself..."
                     maxlength={300}
                 ></textarea>
-                <p class="text-sm mt-1 text-zinc-400">{bio.length}/300 characters</p>
+                <p class="text-sm mt-1 text-white">{bio.length}/300 characters</p>
             </div>
 
             
             <!-- Profile Photo -->
             <div class="w-full mb-12 flex flex-col">
                 <h3 class="text-xl font-semibold text-white mb-1">Profile Photo</h3>
-                <div class="flex flex-row h-20 w-full items-center items-end gap-4">
-                    <div class="h-20 w-20 shrink-0 rounded-xl bg-zinc-700 border border-zinc-600 overflow-hidden">
+                <div class="flex flex-row h-20 w-full items-center gap-4">
+                    <div class="h-20 w-20 shrink-0 bg-olive-500 border border-white overflow-hidden">
                         {#if portraitUrl}
                             <img src={portraitUrl} alt="Profile preview" class="h-full w-full object-cover" />
                         {/if}
                     </div>
-                    <label for="photo" class="cursor-pointer h-10 ml-4 px-4 py-2 text-sm font-semibold bg-indigo-600 hover:bg-indigo-700 border border-zinc-600 rounded-lg text-white transition-colors flex items-center">
+                    <label for="photo" class="cursor-pointer h-10 ml-4 px-4 py-2 text-base font-semibold bg-olive-600 hover:bg-olive-700 text-white transition-colors flex items-center">
                         Change / Add Photo
                     </label>
                     <input id="photo" class="hidden" type="file" accept="image/*" onchange={handlePhotoChange} />
@@ -213,20 +213,20 @@
             <!-- Stripe Account Setup -->
             <div class="w-full mb-6">
                 <h3 class="text-xl font-semibold text-white mb-1">Seller Account</h3>
-                <p class="text-sm text-zinc-400 mb-3">Set up your Stripe account to start selling on Layerrs.</p>
+                <p class="text-sm text-white mb-3">Stripe Account required to sell any tracks</p>
                 <button
                     onclick={onboardSeller}
                     disabled={isOnboarding}
-                    class="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg text-white font-semibold text-sm transition-colors flex items-center gap-2"
+                    class="px-6 py-2 bg-olive-600 hover:bg-olive-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold text-base transition-colors flex items-center gap-2 cursor-pointer"
                 >
                     {#if isOnboarding}
-                        <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-                        </svg>
-                        Redirecting...
+                    <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                    </svg>
+                    Redirecting...
                     {:else}
-                        Set Up Seller Account
+                    Set Up Seller Account
                     {/if}
                 </button>
             </div>
@@ -244,7 +244,7 @@
             <button
                 onclick={saveChanges}
                 disabled={isSaving}
-                class="px-8 py-4 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-full text-white font-semibold text-lg transition-colors"
+                class="px-8 py-4 bg-olive-600 hover:bg-olive-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold text-xl transition-colors cursor-pointer"
             >{isSaving ? 'Saving...' : 'Save Changes'}</button>
         </div>
     </section>

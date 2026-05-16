@@ -73,7 +73,7 @@
             </div>
         {:else}
             <!-- Default circle when not expanded -->
-            <div class="w-12 h-12 bg-olive-600 cursor-pointer shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 overflow-hidden">
+            <div class="w-12 h-12 bg-olive-600 cursor-pointer outline-1 shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 overflow-hidden">
                 {#if portraitUrl}
                     <img src={portraitUrl} alt="Profile" class="w-full h-full object-cover" />
                 {/if}
