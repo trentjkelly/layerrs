@@ -50,16 +50,15 @@ func (c *TrackController) TrackHandlerPost(w http.ResponseWriter, r *http.Reques
 	artistIdFloat := r.Context().Value(entities.ArtistIdKey).(float64)
 	layerrsIdStr := r.FormValue("layerrIDs") // Optional - could have no layerrs to credit
 
-
 	if trackDescription == "" {
 		log.Println("[ERROR] TrackHandlerPost: track description is required")
 		http.Error(w, "Track description is required", http.StatusBadRequest)
 		return
 	}
 
-	if len(trackDescription) > 100 || len(trackDescription) < 10 {
-		log.Println("[ERROR] TrackHandlerPost: track description must be between 10 and 100 characters")
-		http.Error(w, "Track description must be between 10 and 100 characters", http.StatusBadRequest)
+	if len(trackDescription) > 100 || len(trackDescription) < 3 {
+		log.Println("[ERROR] TrackHandlerPost: track description must be between 3 and 100 characters")
+		http.Error(w, "Track description must be between 3 and 100 characters", http.StatusBadRequest)
 		return
 	}
 

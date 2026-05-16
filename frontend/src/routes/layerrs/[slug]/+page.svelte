@@ -8,17 +8,11 @@
     import { page } from '$app/state';
     import { getUrlBase } from "../../../stores/environment";
     import { urlBase } from "../../../stores/environment";
-    import { isLoggedIn, authInitialized } from "../../../stores/auth";
+import { isLoggedIn, authInitialized } from "../../../stores/auth";
     import type { TrackInfo } from "../../../models/types";
     import { getTrackTrackInfo } from "../../../modules/requests/track-requests";
     import { fetchWithAuth } from "../../../modules/lib/fetch";
     import UploadTrackCard from "../../../components/UploadTrackCard.svelte";
-
-    $effect(() => {
-        if ($authInitialized && !$isLoggedIn) {
-            goto('/login');
-        }
-    });
 
     let slug = page.params.slug;
     let track = $state<TrackInfo | undefined>(page.state.track);
@@ -76,7 +70,7 @@
 
 </script>
 
-<main class={`transition-all duration-300 h-full w-full ${$isSidebarOpen ? 'ml-64' : 'ml-0'} bg-zinc-900`}>
+<main class={`transition-all duration-300 h-full w-full ${$isSidebarOpen ? 'ml-64' : 'ml-0'} bg-olive-400`}>
     <TopHeader pageName="" pageIcon=""></TopHeader>
     
     <section class="w-full flex flex-wrap justify-around pb-24">

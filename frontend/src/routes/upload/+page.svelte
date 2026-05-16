@@ -2,6 +2,7 @@
     import { goto } from "$app/navigation";
     import TopHeader from "../../components/TopHeader.svelte";
     import LayerrsTrackCard from "../../components/LayerrsTrackCard.svelte";
+    import UserMenu from "../../components/UserMenu.svelte";
     import { isLoggedIn, authInitialized } from "../../stores/auth";
     import { fetchWithAuth } from "../../modules/lib/fetch";
     import { isSidebarOpen } from "../../stores/player";
@@ -9,7 +10,7 @@
     import { logger } from "../../modules/lib/logger";
     import { onMount } from "svelte";
     import { get } from "svelte/store";
-    import { usernameStore, loadProfile} from "../../stores/profile";
+    import { usernameStore, emailStore, portraitUrlStore, loadProfile} from "../../stores/profile";
 
     type LayerrTrack = {
         id: number;
@@ -150,8 +151,8 @@
             return
         }
 
-        if (description.length < 10 || description.length > 100) {
-            logger.error("Description must be between 10 and 100 characters")
+        if (description.length < 3 || description.length > 100) {
+            logger.error("Description must be between 3 and 100 characters")
             return
         }
 
@@ -204,9 +205,11 @@
 
         <TopHeader pageName="Upload" pageIcon="/upload.png"></TopHeader>
 
+        <UserMenu username={$usernameStore} email={$emailStore} portraitUrl={$portraitUrlStore} />
+
         <section class="w-full flex flex-row justify-center pb-32">
             {#if $isLoggedIn}
-                <div class="outline-solid outline-zinc-600 rounded-3xl w-2/3 max-w-4xl flex flex-col items-center p-8">
+                <div class="bg-olive-500 border border-white w-2/3 max-w-4xl flex flex-col items-center p-8">
                     {#if !isUploaded}
                     <h2 class="mb-4 text-3xl font-bold text-white">Upload a Track</h2>
 
@@ -217,25 +220,25 @@
                             <div 
                                 role="button"
                                 tabindex="0"
-                                class="w-full h-48 border-2 border-dashed border-zinc-400 rounded-xl flex flex-col items-center justify-center transition-all duration-200 cursor-pointer hover:border-indigo-400 hover:bg-zinc-700/50 {isDragOver && !audioFiles ? 'border-indigo-500 bg-indigo-500/20' : ''}"
+                                class="w-full h-48 border-2 border-dashed border-white bg-olive-600 flex flex-col items-center justify-center transition-all duration-200 cursor-pointer hover:bg-olive-500 {isDragOver && !audioFiles ? 'border-olive-400 bg-olive-500' : ''}"
                                 ondragover={handleDragOver}
                                 ondragleave={handleDragLeave}
                                 ondrop={handleDrop}
                             >
                                 {#if !audioFiles}
                                     <div class="text-center">
-                                        <p class="text-lg text-zinc-300">Drop your audio file here</p>
-                                        <p class="text-sm text-zinc-300">or click to browse</p>
-                                        <p class="text-sm text-zinc-400 mt-6">Only FLAC and WAV files are supported</p>
+                                        <p class="text-lg text-white">Drop your audio file here</p>
+                                        <p class="text-sm text-white">or click to browse</p>
+                                        <p class="text-sm text-white mt-6">Only FLAC and WAV files are supported</p>
                                     </div>
                                 {:else}
                                     <div class="text-center w-full">
                                         <div class="flex items-center justify-center space-x-2">
                                             <span class="text-green-400">✓</span>
-                                            <span class="text-zinc-300">{audioFiles[0].name}</span>
+                                            <span class="text-white">{audioFiles[0].name}</span>
                                             <button 
                                                 onclick={removeAudioFile}
-                                                class="ml-2 px-2 py-1 text-xs bg-red-500 hover:bg-red-600 rounded-sm text-white"
+                                                class="ml-2 px-2 py-1 text-xs bg-olive-600 hover:bg-olive-700 text-white cursor-pointer"
                                             >
                                                 Remove
                                             </button>
@@ -251,27 +254,27 @@
                     
                     <!-- Description Input -->
                     <div class="w-full mb-6">
-                        <h3 class="text-xl font-semibold text-white mb-1">Description</h3>
+                        <h3 class="text-xl font-semibold text-white mb-1">Track Name / Description</h3>
                         <input
-                            class="w-full px-2 py-2 rounded-lg bg-zinc-700 text-white placeholder-zinc-400 border border-zinc-600 focus:border-indigo-500 focus:outline-hidden focus:ring-2 focus:ring-indigo-500/20"
+                            class="w-full px-2 py-2 bg-olive-600 text-white placeholder-white border border-white focus:border-white focus:outline-hidden"
                             type="text"
                             bind:value={description}
-                            placeholder="Give your track a short description..."
+                            placeholder="Give your track a short name or description..."
                             maxlength={100}
                         />
-                        <p class="text-sm mt-1 {description.length === 0 ? 'text-zinc-400' : (description.length < 10 || description.length > 100 ? 'text-red-400' : 'text-zinc-400')}">
-                            {description.length}/100 characters (minimum 10)
+                        <p class="text-sm mt-1 {description.length === 0 ? 'text-white' : (description.length < 3 || description.length > 100 ? 'text-red-400' : 'text-white')}">
+                            {description.length}/100 characters (minimum 3)
                         </p>
                     </div>
 
                     <!-- Add layerrs Section -->
                     <div class="w-full mb-4">
                         <h3 class="text-xl font-semibold text-white mb-1">Add Layerrs</h3>
-                        <p class="text-sm text-zinc-400 mt-1 mb-3">Layerrs are any other artist's tracks you've used for samples, vocals, sounds, remixes, covers, in this track.</p>
+                        <p class="text-sm text-white mt-1 mb-3">Layerrs are any other artist's tracks you've used for samples, vocals, sounds, remixes, covers, in this track.</p>
                         
-                        <div class="h-48 overflow-y-auto bg-zinc-700 border border-zinc-600 rounded-lg">
+                        <div class="h-48 overflow-y-auto bg-olive-500 border border-white">
                             {#if artistLayerrs.length === 0}
-                                <div class="h-full flex items-center justify-center px-4 py-3 text-zinc-400 text-center">
+                                <div class="h-full flex items-center justify-center px-4 py-3 text-white text-center">
                                     You haven't downloaded any tracks yet
                                 </div>
                             {:else}
@@ -289,11 +292,11 @@
                     <!-- Price Input -->
                     <div class="w-full mb-4">
                         <h3 class="text-xl font-semibold text-white mb-1">Price (optional)</h3>
-                        <p class="text-sm text-zinc-400 mt-1 mb-3">Set a price in USD to sell your track. Leave at $0 for free.</p>
+                        <p class="text-sm text-white mt-1 mb-3">Set a price in USD to sell your track. Leave at $0 for free.</p>
                         <div class="flex items-center gap-2">
-                            <span class="text-zinc-400 text-lg">$</span>
+                            <span class="text-white text-lg">$</span>
                                 <input
-                                class="bg-slate-800"
+                                class="bg-olive-600 text-white border border-white px-2 py-2"
                                 type="text"
                                 inputmode="numeric"
                                 value={display(dollars)}
@@ -301,14 +304,14 @@
                                 oninput={onInput}
                                 onpaste={onPaste}
                                 />
-                            <span class="text-zinc-400">USD</span>
+                            <span class="text-white">USD</span>
                         </div>
                     </div>
 
                     <button
-                        class="mt-8 px-8 py-4 bg-indigo-600 hover:bg-indigo-700 rounded-full text-white font-semibold text-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-3"
+                        class="mt-8 px-8 py-4 bg-olive-600 hover:bg-olive-700 text-white font-semibold text-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-3 cursor-pointer"
                         onclick={submitFile}
-                        disabled={!audioFiles || description.length < 10 || description.length > 100 || isLoading}
+                        disabled={!audioFiles || description.length < 3 || description.length > 100 || isLoading}
                     >
                         {#if isLoading}
                             <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -323,7 +326,7 @@
                 {:else}
                     <div class="w-full h-full flex flex-col items-center justify-center">
                         <h2 class="mb-4 text-3xl font-bold text-white">Track successfully uploaded!</h2>
-                        <button class="bg-indigo-600 hover:bg-indigo-700 mb-2 px-8 py-4 rounded-full text-white font-semibold transition-colors" onclick={navigateHome}>
+                        <button class="bg-olive-600 hover:bg-olive-700 mb-2 px-8 py-4 text-white font-semibold transition-colors cursor-pointer" onclick={navigateHome}>
                             Return Home
                         </button>
                     </div>
