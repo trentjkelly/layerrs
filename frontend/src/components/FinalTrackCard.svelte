@@ -7,6 +7,7 @@
     import { audio, currentTrack, currentTrackId, isPlaying, currentTime as globalCurrentTime } from '../stores/player';
     import { getAudio } from '../modules/requests/track-requests';
     import WaveformBar from './WaveformBar.svelte';
+    import LikeButton from './LikeButton.svelte';
 
     let { track }: { track: TrackInfo } = $props();
 
@@ -14,7 +15,7 @@
 
     let newAudioURL = $state('');
     let isExpanded = $state(false);
-    let isTrackLiked = $state(false);
+    let isTrackLiked = $state(track.isLiked);
     let isHovered = $state(false);
     let showSharePopup = $state(false);
     let copiedToClipboard = $state(false);
@@ -259,7 +260,7 @@
             <a href="/track/{track.id}" class="text-lg text-white hover:underline">{track.description}</a>
         </div>
         <div class="ml-auto mr-2 flex flex-row">
-            <button class="mx-1 px-2 py-1 outline-1 hover:bg-olive-600 hover:cursor-pointer">Like</button>
+            <LikeButton trackId={track.id} numLikes={track.likes} isLiked={isTrackLiked} />
             <button class="mx-1 px-2 py-1 outline-1 hover:bg-olive-600 hover:cursor-pointer flex flex-row items-center" onclick={navigateLayerr}>
                 <img src="plus.png" alt="Layer" class="w-3 h-3">
                 <p class="ml-1">Layer</p>
