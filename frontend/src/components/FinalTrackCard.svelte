@@ -223,10 +223,13 @@
             <a href="/profile/{track.artistId}" class="text-md text-gray-300 hover:underline">{track.artistName}</a>
             <a href="/track/{track.id}" class="text-lg text-white hover:underline">{track.description}</a>
         </div>
-        <div class="ml-auto mr-2">
+        <div class="ml-auto mr-2 flex flex-row">
             <button class="mx-1 px-2 py-1 outline-1 hover:bg-olive-600 hover:cursor-pointer">Like</button>
-            <button class="mx-1 px-2 py-1 outline-1 hover:bg-olive-600 hover:cursor-pointer">Layer</button>
-            <button class="mx-1 px-2 py-1 outline-1 hover:bg-olive-600 hover:cursor-pointer">Remix</button>
+            <button class="mx-1 px-2 py-1 outline-1 hover:bg-olive-600 hover:cursor-pointer flex flex-row items-center" onclick={navigateLayerr}>
+                <img src="plus.png" alt="Layer" class="w-2 h-2">
+                <p class="ml-1">Layer</p>
+            </button>
+            
             <button class="mx-1 px-2 py-1 outline-1 hover:bg-olive-600 hover:cursor-pointer">Share</button>
         </div>
     </div>
