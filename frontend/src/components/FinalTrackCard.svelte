@@ -226,11 +226,14 @@
         <div class="ml-auto mr-2 flex flex-row">
             <button class="mx-1 px-2 py-1 outline-1 hover:bg-olive-600 hover:cursor-pointer">Like</button>
             <button class="mx-1 px-2 py-1 outline-1 hover:bg-olive-600 hover:cursor-pointer flex flex-row items-center" onclick={navigateLayerr}>
-                <img src="plus.png" alt="Layer" class="w-2 h-2">
+                <img src="plus.png" alt="Layer" class="w-3 h-3">
                 <p class="ml-1">Layer</p>
             </button>
             
-            <button class="mx-1 px-2 py-1 outline-1 hover:bg-olive-600 hover:cursor-pointer">Share</button>
+            <button class="mx-1 px-2 py-1 outline-1 hover:bg-olive-600 hover:cursor-pointer flex flex-row items-center">
+                <img src="send.png" alt="Share" class="w-4 h-4">
+                <p class="ml-1">Share</p>
+            </button>
         </div>
     </div>
 
