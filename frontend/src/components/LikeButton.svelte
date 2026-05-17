@@ -62,11 +62,13 @@
 
 </script>
 
-<button class="px-2 py-1 ml-2 rounded-md flex flex-row items-center justify-center hover:bg-white transition-all duration-300 text-white" onclick={toggleLikedTrack}>
+<button class="mx-1 px-2 py-1 outline-1 hover:bg-olive-600 hover:cursor-pointer flex flex-row items-center" onclick={toggleLikedTrack}>
     {#if isTrackLiked}
-        <p>LIKED</p>                   
+        <img src="heart-checked.png" alt="Liked" class="w-4 h-4">
+        <p class="ml-1">Liked</p>                   
     {:else}
-        <p>LIKE</p>
+        <img src="heart-unchecked.png" alt="Like" class="w-4 h-4">
+        <p class="ml-1">Like</p>
     {/if}
 
     {#if numLikes > 0}
