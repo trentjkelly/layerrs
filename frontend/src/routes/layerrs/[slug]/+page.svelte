@@ -83,7 +83,7 @@
                     </div>
                 {:else if track}
                     <div class="w-full mb-6 flex justify-center">
-                        <UploadTrackCard track={{ id: track.id, description: track.description, artistName: track.artistName, artistPortraitUrl: '' }} />
+                        <UploadTrackCard track={{ id: track.id, description: track.description, artistName: track.artistName, artistPortraitUrl: track.artistPortraitUrl }} />
                     </div>
                 {/if}
 
