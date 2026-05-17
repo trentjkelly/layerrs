@@ -8,7 +8,7 @@
     import { page } from '$app/state';
     import { getUrlBase } from "../../../stores/environment";
     import { urlBase } from "../../../stores/environment";
-import { isLoggedIn, authInitialized } from "../../../stores/auth";
+    import { isLoggedIn, authInitialized } from "../../../stores/auth";
     import type { TrackInfo } from "../../../models/types";
     import { getTrackTrackInfo } from "../../../modules/requests/track-requests";
     import { fetchWithAuth } from "../../../modules/lib/fetch";
@@ -29,19 +29,17 @@ import { isLoggedIn, authInitialized } from "../../../stores/auth";
             isLoadingTrack = false;
         }
     });
-    let creditAgreement = $state(false);
-    let noStealingAgreement = $state(false);
-    let banAgreement = $state(false);
+    let termsAgreement = $state(false);
     let isSubmitting = $state(false);
-    
+
     async function handleSubmit(event: Event) {
         event.preventDefault();
-        
-        if (!creditAgreement || !noStealingAgreement || !banAgreement) {
-            alert('Please check all agreement boxes before proceeding.');
+
+        if (!termsAgreement) {
+            alert('Please check the agreement box before proceeding.');
             return;
         }
-        
+
         isSubmitting = true;
         await handleDownload();
         isSubmitting = false;
@@ -70,89 +68,80 @@ import { isLoggedIn, authInitialized } from "../../../stores/auth";
 
 </script>
 
-<main class={`transition-all duration-300 h-full w-full ${$isSidebarOpen ? 'ml-64' : 'ml-0'} bg-olive-400`}>
+<main class={`transition-all duration-300 h-screen overflow-y-auto w-full ${$isSidebarOpen ? 'ml-64' : 'ml-0'} bg-olive-400`}>
     <TopHeader pageName="" pageIcon=""></TopHeader>
-    
-    <section class="w-full flex flex-wrap justify-around pb-24">
+
+    <section class="w-full flex flex-col items-center pb-32">
         {#if isLoadingTrack}
-            <div class="w-3/4 max-w-[1200px] pt-8">
-                <p class="text-zinc-400">Loading track info...</p>
+            <div class="bg-olive-500 border border-white w-2/3 max-w-4xl flex flex-col items-center p-8 mt-8">
+                <p class="text-white">Loading track info...</p>
             </div>
         {:else if track}
-            <div class="w-3/4 max-w-[1200px] pt-8">
+            <div class="bg-olive-500 border border-white w-2/3 max-w-4xl flex flex-col items-center p-8 mt-8">
                 <UploadTrackCard track={{ id: track.id, description: track.description, artistName: track.artistName, artistPortraitUrl: '' }} />
             </div>
         {/if}
+
         {#if $isLoggedIn}
-                <form class="w-3/4 max-w-[1200px] py-8 px-6 bg-zinc-800 rounded-lg border-zinc-700 mt-8" onsubmit={handleSubmit}>
-                    <div class="mb-6">
-                        <h2 class="text-3xl font-bold text-white mb-4 text-center">Build on This Track</h2>
-                        <div class="bg-zinc-700 rounded-lg p-4 mb-4">
-                            <p class="text-zinc-200 text-sm leading-relaxed">
-                                <strong class="text-white">Note:</strong> This track will be added to "Your Layerrs" and should be given proper credit when uploading any track that uses any part of this file.
-                            </p>
-                        </div>
-                        <p class="text-zinc-300 text-base leading-relaxed mb-6">
-                            Before proceeding, please read and agree to these terms:
+            <form class="bg-olive-500 border border-white w-2/3 max-w-4xl flex flex-col items-center p-8 mt-8" onsubmit={handleSubmit}>
+                <h2 class="mb-4 text-3xl font-bold text-white">Build on This Track</h2>
+
+                <!-- Note Box -->
+                <div class="w-full mb-6">
+                    <div class="bg-olive-600 border border-white p-4">
+                        <p class="text-white text-sm leading-relaxed">
+                            <strong class="text-white">Note:</strong> This track will be added to "Your Layerrs" and should be given proper credit when uploading any track that uses any part of this file.
                         </p>
                     </div>
+                </div>
 
-                    <div class="mb-6 ml-2 space-y-4">
-                        <div class="flex items-start space-x-3">
-                            <input 
-                                type="checkbox" 
-                                id="credit-checkbox"
-                                bind:checked={creditAgreement}
-                                class="mt-1 w-5 h-5 text-violet-600 bg-zinc-700 border-zinc-600 rounded-sm focus:ring-violet-500 hover:cursor-pointer focus:ring-2"
-                            />
-                            <label for="credit-checkbox" class="text-zinc-300 text-base leading-relaxed cursor-pointer">
+                <!-- Agreement Section -->
+                <div class="w-full mb-6">
+                    <h3 class="text-xl font-semibold text-white mb-3">Before proceeding, please read and agree to these terms:</h3>
+
+                    <div class="bg-olive-600 border border-white p-4">
+                        <ul class="list-disc list-outside ml-6 space-y-2 text-white text-base leading-relaxed">
+                            <li>
                                 When uploading a track that uses any part of this one, I will <strong class="text-white">give proper credit in the upload track form</strong>.
-                            </label>
-                        </div>
-
-                        <div class="flex items-start space-x-3">
-                            <input 
-                                type="checkbox" 
-                                id="no-stealing-checkbox"
-                                bind:checked={noStealingAgreement}
-                                class="mt-1 w-5 h-5 text-violet-600 bg-zinc-700 border-zinc-600 rounded-sm focus:ring-violet-500 hover:cursor-pointer focus:ring-2"
-                            />
-                            <label for="no-stealing-checkbox" class="text-zinc-300 text-base leading-relaxed cursor-pointer">
+                            </li>
+                            <li>
                                 I will <strong class="text-white">not steal the artist's work</strong> or claim it as my own.
-                            </label>
-                        </div>
-
-                        <div class="flex items-start space-x-3">
-                            <input 
-                                type="checkbox" 
-                                id="ban-checkbox"
-                                bind:checked={banAgreement}
-                                class="mt-1 w-5 h-5 text-violet-600 bg-zinc-700 border-zinc-600 rounded-sm focus:ring-violet-500 hover:cursor-pointer focus:ring-2"
-                            />
-                            <label for="ban-checkbox" class="text-zinc-300 text-base leading-relaxed cursor-pointer">
+                            </li>
+                            <li>
                                 I understand that <strong class="text-white">failure to abide by these terms may result in a permanent ban</strong>.
+                            </li>
+                        </ul>
+
+                        <div class="flex items-start space-x-3 mt-4 pt-4 border-t border-white/30">
+                            <input
+                                type="checkbox"
+                                id="terms-checkbox"
+                                bind:checked={termsAgreement}
+                                class="mt-1 w-5 h-5 bg-olive-600 border border-white hover:cursor-pointer flex-shrink-0"
+                            />
+                            <label for="terms-checkbox" class="text-white text-base leading-relaxed cursor-pointer">
+                                I have read and agree to the terms above.
                             </label>
                         </div>
                     </div>
+                </div>
 
-                    <div class="flex justify-center">
-                        <button 
-                            type="submit" 
-                            disabled={!creditAgreement || !noStealingAgreement || !banAgreement || isSubmitting}
-                            class="px-8 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 disabled:bg-zinc-600 disabled:cursor-not-allowed transition-all duration-300 flex items-center space-x-2"
-                        >
-                            {#if isSubmitting}
-                                <svg class="animate-spin h-4 w-4" viewBox="0 0 24 24">
-                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle>
-                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                </svg>
-                                <span>Downloading...</span>
-                            {:else}
-                                <span>Download Track</span>
-                            {/if}
-                        </button>
-                    </div>
-                </form>
+                <button
+                    type="submit"
+                    disabled={!termsAgreement || isSubmitting}
+                    class="mt-4 px-8 py-4 bg-olive-600 hover:bg-olive-700 text-white font-semibold text-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-3 cursor-pointer"
+                >
+                    {#if isSubmitting}
+                        <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                        </svg>
+                        Downloading...
+                    {:else}
+                        Download Track
+                    {/if}
+                </button>
+            </form>
         {/if}
     </section>
 </main>
