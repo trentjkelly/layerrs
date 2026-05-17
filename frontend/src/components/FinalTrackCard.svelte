@@ -252,8 +252,23 @@
 
 <div class="w-full bg-olive-500 mb-2">
     <div class="flex flex-row h-16 items-center">
-        <div class="mx-2 w-12 h-12">
+        <div 
+            class="mx-2 w-12 h-12 relative flex flex-row items-center justify-center"
+            role="button"
+            tabindex="0"
+            onmouseenter={() => isHovered = true}
+            onmouseleave={() => isHovered = false}
+        >
             <img src={track.artistPortraitUrl} alt="Artist Profile" class="w-full h-full object-cover">
+            {#if $isPlaying && $currentTrackId === track.id}
+                <button class="absolute inset-0 flex items-center justify-center w-full h-full hover:cursor-pointer" onclick={playPauseAudio}>
+                    <img src="pause.png" alt="Pause" class="w-4 h-4">
+                </button>
+            {:else if isHovered}
+                <button class="absolute inset-0 flex items-center justify-center w-full h-full hover:cursor-pointer" onclick={playPauseAudio}>
+                    <img src="play.png" alt="Play" class="w-4 h-4">
+                </button>
+            {/if}
         </div>
         <div class="h-12 flex flex-col">
             <a href="/profile/{track.artistId}" class="text-md text-gray-300 hover:underline">{track.artistName}</a>
