@@ -16,6 +16,41 @@
     let isExpanded = $state(false);
     let isTrackLiked = $state(false);
     let isHovered = $state(false);
+    let showSharePopup = $state(false);
+    let copiedToClipboard = $state(false);
+
+    function toggleSharePopup(event: MouseEvent) {
+        event.stopPropagation();
+        showSharePopup = !showSharePopup;
+        copiedToClipboard = false;
+    }
+
+    function closeSharePopup() {
+        showSharePopup = false;
+        copiedToClipboard = false;
+    }
+
+    function copyLink(event: MouseEvent) {
+        event.stopPropagation();
+        navigator.clipboard.writeText(`${window?.location?.origin}/track/${track.id}`);
+        copiedToClipboard = true;
+    }
+
+    function handleClickOutside(event: MouseEvent) {
+        const popup = document.getElementById('share-popup');
+        const shareBtn = document.getElementById('share-btn');
+        if (popup && !popup.contains(event.target as Node) && !shareBtn?.contains(event.target as Node)) {
+            closeSharePopup();
+        }
+    }
+
+    $effect(() => {
+        if (showSharePopup) {
+            document.addEventListener('click', handleClickOutside);
+            return () => document.removeEventListener('click', handleClickOutside);
+        }
+    });
+
     let mediaSource = $state<MediaSource | null>(null);
     let sourceBuffer = $state<SourceBuffer | null>(null);
     let isLoading = $state(false);
@@ -230,10 +265,39 @@
                 <p class="ml-1">Layer</p>
             </button>
             
-            <button class="mx-1 px-2 py-1 outline-1 hover:bg-olive-600 hover:cursor-pointer flex flex-row items-center">
-                <img src="send.png" alt="Share" class="w-4 h-4">
-                <p class="ml-1">Share</p>
-            </button>
+            <div class="relative">
+                <button 
+                    id="share-btn"
+                    class="mx-1 px-2 py-1 outline-1 hover:bg-olive-600 hover:cursor-pointer flex flex-row items-center"
+                    onclick={toggleSharePopup}
+                >
+                    <img src="send.png" alt="Share" class="w-4 h-4">
+                    <p class="ml-1">Share</p>
+                </button>
+                
+                {#if showSharePopup}
+                    <div id="share-popup" class="absolute top-full right-0 mt-1 w-52 bg-olive-500 shadow-xl border border-white z-50">
+                        {#if copiedToClipboard}
+                            <div class="px-4 py-2 flex items-center text-white">
+                                <svg class="w-4 h-4 mr-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                                <span class="text-md">Added to Clipboard</span>
+                            </div>
+                        {:else}
+                            <button 
+                                class="w-full px-4 py-2 text-left text-white hover:bg-olive-600 flex items-center transition-colors duration-150 cursor-pointer"
+                                onclick={copyLink}
+                            >
+                                <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path>
+                                </svg>
+                                Copy Link
+                            </button>
+                        {/if}
+                    </div>
+                {/if}
+            </div>
         </div>
     </div>
 
