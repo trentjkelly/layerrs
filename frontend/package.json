@@ -17,7 +17,6 @@
 		"@sveltejs/vite-plugin-svelte": "^5.0.0",
 		"@tailwindcss/postcss": "^4.2.4",
 		"@types/d3": "^7.4.3",
-		"@vitejs/plugin-basic-ssl": "^2.1.4",
 		"svelte": "^5.0.0",
 		"svelte-check": "^4.0.0",
 		"tailwindcss": "^4.2.4",
