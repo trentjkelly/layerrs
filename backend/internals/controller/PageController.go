@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/trentjkelly/layerrs/internals/entities"
@@ -36,6 +37,11 @@ func (c *PageController) CreatePageHandler(w http.ResponseWriter, r *http.Reques
 
 	if req.Name == "" {
 		http.Error(w, "Page name is required", http.StatusBadRequest)
+		return
+	}
+
+	if len(req.Name) > 255 {
+		http.Error(w, "Page name must be 255 characters or less", http.StatusBadRequest)
 		return
 	}
 
@@ -92,6 +98,11 @@ func (c *PageController) UpdatePageHandler(w http.ResponseWriter, r *http.Reques
 
 	if req.Name == "" {
 		http.Error(w, "Page name is required", http.StatusBadRequest)
+		return
+	}
+
+	if len(req.Name) > 255 {
+		http.Error(w, "Page name must be 255 characters or less", http.StatusBadRequest)
 		return
 	}
 
@@ -381,6 +392,43 @@ func (c *PageController) GetTrackPagesHandler(w http.ResponseWriter, r *http.Req
 	writeJSON(w, response, http.StatusOK)
 }
 
+// GET /api/tracks/pages?trackIds=1,2,3 — Bulk get top Pages for multiple tracks
+func (c *PageController) GetTrackPagesBulkHandler(w http.ResponseWriter, r *http.Request) {
+	trackIdsParam := r.URL.Query().Get("trackIds")
+	if trackIdsParam == "" {
+		writeJSON(w, map[int]entities.TrackPagesBulkResponse{}, http.StatusOK)
+		return
+	}
+
+	trackIdStrs := strings.Split(trackIdsParam, ",")
+	trackIds := make([]int, 0, len(trackIdStrs))
+	for _, s := range trackIdStrs {
+		s = strings.TrimSpace(s)
+		if s == "" {
+			continue
+		}
+		trackId, err := strconv.Atoi(s)
+		if err != nil {
+			http.Error(w, "Invalid trackIds parameter", http.StatusBadRequest)
+			return
+		}
+		trackIds = append(trackIds, trackId)
+	}
+
+	if len(trackIds) == 0 {
+		writeJSON(w, map[int]entities.TrackPagesBulkResponse{}, http.StatusOK)
+		return
+	}
+
+	response, err := c.pageService.GetTrackPagesBulk(r.Context(), trackIds)
+	if err != nil {
+		c.handleServiceError(w, err)
+		return
+	}
+
+	writeJSON(w, response, http.StatusOK)
+}
+
 // GET /api/feed/following — Get tracks from followed Pages
 func (c *PageController) GetFollowingFeedHandler(w http.ResponseWriter, r *http.Request) {
 	artistId, ok := requireArtistId(w, r)
@@ -412,7 +460,7 @@ func (c *PageController) handleServiceError(w http.ResponseWriter, err error) {
 	case errors.Is(err, entities.ErrForbidden), errors.Is(err, entities.ErrMustFollowPageToSubmit):
 		http.Error(w, err.Error(), http.StatusForbidden)
 	case errors.Is(err, entities.ErrDuplicateSubmission), errors.Is(err, entities.ErrConflict):
-		http.Error(w, err.Error(), http.StatusConflict)
+		http.Error(w, "A page with this name already exists", http.StatusConflict)
 	default:
 		log.Printf("[ERROR] PageController: %s", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)

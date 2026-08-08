@@ -8,6 +8,7 @@ type TrackInfo struct {
 	ArtistPortraitUrl string  `json:"artistPortraitUrl"`
 	R2ImageKey        string  `json:"-"`
 	Likes             int     `json:"likes"`
+	Plays             int     `json:"plays"`
 	Layerrs           int     `json:"layerrs"`
 	Duration          float64 `json:"duration"`
 	WaveformData      []int   `json:"waveformData"`

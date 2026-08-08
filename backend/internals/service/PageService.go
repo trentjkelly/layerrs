@@ -290,6 +290,34 @@ func (s *PageService) GetTrackPages(ctx context.Context, trackId int) (*entities
 	return response, nil
 }
 
+// Gets the top pages for multiple tracks in a single batch.
+// Returns a map of track ID to its pages + total page count. Pages with zero followers are included.
+func (s *PageService) GetTrackPagesBulk(ctx context.Context, trackIds []int) (map[int]entities.TrackPagesBulkResponse, error) {
+	pagesByTrack, err := s.pageRepo.GetPagesForTracks(ctx, trackIds, 3)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get pages for tracks: %w", err)
+	}
+
+	counts, err := s.pageRepo.GetPageCountsForTracks(ctx, trackIds)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get page counts for tracks: %w", err)
+	}
+
+	response := make(map[int]entities.TrackPagesBulkResponse, len(trackIds))
+	for _, trackId := range trackIds {
+		pages := pagesByTrack[trackId]
+		if pages == nil {
+			pages = []entities.PageWithFollowerCount{}
+		}
+		response[trackId] = entities.TrackPagesBulkResponse{
+			Pages:     pages,
+			PageCount: counts[trackId],
+		}
+	}
+
+	return response, nil
+}
+
 // --- Following feed ---
 
 // Gets tracks from all Pages the artist follows

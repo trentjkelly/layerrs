@@ -1,6 +1,6 @@
 import { logger } from "../lib/logger";
 import { fetchWithAuth } from "../lib/fetch";
-import type { Page, PageSubmission, PageTrack, PageWithFollowerCount, TrackPagesResponse } from "../../models/types";
+import type { Page, PageSubmission, PageTrack, PageWithFollowerCount, TrackPagesResponse, TrackPagesBulkResponse } from "../../models/types";
 
 export async function createPage(urlBase: string, name: string, description: string): Promise<Page | null> {
     try {
@@ -188,6 +188,23 @@ export async function getTrackPages(urlBase: string, trackId: string): Promise<T
         return await response.json() as TrackPagesResponse;
     } catch (error) {
         logger.error(`Error getting track pages: ${error}`);
+        return null;
+    }
+}
+
+export async function getTrackPagesBulk(urlBase: string, trackIds: number[]): Promise<Record<string, TrackPagesBulkResponse> | null> {
+    if (trackIds.length === 0) {
+        return {};
+    }
+
+    try {
+        const response = await fetch(`${urlBase}/api/tracks/pages?trackIds=${trackIds.join(",")}`, { method: "GET" });
+        if (!response.ok) {
+            throw new Error(`Failed to get track pages bulk: ${response.statusText}`);
+        }
+        return await response.json() as Record<string, TrackPagesBulkResponse>;
+    } catch (error) {
+        logger.error(`Error getting track pages bulk: ${error}`);
         return null;
     }
 }

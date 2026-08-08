@@ -43,7 +43,7 @@ func main() {
 	var magicLink string
 	if env == DEVELOPMENT {
 		magicLink = "http://localhost:8080/api/authentication/verify?token="
-		frontendUrl = "https://localhost:3000"
+		frontendUrl = "http://localhost:3000"
 	} else {
 		magicLink = "https://layerrs.com/api/authentication/verify?token="
 		frontendUrl = "https://layerrs.com"
@@ -73,11 +73,13 @@ func main() {
 	artistDatabaseRepo := databaseRepository.NewArtistDatabaseRepository(pool)
 	likesDatabaseRepo := databaseRepository.NewLikesDatabaseRepository(pool)
 	trackDatabaseRepo := databaseRepository.NewTrackDatabaseRepository(pool)
+	trackPlayDatabaseRepo := databaseRepository.NewTrackPlayDatabaseRepository(pool)
 	trackTreeDatabaseRepo := databaseRepository.NewTrackTreeDatabaseRepository(pool)
 	waveformDatabaseRepo := databaseRepository.NewWaveformDatabaseRepository(pool)
 	layerrsDatabaseRepo := databaseRepository.NewLayerrsDatabaseRepository(pool)
 	authDatabaseRepo := databaseRepository.NewAuthDatabaseRepository(pool)
 	purchaseDatabaseRepo := databaseRepository.NewPurchaseRepository(pool)
+	pageDatabaseRepo := databaseRepository.NewPageRepository(pool)
 
 	// Storage Repositories
 	portraitStorageRepo := storageRepository.NewPortraitStorageRepository(env)
@@ -85,13 +87,14 @@ func main() {
 
 	// -- SERVICES --
 	authService := service.NewAuthService(passwordRepo, artistDatabaseRepo, authRepo, verificationEmailRepo, authDatabaseRepo, magicLink)
-	trackService := service.NewTrackService(trackStorageRepo, portraitStorageRepo, trackDatabaseRepo, trackTreeDatabaseRepo, trackConversionRepo, waveformRepo, waveformDatabaseRepo, layerrsDatabaseRepo, env)
+	trackService := service.NewTrackService(trackStorageRepo, portraitStorageRepo, trackDatabaseRepo, trackPlayDatabaseRepo, trackTreeDatabaseRepo, trackConversionRepo, waveformRepo, waveformDatabaseRepo, layerrsDatabaseRepo, env)
 	recService := service.NewRecommendationsService(trackDatabaseRepo, likesDatabaseRepo, portraitStorageRepo)
 	artistService := service.NewArtistService(artistDatabaseRepo, portraitStorageRepo, portraitConversionRepo)
 	likesService := service.NewLikesService(likesDatabaseRepo, trackDatabaseRepo)
 	layerrsService := service.NewLayerrsService(layerrsDatabaseRepo, portraitStorageRepo)
 	sellerService := service.NewSellerService(artistDatabaseRepo, stripeConfig.ReturnURL, stripeConfig.RefreshURL)
 	purchaseService := service.NewPurchaseService(purchaseDatabaseRepo, trackStorageRepo, stripeConfig.ReturnURL, stripeConfig.RefreshURL)
+	pageService := service.NewPageService(pageDatabaseRepo, trackDatabaseRepo)
 
 	// -- CONTROLLERS --
 	authController := controller.NewAuthController(authService, frontendUrl)
@@ -103,6 +106,7 @@ func main() {
 	sellerController := controller.NewSellerController(sellerService)
 	webhookController := controller.NewWebhookController(sellerService, stripeConfig.WebhookSecret)
 	purchaseController := controller.NewPurchaseController(purchaseService)
+	pageController := controller.NewPageController(pageService)
 
 	// -- CONFIGURATION --
 	cfg := appConfig{
@@ -120,6 +124,7 @@ func main() {
 		sellerController:          sellerController,
 		webhookController:         webhookController,
 		purchaseController:        purchaseController,
+		pageController:            pageController,
 	}
 
 	// Mount and run the application

@@ -11,14 +11,14 @@ type Page struct {
 	UpdatedAt   time.Time `json:"updatedAt"`
 
 	// Computed fields populated by repository/service layers
-	FollowerCount int  `json:"followerCount,omitempty"`
-	IsFollowing   bool `json:"isFollowing,omitempty"`
-	IsEditor      bool `json:"isEditor,omitempty"`
+	FollowerCount int     `json:"followerCount,omitempty"`
+	IsFollowing   bool    `json:"isFollowing,omitempty"`
+	IsEditor      bool    `json:"isEditor,omitempty"`
+	EditorName    *string `json:"editorName,omitempty"`
 }
 
 type PageWithFollowerCount struct {
 	Page
-	EditorName *string `json:"editorName,omitempty"`
 }
 
 type CreatePageRequest struct {
@@ -53,4 +53,9 @@ type TrackPagesResponse struct {
 	TopPage    *PageWithFollowerCount  `json:"topPage"`
 	OtherCount int                     `json:"otherCount"`
 	Pages      []PageWithFollowerCount `json:"pages"`
+}
+
+type TrackPagesBulkResponse struct {
+	Pages     []PageWithFollowerCount `json:"pages"`
+	PageCount int                     `json:"pageCount"`
 }

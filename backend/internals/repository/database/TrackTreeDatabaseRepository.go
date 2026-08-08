@@ -171,6 +171,34 @@ func (r *TrackTreeDatabaseRepository) CreateTrackTree(ctx context.Context, tx pg
 	return nil
 }
 
+// Gets all parent track IDs for a batch of child track IDs
+func (r *TrackTreeDatabaseRepository) GetParentsForTracks(ctx context.Context, trackIds []int) (map[int][]int, error) {
+	query := `
+		SELECT child_id, root_id
+		FROM track_tree
+		WHERE child_id = ANY($1)
+		ORDER BY child_id, root_id
+	`
+
+	rows, err := r.db.Query(ctx, query, trackIds)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query parents for tracks: %w", err)
+	}
+	defer rows.Close()
+
+	parentsByTrack := make(map[int][]int)
+	for rows.Next() {
+		var childId, rootId int
+		err := rows.Scan(&childId, &rootId)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan parent row: %w", err)
+		}
+		parentsByTrack[childId] = append(parentsByTrack[childId], rootId)
+	}
+
+	return parentsByTrack, nil
+}
+
 // Gets all TrackTree relationships within the same graph as the given trackId
 func (r *TrackTreeDatabaseRepository) GetGraphTrackTrees(ctx context.Context, trackId int) ([]*entities.TrackTree, error) {
 	query := `

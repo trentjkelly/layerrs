@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/trentjkelly/layerrs/internals/entities"
 )
@@ -29,11 +30,23 @@ func (r *PageRepository) CloseDB() {
 
 // Creates a new Page owned by editorId
 func (r *PageRepository) CreatePage(ctx context.Context, editorId int, name string, description string) (*entities.Page, error) {
-	query := `INSERT INTO page (editor_id, name, description) VALUES ($1, $2, $3) RETURNING id, editor_id, name, description, created_at, updated_at`
+	query := `
+		WITH inserted AS (
+			INSERT INTO page (editor_id, name, description) VALUES ($1, $2, $3)
+			RETURNING id, editor_id, name, description, created_at, updated_at
+		)
+		SELECT i.id, i.editor_id, i.name, i.description, i.created_at, i.updated_at, a.username
+		FROM inserted i
+		LEFT JOIN artist a ON a.id = i.editor_id
+	`
 	row := r.db.QueryRow(ctx, query, editorId, name, description)
 
 	page, err := scanPageRow(row)
 	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
+			return nil, entities.ErrConflict
+		}
 		return nil, fmt.Errorf("failed to create page: %w", err)
 	}
 
@@ -46,7 +59,8 @@ func (r *PageRepository) GetPageById(ctx context.Context, pageId int, viewerArti
 		SELECT p.id, p.editor_id, p.name, p.description, p.created_at, p.updated_at,
 		       COALESCE(fc.follower_count, 0) AS follower_count,
 		       CASE WHEN p.editor_id = $2 THEN true ELSE false END AS is_editor,
-		       CASE WHEN pf.artist_id IS NOT NULL THEN true ELSE false END AS is_following
+		       CASE WHEN pf.artist_id IS NOT NULL THEN true ELSE false END AS is_following,
+		       a.username
 		FROM page p
 		LEFT JOIN (
 			SELECT page_id, COUNT(*) AS follower_count
@@ -54,6 +68,7 @@ func (r *PageRepository) GetPageById(ctx context.Context, pageId int, viewerArti
 			GROUP BY page_id
 		) fc ON fc.page_id = p.id
 		LEFT JOIN page_follower pf ON pf.page_id = p.id AND pf.artist_id = $2
+		LEFT JOIN artist a ON a.id = p.editor_id
 		WHERE p.id = $1
 	`
 	row := r.db.QueryRow(ctx, query, pageId, viewerArtistId)
@@ -73,13 +88,15 @@ func (r *PageRepository) GetPageById(ctx context.Context, pageId int, viewerArti
 func (r *PageRepository) GetPagesByEditorId(ctx context.Context, editorId int) ([]entities.Page, error) {
 	query := `
 		SELECT p.id, p.editor_id, p.name, p.description, p.created_at, p.updated_at,
-		       COALESCE(fc.follower_count, 0) AS follower_count
+		       COALESCE(fc.follower_count, 0) AS follower_count,
+		       a.username
 		FROM page p
 		LEFT JOIN (
 			SELECT page_id, COUNT(*) AS follower_count
 			FROM page_follower
 			GROUP BY page_id
 		) fc ON fc.page_id = p.id
+		LEFT JOIN artist a ON a.id = p.editor_id
 		WHERE p.editor_id = $1
 		ORDER BY p.created_at DESC
 	`
@@ -103,7 +120,15 @@ func (r *PageRepository) GetPagesByEditorId(ctx context.Context, editorId int) (
 
 // Updates a Page's name and description if editorId owns it
 func (r *PageRepository) UpdatePage(ctx context.Context, pageId int, editorId int, name string, description string) (*entities.Page, error) {
-	query := `UPDATE page SET name=$3, description=$4, updated_at=NOW() WHERE id=$1 AND editor_id=$2 RETURNING id, editor_id, name, description, created_at, updated_at`
+	query := `
+		WITH updated AS (
+			UPDATE page SET name=$3, description=$4, updated_at=NOW() WHERE id=$1 AND editor_id=$2
+			RETURNING id, editor_id, name, description, created_at, updated_at
+		)
+		SELECT u.id, u.editor_id, u.name, u.description, u.created_at, u.updated_at, a.username
+		FROM updated u
+		LEFT JOIN artist a ON a.id = u.editor_id
+	`
 	row := r.db.QueryRow(ctx, query, pageId, editorId, name, description)
 
 	page, err := scanPageRow(row)
@@ -457,6 +482,91 @@ func (r *PageRepository) GetPageCountForTrack(ctx context.Context, trackId int) 
 	return count, nil
 }
 
+// Gets the top N pages for each of the given track IDs, ranked by follower count DESC then name ASC.
+// Pages with zero followers are included.
+func (r *PageRepository) GetPagesForTracks(ctx context.Context, trackIds []int, limitPerTrack int) (map[int][]entities.PageWithFollowerCount, error) {
+	if len(trackIds) == 0 {
+		return map[int][]entities.PageWithFollowerCount{}, nil
+	}
+
+	query := `
+		WITH ranked AS (
+			SELECT
+				p.id,
+				p.editor_id,
+				p.name,
+				p.description,
+				p.created_at,
+				p.updated_at,
+				COUNT(pf.artist_id) AS follower_count,
+				a.username,
+				pt.track_id,
+				ROW_NUMBER() OVER (PARTITION BY pt.track_id ORDER BY COUNT(pf.artist_id) DESC, p.name ASC) AS rn
+			FROM page p
+			JOIN page_track pt ON pt.page_id = p.id
+			LEFT JOIN page_follower pf ON pf.page_id = p.id
+			LEFT JOIN artist a ON a.id = p.editor_id
+			WHERE pt.track_id = ANY($1)
+			GROUP BY p.id, p.editor_id, p.name, p.description, p.created_at, p.updated_at, a.username, pt.track_id
+		)
+		SELECT id, editor_id, name, description, created_at, updated_at, follower_count, username, track_id
+		FROM ranked
+		WHERE rn <= $2
+		ORDER BY track_id, rn
+	`
+
+	rows, err := r.db.Query(ctx, query, trackIds, limitPerTrack)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query pages for tracks: %w", err)
+	}
+	defer rows.Close()
+
+	pagesByTrack := make(map[int][]entities.PageWithFollowerCount)
+	for rows.Next() {
+		var trackId int
+		page, err := scanPageWithFollowerCountRowAndTrackId(rows, &trackId)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan pages for tracks row: %w", err)
+		}
+		pagesByTrack[trackId] = append(pagesByTrack[trackId], *page)
+	}
+
+	return pagesByTrack, nil
+}
+
+// Gets the total number of pages that include each of the given track IDs.
+// Pages with zero followers are counted.
+func (r *PageRepository) GetPageCountsForTracks(ctx context.Context, trackIds []int) (map[int]int, error) {
+	if len(trackIds) == 0 {
+		return map[int]int{}, nil
+	}
+
+	query := `
+		SELECT pt.track_id, COUNT(*)
+		FROM page_track pt
+		WHERE pt.track_id = ANY($1)
+		GROUP BY pt.track_id
+	`
+
+	rows, err := r.db.Query(ctx, query, trackIds)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query page counts for tracks: %w", err)
+	}
+	defer rows.Close()
+
+	counts := make(map[int]int, len(trackIds))
+	for rows.Next() {
+		var trackId int
+		var count int
+		if err := rows.Scan(&trackId, &count); err != nil {
+			return nil, fmt.Errorf("failed to scan page count row: %w", err)
+		}
+		counts[trackId] = count
+	}
+
+	return counts, nil
+}
+
 // --- Notes ---
 
 // Creates a note attached to a PageTrack
@@ -542,6 +652,7 @@ func scanPageRow(scanner pageScanner) (*entities.Page, error) {
 	var page entities.Page
 	var editorId sql.NullInt32
 	var description sql.NullString
+	var editorName sql.NullString
 
 	err := scanner.Scan(
 		&page.Id,
@@ -550,6 +661,7 @@ func scanPageRow(scanner pageScanner) (*entities.Page, error) {
 		&description,
 		&page.CreatedAt,
 		&page.UpdatedAt,
+		&editorName,
 	)
 	if err != nil {
 		return nil, err
@@ -562,6 +674,9 @@ func scanPageRow(scanner pageScanner) (*entities.Page, error) {
 	if description.Valid {
 		page.Description = description.String
 	}
+	if editorName.Valid {
+		page.EditorName = &editorName.String
+	}
 
 	return &page, nil
 }
@@ -570,6 +685,7 @@ func scanPageRowWithComputed(scanner pageScanner) (*entities.Page, error) {
 	var page entities.Page
 	var editorId sql.NullInt32
 	var description sql.NullString
+	var editorName sql.NullString
 
 	err := scanner.Scan(
 		&page.Id,
@@ -581,6 +697,7 @@ func scanPageRowWithComputed(scanner pageScanner) (*entities.Page, error) {
 		&page.FollowerCount,
 		&page.IsEditor,
 		&page.IsFollowing,
+		&editorName,
 	)
 	if err != nil {
 		return nil, err
@@ -592,6 +709,9 @@ func scanPageRowWithComputed(scanner pageScanner) (*entities.Page, error) {
 	}
 	if description.Valid {
 		page.Description = description.String
+	}
+	if editorName.Valid {
+		page.EditorName = &editorName.String
 	}
 
 	return &page, nil
@@ -601,6 +721,7 @@ func scanPageRowWithFollowerCount(scanner pageScanner) (*entities.Page, error) {
 	var page entities.Page
 	var editorId sql.NullInt32
 	var description sql.NullString
+	var editorName sql.NullString
 
 	err := scanner.Scan(
 		&page.Id,
@@ -610,6 +731,7 @@ func scanPageRowWithFollowerCount(scanner pageScanner) (*entities.Page, error) {
 		&page.CreatedAt,
 		&page.UpdatedAt,
 		&page.FollowerCount,
+		&editorName,
 	)
 	if err != nil {
 		return nil, err
@@ -621,6 +743,9 @@ func scanPageRowWithFollowerCount(scanner pageScanner) (*entities.Page, error) {
 	}
 	if description.Valid {
 		page.Description = description.String
+	}
+	if editorName.Valid {
+		page.EditorName = &editorName.String
 	}
 
 	return &page, nil
@@ -716,7 +841,42 @@ func scanPageWithFollowerCountRow(scanner pageScanner) (*entities.PageWithFollow
 		pwc.Description = description.String
 	}
 	if editorName.Valid {
-		pwc.EditorName = &editorName.String
+		pwc.Page.EditorName = &editorName.String
+	}
+
+	return &pwc, nil
+}
+
+func scanPageWithFollowerCountRowAndTrackId(scanner pageScanner, trackId *int) (*entities.PageWithFollowerCount, error) {
+	var pwc entities.PageWithFollowerCount
+	var editorId sql.NullInt32
+	var description sql.NullString
+	var editorName sql.NullString
+
+	err := scanner.Scan(
+		&pwc.Id,
+		&editorId,
+		&pwc.Name,
+		&description,
+		&pwc.CreatedAt,
+		&pwc.UpdatedAt,
+		&pwc.FollowerCount,
+		&editorName,
+		trackId,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	if editorId.Valid {
+		id := int(editorId.Int32)
+		pwc.EditorId = &id
+	}
+	if description.Valid {
+		pwc.Description = description.String
+	}
+	if editorName.Valid {
+		pwc.Page.EditorName = &editorName.String
 	}
 
 	return &pwc, nil

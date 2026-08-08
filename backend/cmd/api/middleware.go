@@ -15,7 +15,7 @@ func AuthJWTMiddleware(next http.Handler) http.Handler {
 	secretKey := os.Getenv("AUTH_SECRET_KEY")
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		
+
 		// Extract string from auth header
 		headerString := r.Header.Get("Authorization")
 		if headerString == "" {
@@ -55,6 +55,48 @@ func AuthJWTMiddleware(next http.Handler) http.Handler {
 		// Pass artistId to next handler as context
 		ctx := context.WithValue(r.Context(), entities.ArtistIdKey, artistId)
 
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
+// OptionalAuthJWTMiddleware extracts the artist ID from a JWT when one is provided,
+// but still allows the request to proceed for anonymous users.
+func OptionalAuthJWTMiddleware(next http.Handler) http.Handler {
+	secretKey := os.Getenv("AUTH_SECRET_KEY")
+
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		headerString := r.Header.Get("Authorization")
+		if headerString == "" {
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		authString := strings.Split(headerString, " ")
+		if len(authString) != 2 {
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		tokenString := authString[1]
+		token, err := ValidateJWT(tokenString, secretKey)
+		if err != nil {
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		claims, ok := token.Claims.(jwt.MapClaims)
+		if !ok {
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		artistId, ok := claims["sub"]
+		if !ok {
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		ctx := context.WithValue(r.Context(), entities.ArtistIdKey, artistId)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

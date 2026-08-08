@@ -6,6 +6,7 @@
     import type { TrackInfo } from '../models/types';
     import { audio, currentTrack, currentTrackId, isPlaying, currentTime as globalCurrentTime } from '../stores/player';
     import { getAudio } from '../modules/requests/track-requests';
+    import { trackPlayProgress } from '../modules/lib/play-tracking';
     import WaveformBar from './WaveformBar.svelte';
     import LikeButton from './LikeButton.svelte';
 
@@ -21,6 +22,7 @@
 
     let isExpanded = $state(false);
     let isTrackLiked = $state(false);
+    let numLikes = $state(track.likes);
     let isHovered = $state(false);
     let audioElement = $state();
     let mediaSource = $state<MediaSource | null>(null);
@@ -60,6 +62,12 @@
             return () => {
                 $audio.removeEventListener('timeupdate', updateTime);
             }
+        }
+    })
+
+    $effect(() => {
+        if ($currentTrackId === track.id && urlBase) {
+            return trackPlayProgress(track.id, urlBase);
         }
     })
 
@@ -268,7 +276,7 @@
 
     <!-- Track Information -->
     <div class="w-full h-12 flex flex-row items-center">
-        <LikeButton trackId={track.id} numLikes={track.likes} isLiked={track.isLiked}></LikeButton>
+        <LikeButton trackId={track.id} bind:numLikes={numLikes} isLiked={track.isLiked}></LikeButton>
         <button class="py-1 px-3 ml-4 rounded-md flex flex-row items-center justify-center transition-all duration-200 text-white font-semibold tracking-wider text-sm hover:scale-105 active:scale-95 hover:shadow-md" onclick={navigateLayerr}>
             <p class="text-md">BUILD ON THIS</p>
         </button>

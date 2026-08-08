@@ -8,6 +8,7 @@ export const emailStore = writable('');
 export const bioStore = writable('');
 export const portraitUrlStore = writable('');
 export const validStripeSellerStore = writable(false);
+export const artistIdStore = writable<number | null>(null);
 
 export async function loadProfile(): Promise<void> {
     if (get(usernameStore) !== '') return;
@@ -20,7 +21,8 @@ export async function loadProfile(): Promise<void> {
             emailStore.set(data.email ?? '');
             bioStore.set(data.bio ?? '');
             portraitUrlStore.set(data.portraitUrl ?? '');
-            validStripeSellerStore.set(data.ValidStripeSeller ?? false)
+            validStripeSellerStore.set(data.ValidStripeSeller ?? false);
+            artistIdStore.set(data.id ?? null);
         }
     } catch (err) {
         logger.error(`Failed to load profile: ${err}`);

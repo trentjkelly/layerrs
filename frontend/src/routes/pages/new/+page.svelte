@@ -6,24 +6,27 @@
     import TopHeader from "../../../components/TopHeader.svelte";
     import { isSidebarOpen } from "../../../stores/player";
 
-    let name = "";
-    let description = "";
-    let errorMessage = "";
-    let isSubmitting = false;
+    let name = $state("");
+    let description = $state("");
+    let errorMessage = $state("");
+    let isSubmitting = $state(false);
 
-    async function handleSubmit() {
+    async function handleSubmit(event: SubmitEvent) {
+        event.preventDefault();
         errorMessage = "";
-        if (name.trim() === "") {
+
+        const trimmedName = name.trim();
+        if (trimmedName === "") {
             errorMessage = "Page name is required";
             return;
         }
-        if (name.length > 255) {
+        if (trimmedName.length > 255) {
             errorMessage = "Page name must be 255 characters or less";
             return;
         }
 
         isSubmitting = true;
-        const page = await createPage($urlBase, name.trim(), description.trim());
+        const page = await createPage($urlBase, trimmedName, description.trim());
         isSubmitting = false;
 
         if (page) {
@@ -43,7 +46,7 @@
         {:else}
             <h1 class="text-3xl font-bold mb-6">Create a Page</h1>
 
-            <form on:submit|preventDefault={handleSubmit} class="flex flex-col gap-4">
+            <form onsubmit={handleSubmit} class="flex flex-col gap-4">
                 <div>
                     <label for="name" class="block font-semibold mb-1">Name *</label>
                     <input

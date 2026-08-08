@@ -6,6 +6,7 @@
     import TopHeader from "../../../../components/TopHeader.svelte";
     import type { PageWithFollowerCount } from "../../../../models/types";
     import { getTrackPages } from "../../../../modules/requests/page-requests";
+    import { formatFollowers } from "../../../../modules/lib/format";
 
     let trackId = $derived($page.params.trackId ?? "");
     let pages: PageWithFollowerCount[] = $state([]);
@@ -31,12 +32,6 @@
     }
 
     onMount(loadData);
-
-    function formatFollowers(count: number): string {
-        if (count >= 1_000_000) return (count / 1_000_000).toFixed(1) + "M";
-        if (count >= 1_000) return (count / 1_000).toFixed(1) + "k";
-        return String(count);
-    }
 </script>
 
 <main class={`transition-all duration-300 min-h-screen w-full overflow-y-auto ${$isSidebarOpen ? 'ml-64' : 'ml-0'} bg-olive-400`}>

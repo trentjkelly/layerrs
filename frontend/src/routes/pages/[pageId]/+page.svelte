@@ -109,7 +109,8 @@
     }
 
     function getEditorName(page: PageModel | null): string {
-        return page?.editorId ? `Editor #${page.editorId}` : "Anonymous";
+        if (!page?.editorId) return "Anonymous";
+        return page.editorName || "Anonymous";
     }
 </script>
 
