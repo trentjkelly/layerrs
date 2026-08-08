@@ -5,7 +5,14 @@
     import { logger } from "../modules/lib/logger";
     import { fetchWithAuth } from "../modules/lib/fetch";
 
-    let { trackId, numLikes, isLiked = false} = $props()
+    let {
+        trackId,
+        numLikes = $bindable(0),
+        isLiked = false,
+        showLabel = true,
+        showCount = true,
+        borderless = false
+    } = $props()
 
     let isTrackLiked = $state(untrack(() => isLiked))
 
@@ -62,16 +69,23 @@
 
 </script>
 
-<button class="mx-1 px-2 py-1 outline-1 hover:bg-olive-600 hover:cursor-pointer flex flex-row items-center" onclick={toggleLikedTrack}>
+<button
+    class="mx-1 {borderless ? 'p-2' : 'px-3 py-2 outline-1'} bg-olive-500 hover:bg-olive-600 hover:cursor-pointer flex flex-row items-center"
+    onclick={toggleLikedTrack}
+>
     {#if isTrackLiked}
-        <img src="heart-checked.png" alt="Liked" class="w-4 h-4">
-        <p class="ml-1">Liked</p>                   
+        <img src="heart-checked.png" alt="Liked" class="w-5 h-5">
+        {#if showLabel}
+            <p class="ml-1">Liked</p>
+        {/if}
     {:else}
-        <img src="heart-unchecked.png" alt="Like" class="w-4 h-4">
-        <p class="ml-1">Like</p>
+        <img src="heart-unchecked.png" alt="Like" class="w-5 h-5">
+        {#if showLabel}
+            <p class="ml-1">Like</p>
+        {/if}
     {/if}
 
-    {#if numLikes > 0}
+    {#if showCount && numLikes > 0}
         <p class="text-sm ml-2">{numLikes}</p>
     {/if}
 </button>

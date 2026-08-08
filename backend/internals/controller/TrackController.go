@@ -145,6 +145,32 @@ func (c *TrackController) TrackAudioHandlerGet(w http.ResponseWriter, r *http.Re
 	w.Write(buffer.Bytes())
 }
 
+// POST request -- records a play for a given track id (POST /track/{id}/play)
+func (c *TrackController) TrackPlayHandlerPost(w http.ResponseWriter, r *http.Request) {
+	// Get trackId from request URL
+	trackIdStr := chi.URLParam(r, "id")
+	trackId, err := strconv.Atoi(trackIdStr)
+	if err != nil {
+		log.Println("[ERROR] TrackPlayHandlerPost: ", err)
+		http.Error(w, "Invalid track id", http.StatusBadRequest)
+		return
+	}
+
+	// Get artistId from context
+	artistIdFloat := r.Context().Value(entities.ArtistIdKey).(float64)
+	artistIdInt := int(artistIdFloat)
+
+	// Record the play
+	err = c.trackService.RecordPlay(r.Context(), trackId, artistIdInt)
+	if err != nil {
+		log.Println("[ERROR] TrackPlayHandlerPost: ", err)
+		http.Error(w, "Failed to record play", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusCreated)
+}
+
 // GET request -- streams the audio for a given track id (GET /track/{id}/download)
 func (c *TrackController) TrackDownloadHandlerGet(w http.ResponseWriter, r *http.Request) {
 	// Get trackId from request URL
@@ -274,6 +300,56 @@ func (c *TrackController) TrackRecommendationHandlerGet(w http.ResponseWriter, r
 	err = json.NewEncoder(w).Encode(rec)
 	if err != nil {
 		log.Println("[ERROR] TrackRecommendationHandlerGet: ", err)
+		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+		return
+	}
+}
+
+// GET request -- returns parent track IDs for a batch of track IDs (GET /tracks/uses?trackIds=1,2,3)
+func (c *TrackController) TrackUsesHandlerGet(w http.ResponseWriter, r *http.Request) {
+	trackIdsParam := r.URL.Query().Get("trackIds")
+	if trackIdsParam == "" {
+		w.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(w).Encode(map[int][]int{})
+		return
+	}
+
+	trackIdStrs := strings.Split(trackIdsParam, ",")
+	trackIds := make([]int, 0, len(trackIdStrs))
+	for _, s := range trackIdStrs {
+		s = strings.TrimSpace(s)
+		if s == "" {
+			continue
+		}
+		trackId, err := strconv.Atoi(s)
+		if err != nil {
+			log.Println("[ERROR] TrackUsesHandlerGet: invalid track id:", err)
+			http.Error(w, "Invalid trackIds parameter", http.StatusBadRequest)
+			return
+		}
+		trackIds = append(trackIds, trackId)
+	}
+
+	if len(trackIds) == 0 {
+		w.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(w).Encode(map[int][]int{})
+		return
+	}
+
+	parentsByTrack, err := c.trackService.GetTrackParentsBulk(r.Context(), trackIds)
+	if err != nil {
+		log.Println("[ERROR] TrackUsesHandlerGet: ", err)
+		http.Error(w, "Failed to get track uses", http.StatusInternalServerError)
+		return
+	}
+
+	if parentsByTrack == nil {
+		parentsByTrack = make(map[int][]int)
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(parentsByTrack); err != nil {
+		log.Println("[ERROR] TrackUsesHandlerGet: ", err)
 		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
 		return
 	}

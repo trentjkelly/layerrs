@@ -18,7 +18,11 @@
     function navigateUpload() {
         goto('/upload')
     }
-    
+
+    function navigatePages() {
+        goto('/pages')
+    }
+
 </script>
   
 <div class="flex">
@@ -55,7 +59,13 @@
                     <p class="pl-3 text-lg">Upload</p>
                 </button>
             </li>
-            
+            <li class="hover:bg-olive-600" class:bg-olive-600={$page.url.pathname === '/pages' || $page.url.pathname.startsWith('/pages/')}>
+                <button class="flex flex-row hover:cursor-pointer w-full h-full p-2" onclick={navigatePages}>
+                    <img class="h-6 w-6" src="/vinyl.png" alt="Pages" />
+                    <p class="pl-3 text-lg">Pages</p>
+                </button>
+            </li>
+
         </ul>  
     </div>
 </div>

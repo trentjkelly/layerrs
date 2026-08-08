@@ -31,5 +31,5 @@
         <p class="text-lg ml-2">{trackLength}</p>
     </div>
 
-    <LikeButton trackId={trackId} numLikes={numLikes} />
+    <LikeButton trackId={trackId} bind:numLikes={numLikes} />
 </div>

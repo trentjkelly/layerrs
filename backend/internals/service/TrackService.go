@@ -21,15 +21,16 @@ const (
 )
 
 type TrackService struct {
-	trackStorageRepo     *storageRepository.TrackStorageRepository
-	portraitStorageRepo  *storageRepository.PortraitStorageRepository
-	trackDatabaseRepo    *databaseRepository.TrackDatabaseRepository
-	treeDatabaseRepo     *databaseRepository.TrackTreeDatabaseRepository
-	trackConversionRepo  *computingRepository.TrackConversionRepository
-	waveformHeightsRepo  *computingRepository.WaveformHeightsRepository
-	waveformDatabaseRepo *databaseRepository.WaveformDatabaseRepository
-	layerrsDatabaseRepo  *databaseRepository.LayerrsDatabaseRepository
-	environment          string
+	trackStorageRepo      *storageRepository.TrackStorageRepository
+	portraitStorageRepo   *storageRepository.PortraitStorageRepository
+	trackDatabaseRepo     *databaseRepository.TrackDatabaseRepository
+	trackPlayDatabaseRepo *databaseRepository.TrackPlayDatabaseRepository
+	treeDatabaseRepo      *databaseRepository.TrackTreeDatabaseRepository
+	trackConversionRepo   *computingRepository.TrackConversionRepository
+	waveformHeightsRepo   *computingRepository.WaveformHeightsRepository
+	waveformDatabaseRepo  *databaseRepository.WaveformDatabaseRepository
+	layerrsDatabaseRepo   *databaseRepository.LayerrsDatabaseRepository
+	environment           string
 }
 
 // Constructor for a new TrackService
@@ -37,6 +38,7 @@ func NewTrackService(
 	trackStorageRepo *storageRepository.TrackStorageRepository,
 	portraitStorageRepo *storageRepository.PortraitStorageRepository,
 	trackDatabaseRepo *databaseRepository.TrackDatabaseRepository,
+	trackPlayDatabaseRepo *databaseRepository.TrackPlayDatabaseRepository,
 	treeDatabaseRepo *databaseRepository.TrackTreeDatabaseRepository,
 	trackConversionRepo *computingRepository.TrackConversionRepository,
 	waveformHeightsRepo *computingRepository.WaveformHeightsRepository,
@@ -48,6 +50,7 @@ func NewTrackService(
 	trackService.trackStorageRepo = trackStorageRepo
 	trackService.portraitStorageRepo = portraitStorageRepo
 	trackService.trackDatabaseRepo = trackDatabaseRepo
+	trackService.trackPlayDatabaseRepo = trackPlayDatabaseRepo
 	trackService.treeDatabaseRepo = treeDatabaseRepo
 	trackService.trackConversionRepo = trackConversionRepo
 	trackService.waveformHeightsRepo = waveformHeightsRepo
@@ -237,6 +240,15 @@ func (s *TrackService) GetTrackGraphRelationships(ctx context.Context, trackId i
 	return trackTrees, nil
 }
 
+// Gets all parent track IDs for a batch of child track IDs
+func (s *TrackService) GetTrackParentsBulk(ctx context.Context, trackIds []int) (map[int][]int, error) {
+	parentsByTrack, err := s.treeDatabaseRepo.GetParentsForTracks(ctx, trackIds)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get track parents bulk: %w", err)
+	}
+	return parentsByTrack, nil
+}
+
 // Streams a track by its track id
 func (s *TrackService) GetStreamingSignedTrackURL(ctx context.Context, trackId int) (string, string, error) {
 	track := new(entities.Track)
@@ -316,6 +328,42 @@ func (s *TrackService) UpdateTrackPrice(ctx context.Context, trackId int, artist
 	err = s.trackDatabaseRepo.UpdateTrackPrice(ctx, trackId, priceInCents)
 	if err != nil {
 		return fmt.Errorf("failed to update track price: %w", err)
+	}
+
+	return nil
+}
+
+// Records a play for a track by a logged-in artist
+func (s *TrackService) RecordPlay(ctx context.Context, trackId int, artistId int) error {
+	if artistId == 0 {
+		return fmt.Errorf("artist must be logged in to record a play")
+	}
+
+	track := new(entities.Track)
+	track.Id = trackId
+
+	err := s.trackDatabaseRepo.ReadTrackById(ctx, track)
+	if err != nil {
+		return fmt.Errorf("failed to read track: %w", err)
+	}
+
+	if !track.IsValid {
+		return fmt.Errorf("track is not valid")
+	}
+
+	play := &entities.TrackPlay{
+		TrackId:  trackId,
+		ArtistId: artistId,
+	}
+
+	err = s.trackPlayDatabaseRepo.CreateTrackPlay(ctx, play)
+	if err != nil {
+		return fmt.Errorf("failed to record track play: %w", err)
+	}
+
+	err = s.trackDatabaseRepo.IncrementPlays(ctx, track)
+	if err != nil {
+		return fmt.Errorf("failed to increment track plays: %w", err)
 	}
 
 	return nil

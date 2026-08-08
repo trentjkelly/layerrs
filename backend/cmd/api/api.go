@@ -28,6 +28,7 @@ type application struct {
 	sellerController          *controller.SellerController
 	webhookController         *controller.WebhookController
 	purchaseController        *controller.PurchaseController
+	pageController            *controller.PageController
 }
 
 func (app *application) mount() http.Handler {
@@ -41,7 +42,7 @@ func (app *application) mount() http.Handler {
 	r.Use(middleware.Timeout(time.Second * 60))
 	r.Use(cors.Handler(cors.Options{
 		AllowedOrigins:   []string{"*"},
-		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Content-Type", "Authorization"},
 		AllowCredentials: false,
 		MaxAge:           300,
@@ -72,17 +73,18 @@ func (app *application) mount() http.Handler {
 		r.Route("/track", func(r chi.Router) {
 			r.Options("/", app.trackController.TrackHandlerOptions)
 			r.Post("/batch", app.trackController.TrackBatchHandlerPost)
-			r.Route("/{id}", func(r chi.Router) {
-				r.Get("/audio", app.trackController.TrackAudioHandlerGet)
-				r.Group(func(r chi.Router) {
-					r.Use(AuthJWTMiddleware)
-					r.Get("/download", app.trackController.TrackDownloadHandlerGet)
-					r.Put("/price", app.trackController.UpdateTrackPriceHandlerPut)
-				})
-				r.Get("/data", app.trackController.TrackerDataHandlerGet)
-				r.Get("/recommendation", app.trackController.TrackRecommendationHandlerGet)
-				r.Get("/graph", app.trackController.TrackGraphHandlerGet)
+		r.Route("/{id}", func(r chi.Router) {
+			r.Get("/audio", app.trackController.TrackAudioHandlerGet)
+			r.Group(func(r chi.Router) {
+				r.Use(AuthJWTMiddleware)
+				r.Get("/download", app.trackController.TrackDownloadHandlerGet)
+				r.Put("/price", app.trackController.UpdateTrackPriceHandlerPut)
+				r.Post("/play", app.trackController.TrackPlayHandlerPost)
 			})
+			r.Get("/data", app.trackController.TrackerDataHandlerGet)
+			r.Get("/recommendation", app.trackController.TrackRecommendationHandlerGet)
+			r.Get("/graph", app.trackController.TrackGraphHandlerGet)
+		})
 			r.Group(func(r chi.Router) {
 				r.Use(AuthJWTMiddleware)
 				r.Post("/", app.trackController.TrackHandlerPost)
@@ -142,6 +144,42 @@ func (app *application) mount() http.Handler {
 				r.Options("/download", app.purchaseController.GetDownloadURLHandlerOptions)
 				r.Get("/download", app.purchaseController.GetDownloadURLHandlerGet)
 			})
+		})
+
+		r.Route("/pages", func(r chi.Router) {
+			r.With(AuthJWTMiddleware).Post("/", app.pageController.CreatePageHandler)
+		r.Route("/{pageId}", func(r chi.Router) {
+			r.With(OptionalAuthJWTMiddleware).Get("/", app.pageController.GetPageHandler)
+			r.Group(func(r chi.Router) {
+				r.Use(AuthJWTMiddleware)
+					r.Patch("/", app.pageController.UpdatePageHandler)
+					r.Delete("/", app.pageController.DeletePageHandler)
+					r.Post("/follow", app.pageController.FollowPageHandler)
+					r.Delete("/follow", app.pageController.UnfollowPageHandler)
+					r.Route("/tracks", func(r chi.Router) {
+						r.Post("/", app.pageController.AddTrackToPageHandler)
+						r.Delete("/{trackId}", app.pageController.RemoveTrackFromPageHandler)
+					})
+					r.Route("/submissions", func(r chi.Router) {
+						r.Get("/", app.pageController.GetSubmissionsHandler)
+						r.Post("/", app.pageController.CreateSubmissionHandler)
+						r.Post("/{submissionId}/approve", app.pageController.ApproveSubmissionHandler)
+					})
+				})
+				r.Route("/feed", func(r chi.Router) {
+					r.Get("/", app.pageController.GetPageFeedHandler)
+				})
+			})
+		})
+
+		r.Get("/artists/{artistId}/pages", app.pageController.GetArtistPagesHandler)
+		r.Get("/tracks/pages", app.pageController.GetTrackPagesBulkHandler)
+		r.Get("/tracks/uses", app.trackController.TrackUsesHandlerGet)
+		r.Get("/tracks/{trackId}/pages", app.pageController.GetTrackPagesHandler)
+
+		r.Route("/feed", func(r chi.Router) {
+			r.Use(AuthJWTMiddleware)
+			r.Get("/following", app.pageController.GetFollowingFeedHandler)
 		})
 
 		r.Route("/webhooks", func(r chi.Router) {

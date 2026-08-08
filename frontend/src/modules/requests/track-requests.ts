@@ -1,6 +1,6 @@
 import { logger } from "../lib/logger";
 import { fetchWithAuth } from "../lib/fetch";
-import type { TrackData, TrackInfo } from "../../models/types";
+import type { TrackData, TrackInfo, TrackUsesBulkResponse } from "../../models/types";
 import { audio } from "../../stores/player";
 
 // Requests the metadata for the track
@@ -44,6 +44,46 @@ export async function getTrackTrackInfo(urlBase: string, trackId: string): Promi
     }
 }
 
+// Requests full TrackInfo for a batch of track IDs
+export async function getTrackInfoBatch(urlBase: string, trackIds: number[]): Promise<TrackInfo[] | null> {
+    if (trackIds.length === 0) {
+        return [];
+    }
+
+    try {
+        const response = await fetchWithAuth(`${urlBase}/api/track/batch`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ track_ids: trackIds })
+        });
+        if (!response.ok) {
+            throw new Error("Failed to get track info batch");
+        }
+        return await response.json() as TrackInfo[];
+    } catch (error) {
+        logger.error(`Error getting track info batch: ${error}`);
+        return null;
+    }
+}
+
+// Requests the parent track IDs for a batch of track IDs
+export async function getTrackUsesBulk(urlBase: string, trackIds: number[]): Promise<TrackUsesBulkResponse | null> {
+    if (trackIds.length === 0) {
+        return {};
+    }
+
+    try {
+        const response = await fetch(`${urlBase}/api/tracks/uses?trackIds=${trackIds.join(",")}`, { method: "GET" });
+        if (!response.ok) {
+            throw new Error("Failed to get track uses bulk");
+        }
+        return await response.json() as TrackUsesBulkResponse;
+    } catch (error) {
+        logger.error(`Error getting track uses bulk: ${error}`);
+        return null;
+    }
+}
+
 // Requests the audio for the track
 export async function getAudio(urlBase: string, trackId: string) {
     try {
@@ -59,6 +99,20 @@ export async function getAudio(urlBase: string, trackId: string) {
     } catch (error) {
         logger.error(`Error getting audio: ${error}`);
         return null;
+    }
+}
+
+// Records a play for the track (requires auth; logged-out users are ignored)
+export async function recordTrackPlay(urlBase: string, trackId: number): Promise<void> {
+    try {
+        const response = await fetchWithAuth(`${urlBase}/api/track/${trackId}/play`, {
+            method: "POST"
+        });
+        if (!response.ok) {
+            throw new Error("Failed to record track play");
+        }
+    } catch (error) {
+        logger.error(`Error recording track play: ${error}`);
     }
 }
 

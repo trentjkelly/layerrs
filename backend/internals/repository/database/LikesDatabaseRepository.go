@@ -76,7 +76,7 @@ func (r *LikesDatabaseRepository) ReadLikeByTrackIdArtistId(ctx context.Context,
 func (r *LikesDatabaseRepository) ReadLikedTracksFullByArtistId(ctx context.Context, artistId int) ([]entities.TrackInfo, error) {
 	query := `
 		SELECT t.id, t.description, t.artist_id, a.username, a.r2_image_key,
-		       t.likes, t.layerrs, t.duration, w.waveform_data,
+		       t.likes, t.plays, t.layerrs, t.duration, w.waveform_data,
 		       CASE WHEN alt.artist_id IS NOT NULL THEN true ELSE false END as is_liked
 		FROM artist_likes_track alt
 		JOIN track t ON alt.track_id = t.id
@@ -100,7 +100,7 @@ func (r *LikesDatabaseRepository) ReadLikedTracksFullByArtistId(ctx context.Cont
 		var r2ImageKey sql.NullString
 		err = rows.Scan(
 			&track.Id, &track.Description, &track.ArtistId, &track.ArtistName, &r2ImageKey,
-			&track.Likes, &track.Layerrs, &track.Duration, &waveformData, &track.IsLiked,
+			&track.Likes, &track.Plays, &track.Layerrs, &track.Duration, &waveformData, &track.IsLiked,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan liked tracks from database: %w", err)
