@@ -72,19 +72,20 @@
     <TopHeader pageName="" pageIcon=""></TopHeader>
 
     <section class="w-full flex flex-col items-center pb-32">
-        {#if isLoadingTrack}
-            <div class="bg-olive-500 border border-white w-2/3 max-w-4xl flex flex-col items-center p-8 mt-8">
-                <p class="text-white">Loading track info...</p>
-            </div>
-        {:else if track}
-            <div class="bg-olive-500 border border-white w-2/3 max-w-4xl flex flex-col items-center p-8 mt-8">
-                <UploadTrackCard track={{ id: track.id, description: track.description, artistName: track.artistName, artistPortraitUrl: '' }} />
-            </div>
-        {/if}
-
         {#if $isLoggedIn}
             <form class="bg-olive-500 border border-white w-2/3 max-w-4xl flex flex-col items-center p-8 mt-8" onsubmit={handleSubmit}>
                 <h2 class="mb-4 text-3xl font-bold text-white">Build on This Track</h2>
+
+                <!-- Track Card -->
+                {#if isLoadingTrack}
+                    <div class="w-full mb-6 flex justify-center">
+                        <p class="text-white">Loading track info...</p>
+                    </div>
+                {:else if track}
+                    <div class="w-full mb-6 flex justify-center">
+                        <UploadTrackCard track={{ id: track.id, description: track.description, artistName: track.artistName, artistPortraitUrl: track.artistPortraitUrl }} />
+                    </div>
+                {/if}
 
                 <!-- Note Box -->
                 <div class="w-full mb-6">
