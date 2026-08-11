@@ -104,7 +104,7 @@
     <div class="relative">
         <button
             bind:this={menuBtnEl}
-            class="mr-1 p-1 hover:bg-olive-600 hover:cursor-pointer flex flex-row items-center"
+            class="mr-1 p-1 hover:bg-zinc-600 hover:cursor-pointer flex flex-row items-center"
             onclick={toggleMenu}
             aria-label="More"
         >
@@ -118,10 +118,10 @@
         {#if showMenu}
             <div
                 bind:this={menuPopupEl}
-                class="absolute top-full right-0 mt-1 w-56 bg-olive-500 shadow-xl border border-white z-50"
+                class="absolute top-full right-0 mt-1 w-56 bg-zinc-800 border border-zinc-700 z-50"
             >
                 <button
-                    class="w-full px-4 py-2 text-left text-white hover:bg-olive-600 flex items-center transition-colors duration-150 cursor-pointer"
+                    class="w-full px-4 py-2 text-left text-white hover:bg-zinc-600 flex items-center transition-colors duration-150 cursor-pointer"
                     onclick={openPagePicker}
                 >
                     <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -147,12 +147,12 @@
             onclick={(e) => e.target === e.currentTarget && closeModal()}
             onkeydown={(e) => e.key === 'Escape' && closeModal()}
         >
-            <div class="w-full max-w-md bg-olive-500 border border-white shadow-xl">
-                <div class="flex items-center justify-between px-4 py-3 border-b border-white/30">
+            <div class="w-full max-w-md bg-zinc-900 border border-zinc-700">
+                <div class="flex items-center justify-between px-4 py-3 border-b border-zinc-700">
                     <h3 class="text-lg font-medium text-white">Add track to a page</h3>
                     <button
                         onclick={closeModal}
-                        class="text-white hover:text-olive-200 cursor-pointer"
+                        class="text-white hover:text-zinc-200 cursor-pointer"
                         aria-label="Close"
                     >
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -173,7 +173,7 @@
                         <p class="text-white text-center py-4">You don't have any pages yet.</p>
                         <a
                             href="/pages/new"
-                            class="block text-center text-white underline hover:text-olive-200"
+                            class="block text-center text-white underline hover:text-zinc-200"
                         >
                             Create a page
                         </a>
@@ -183,7 +183,7 @@
                                 <button
                                     onclick={() => handleSelectPage(page)}
                                     disabled={addingPageId !== null}
-                                    class="w-full text-left px-3 py-2 text-white hover:bg-olive-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150 cursor-pointer"
+                                    class="w-full text-left px-3 py-2 text-white hover:bg-zinc-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150 cursor-pointer"
                                 >
                                     {#if addingPageId === page.id}
                                         Adding…
@@ -196,10 +196,10 @@
                     {/if}
 
                     {#if errorMessage}
-                        <p class="mt-3 text-red-300 text-sm">{errorMessage}</p>
+                        <p class="mt-3 text-danger text-sm">{errorMessage}</p>
                     {/if}
                     {#if successMessage}
-                        <p class="mt-3 text-green-300 text-sm">{successMessage}</p>
+                        <p class="mt-3 text-success text-sm">{successMessage}</p>
                     {/if}
                 </div>
             </div>

@@ -40,7 +40,7 @@
     <button
         type="button"
         onclick={playTrack}
-        class="shrink-0 w-7 h-7 flex items-center justify-center text-white hover:text-olive-400 transition-colors cursor-pointer"
+        class="shrink-0 w-7 h-7 flex items-center justify-center text-white hover:text-zinc-400 transition-colors cursor-pointer"
     >
         {#if $currentTrackId === track.id && $isPlaying}
             <!-- Pause icon -->
@@ -55,9 +55,9 @@
         {/if}
     </button>
     {#if track.artistPortraitUrl}
-        <img src={track.artistPortraitUrl} alt={track.artistName} class="w-8 h-8 rounded-xl object-cover shrink-0" />
+        <img src={track.artistPortraitUrl} alt={track.artistName} class="w-8 h-8 object-cover shrink-0" />
     {:else}
-        <div class="w-8 h-8 rounded-xl bg-zinc-600 shrink-0"></div>
+        <div class="w-8 h-8 bg-zinc-600 shrink-0"></div>
     {/if}
     <div class="flex items-center gap-2 min-w-0">
         <p class="text-base font-medium text-zinc-400 truncate">{track.artistName}</p>

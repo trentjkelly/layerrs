@@ -34,7 +34,7 @@
     onMount(loadData);
 </script>
 
-<main class={`transition-all duration-300 min-h-screen w-full overflow-y-auto ${$isSidebarOpen ? 'ml-64' : 'ml-0'} bg-olive-400`}>
+<main class={`transition-all duration-300 min-h-screen w-full overflow-y-auto ${$isSidebarOpen ? 'ml-64' : 'ml-0'} bg-zinc-950`}>
     <TopHeader pageName="Track Pages" pageIcon="" />
 
     <section class="p-8 max-w-3xl mx-auto">
@@ -43,12 +43,12 @@
         {#if isLoading}
             <p class="text-center">Loading...</p>
         {:else if errorMessage}
-            <p class="text-center text-red-400">{errorMessage}</p>
+            <p class="text-center text-danger">{errorMessage}</p>
         {:else if pages.length === 0}
             <p class="text-zinc-300">This track hasn't been added to any Pages yet.</p>
         {:else}
             {#if topPage}
-                <div class="mb-6 p-4 bg-zinc-800 rounded">
+                <div class="mb-6 p-4 bg-zinc-900 border border-zinc-700">
                     <p class="text-sm text-zinc-400 mb-1">Top Page</p>
                     <a href={`/pages/${topPage.id}`} class="text-xl font-bold hover:underline">
                         {topPage.name}
@@ -60,7 +60,7 @@
 
             <div class="flex flex-col gap-3">
                 {#each pages as p (p.id)}
-                    <a href={`/pages/${p.id}`} class="p-4 bg-zinc-800/50 rounded hover:bg-zinc-800 transition-colors">
+                    <a href={`/pages/${p.id}`} class="p-4 bg-zinc-900 border border-zinc-700 hover:bg-zinc-800 transition-colors">
                         <div class="flex flex-row justify-between items-center">
                             <div>
                                 <p class="font-semibold text-lg">{p.name}</p>

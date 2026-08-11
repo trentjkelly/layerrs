@@ -33,10 +33,14 @@
 	});
 
 	$effect(() => {
-		if ($authInitialized && !$isLoggedIn && $page.url.pathname !== '/' && !$page.url.pathname.startsWith('/login')) {
-			goto('/login');
+		if ($authInitialized && !$isLoggedIn && !isPublicRoute($page.url.pathname)) {
+			goto('/login', { replaceState: true });
 		}
 	});
+
+	function isPublicRoute(pathname: string) {
+		return pathname === '/' || pathname === '/login' || pathname.startsWith('/login/');
+	}
 
 	async function loadCookies() {
 		if (data.newJWT) {
@@ -122,9 +126,9 @@
 
 </script>
 
-<div class="h-screen w-screen flex flex-row bg-olive-400 text-white font-body">
+<div class="h-screen w-screen flex flex-row bg-zinc-950 text-white font-body">
 	<SideBar></SideBar>
-	{#if $authInitialized}
+	{#if $authInitialized && (isPublicRoute($page.url.pathname) || $isLoggedIn)}
 		{@render children()}
 	{/if}
 </div>

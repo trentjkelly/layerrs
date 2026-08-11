@@ -23,7 +23,7 @@
     <button
         type="button"
         onclick={navigate}
-        class="text-left text-sm text-blue-300 hover:text-blue-200 hover:underline cursor-pointer"
+        class="text-left text-sm text-primary-text hover:text-primary-hover hover:underline cursor-pointer"
     >
         {data.topPage.name} · {formatFollowers(data.topPage.followerCount || 0)}
         {#if data.otherCount > 0}

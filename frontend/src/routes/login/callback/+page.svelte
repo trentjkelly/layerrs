@@ -35,11 +35,11 @@
 	});
 </script>
 
-<main class="min-h-screen w-full flex flex-col items-center justify-center bg-zinc-900 text-white">
+<main class="min-h-screen w-full flex flex-col items-center justify-center bg-zinc-950 text-white">
 	{#if status === 'loading'}
 		<p class="text-lg text-zinc-300">Signing you in…</p>
 	{:else if status === 'error'}
-		<p class="text-lg text-red-400 mb-4">{errorMessage}</p>
-		<a href="/login" class="text-violet-400 hover:text-violet-300 underline">Back to login</a>
+		<p class="text-lg text-danger mb-4">{errorMessage}</p>
+		<a href="/login" class="text-primary-text hover:text-primary-hover underline">Back to login</a>
 	{/if}
 </main>

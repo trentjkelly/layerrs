@@ -26,7 +26,7 @@
             {#if isEditor && onRemove}
                 <button
                     onclick={onRemove}
-                    class="text-sm px-3 py-1 rounded bg-red-700 hover:bg-red-800"
+                    class="text-sm px-3 py-1 bg-danger-solid hover:bg-danger-solid-hover"
                 >
                     Remove
                 </button>
@@ -35,7 +35,7 @@
     </div>
 
     {#if pageTrack.notes && pageTrack.notes.length > 0}
-        <div class="bg-zinc-800/50 rounded p-3 mt-1">
+        <div class="bg-zinc-800 p-3 mt-1">
             {#each pageTrack.notes as note}
                 <p class="text-sm text-zinc-200 italic">“{note.note}”</p>
             {/each}

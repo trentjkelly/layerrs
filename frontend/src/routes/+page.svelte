@@ -175,7 +175,7 @@
 
 </script>
 
-<main class={`transition-all duration-300 h-auto w-full ${$isSidebarOpen ? 'ml-64' : 'ml-0'} bg-olive-400`}>
+<main class={`transition-all duration-300 h-auto w-full ${$isSidebarOpen ? 'ml-64' : 'ml-0'} bg-zinc-950`}>
 
     <TopHeader pageName="Home" pageIcon="home.png"></TopHeader>
 
@@ -183,8 +183,8 @@
     <UserMenu username={$usernameStore} email={$emailStore} portraitUrl={$portraitUrlStore} />
 
     <!-- Where the songs go -->
-    <section class="w-full flex flex-wrap justify-around pb-24">
-        <div class="h-full w-1/2">
+    <section class="w-full pb-24">
+        <div class="w-full px-4 sm:px-6 lg:px-8">
 			{#each tracks as track}
 				<!-- <NewTrackCard {track}></NewTrackCard> -->
 				{@const pagesData = trackPages.get(track.id)}

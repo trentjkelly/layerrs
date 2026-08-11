@@ -114,29 +114,29 @@
     }
 </script>
 
-<main class={`transition-all duration-300 min-h-screen w-full overflow-y-auto ${$isSidebarOpen ? 'ml-64' : 'ml-0'} bg-olive-400`}>
+<main class={`transition-all duration-300 min-h-screen w-full overflow-y-auto ${$isSidebarOpen ? 'ml-64' : 'ml-0'} bg-zinc-950`}>
     <TopHeader pageName="Page" pageIcon="" />
 
     <section class="p-8 max-w-3xl mx-auto">
         {#if isLoading}
             <p class="text-center">Loading...</p>
         {:else if errorMessage}
-            <p class="text-center text-red-400">{errorMessage}</p>
+            <p class="text-center text-danger">{errorMessage}</p>
         {:else if pageData}
-            <div class="mb-6">
+            <div class="mb-6 bg-zinc-900 border border-zinc-700 p-6">
                 {#if isEditing}
                     <input
                         bind:value={editName}
-                        class="w-full text-3xl font-bold mb-2 p-2 rounded bg-zinc-800 text-white"
+                        class="w-full text-3xl font-bold mb-2 p-2 bg-zinc-800 border border-zinc-700 text-white focus:border-focus outline-none"
                     />
                     <textarea
                         bind:value={editDescription}
                         rows="3"
-                        class="w-full p-2 rounded bg-zinc-800 text-white"
+                        class="w-full p-2 bg-zinc-800 border border-zinc-700 text-white focus:border-focus outline-none"
                     ></textarea>
                     <div class="flex gap-2 mt-2">
-                        <button onclick={handleUpdate} class="px-4 py-1 bg-blue-600 rounded">Save</button>
-                        <button onclick={() => isEditing = false} class="px-4 py-1 bg-zinc-600 rounded">Cancel</button>
+                        <button onclick={handleUpdate} class="px-4 py-1 bg-primary hover:bg-primary-hover active:bg-primary-active">Save</button>
+                        <button onclick={() => isEditing = false} class="px-4 py-1 bg-zinc-700 hover:bg-zinc-600">Cancel</button>
                     </div>
                 {:else}
                     <h1 class="text-3xl font-bold">{pageData.name}</h1>
@@ -152,17 +152,17 @@
                 <div class="flex flex-row items-center gap-3 mt-4">
                     {#if $isLoggedIn}
                         {#if pageData.isEditor}
-                            <button onclick={() => isEditing = !isEditing} class="px-4 py-1 bg-zinc-700 hover:bg-zinc-600 rounded">
+                            <button onclick={() => isEditing = !isEditing} class="px-4 py-1 bg-zinc-800 hover:bg-zinc-700">
                                 {isEditing ? "Cancel" : "Edit"}
                             </button>
-                            <button onclick={handleDelete} class="px-4 py-1 bg-red-700 hover:bg-red-800 rounded">
+                            <button onclick={handleDelete} class="px-4 py-1 bg-danger-solid hover:bg-danger-solid-hover">
                                 Delete
                             </button>
-                            <a href={`/pages/${pageId}/submissions`} class="px-4 py-1 bg-zinc-700 hover:bg-zinc-600 rounded">
+                            <a href={`/pages/${pageId}/submissions`} class="px-4 py-1 bg-zinc-800 hover:bg-zinc-700">
                                 Submissions
                             </a>
                         {:else}
-                            <button onclick={toggleFollow} class="px-4 py-1 bg-blue-600 hover:bg-blue-700 rounded">
+                            <button onclick={toggleFollow} class="px-4 py-1 bg-primary hover:bg-primary-hover active:bg-primary-active">
                                 {pageData.isFollowing ? "Unfollow" : "Follow"}
                             </button>
 
@@ -173,9 +173,9 @@
                                             type="number"
                                             bind:value={recommendTrackId}
                                             placeholder="Track ID"
-                                            class="px-2 py-1 rounded bg-zinc-800 text-white w-32"
+                                            class="px-2 py-1 bg-zinc-800 border border-zinc-700 text-white w-32 focus:border-focus outline-none"
                                         />
-                                        <button onclick={handleRecommend} class="px-3 py-1 bg-green-600 hover:bg-green-700 rounded">
+                                        <button onclick={handleRecommend} class="px-3 py-1 bg-primary hover:bg-primary-hover active:bg-primary-active">
                                             Recommend track
                                         </button>
                                     </div>
@@ -183,10 +183,10 @@
                                         bind:value={recommendNote}
                                         placeholder="Optional note to the editor"
                                         rows="2"
-                                        class="px-2 py-1 rounded bg-zinc-800 text-white w-80"
+                                        class="px-2 py-1 bg-zinc-800 border border-zinc-700 text-white w-80 focus:border-focus outline-none"
                                     ></textarea>
                                     {#if recommendError}
-                                        <p class="text-red-400 text-xs">{recommendError}</p>
+                                        <p class="text-danger text-xs">{recommendError}</p>
                                     {/if}
                                 </div>
                             {/if}
@@ -199,7 +199,7 @@
             {#if feed.length === 0}
                 <p class="text-zinc-300">No tracks yet.</p>
             {:else}
-                <div class="flex flex-col">
+                <div class="flex flex-col bg-zinc-900 border border-zinc-700 px-4">
                     {#each feed as pageTrack (pageTrack.id)}
                         <PageTrackRow
                             {pageTrack}

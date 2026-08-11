@@ -149,17 +149,17 @@
     }
 </script>
 
-<main class={`transition-all duration-300 h-screen overflow-y-auto overflow-x-hidden w-full ${$isSidebarOpen ? 'ml-64' : 'ml-0'} bg-olive-400`}>
+<main class={`transition-all duration-300 h-screen overflow-y-auto overflow-x-hidden w-full ${$isSidebarOpen ? 'ml-64' : 'ml-0'} bg-zinc-950`}>
     <TopHeader pageName="Profile" pageIcon=""></TopHeader>
 
     <section class="w-full flex flex-row justify-center pb-32">
-        <div class="bg-olive-500 border border-white w-2/3 max-w-4xl flex flex-col items-center p-8">
+        <div class="bg-zinc-900 border border-zinc-700 w-2/3 max-w-4xl flex flex-col items-center p-8">
             <h2 class="mb-8 text-3xl font-bold text-white">Edit Profile</h2>
 
             <!-- Email (read-only) -->
             <div class="w-full mb-6">
                 <h3 class="text-xl font-semibold text-white mb-1">Email</h3>
-                <p class="w-full px-3 py-2 bg-olive-600 text-white border border-white select-none">
+                <p class="w-full px-3 py-2 bg-zinc-800 text-white border border-zinc-700 select-none">
                     {$emailStore}
                 </p>
             </div>
@@ -168,7 +168,7 @@
             <div class="w-full mb-6">
                 <h3 class="text-xl font-semibold text-white mb-1">Username</h3>
                 <input
-                    class="w-full px-3 py-2 bg-olive-600 text-white placeholder-white border border-white focus:border-white focus:outline-hidden"
+                    class="w-full px-3 py-2 bg-zinc-800 text-white placeholder-white border border-zinc-700 focus:border-focus focus:outline-hidden"
                     type="text"
                     bind:value={username}
                     placeholder="Your username"
@@ -176,7 +176,7 @@
                 />
                 <p class="text-sm mt-1 text-white">{username.length}/30 characters</p>
                 {#if usernameError}
-                    <p class="text-sm mt-1 text-red-400">{usernameError}</p>
+                <p class="text-sm mt-1 text-danger">{usernameError}</p>
                 {/if}
             </div>
 
@@ -184,7 +184,7 @@
             <div class="w-full mb-6">
                 <h3 class="text-xl font-semibold text-white mb-1">Bio</h3>
                 <textarea
-                    class="w-full px-3 py-2 bg-olive-600 text-white placeholder-white border border-white focus:border-white focus:outline-hidden resize-none"
+                    class="w-full px-3 py-2 bg-zinc-800 text-white placeholder-white border border-zinc-700 focus:border-focus focus:outline-hidden resize-none"
                     rows={4}
                     bind:value={bio}
                     placeholder="Tell people a bit about yourself..."
@@ -198,12 +198,12 @@
             <div class="w-full mb-12 flex flex-col">
                 <h3 class="text-xl font-semibold text-white mb-1">Profile Photo</h3>
                 <div class="flex flex-row h-20 w-full items-center gap-4">
-                    <div class="h-20 w-20 shrink-0 bg-olive-500 border border-white overflow-hidden">
+                    <div class="h-20 w-20 shrink-0 bg-zinc-800 border border-zinc-700 overflow-hidden">
                         {#if portraitUrl}
                             <img src={portraitUrl} alt="Profile preview" class="h-full w-full object-cover" />
                         {/if}
                     </div>
-                    <label for="photo" class="cursor-pointer h-10 ml-4 px-4 py-2 text-base font-semibold bg-olive-600 hover:bg-olive-700 text-white transition-colors flex items-center">
+                    <label for="photo" class="cursor-pointer h-10 ml-4 px-4 py-2 text-base font-semibold bg-zinc-600 hover:bg-zinc-700 text-white transition-colors flex items-center">
                         Change / Add Photo
                     </label>
                     <input id="photo" class="hidden" type="file" accept="image/*" onchange={handlePhotoChange} />
@@ -217,7 +217,7 @@
                 <button
                     onclick={onboardSeller}
                     disabled={isOnboarding}
-                    class="px-6 py-2 bg-olive-600 hover:bg-olive-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold text-base transition-colors flex items-center gap-2 cursor-pointer"
+                    class="px-6 py-2 bg-zinc-600 hover:bg-zinc-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold text-base transition-colors flex items-center gap-2 cursor-pointer"
                 >
                     {#if isOnboarding}
                     <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -234,17 +234,17 @@
 
             <!-- Feedback -->
             {#if saveSuccess}
-                <p class="mb-4 text-green-400 text-sm font-medium">Profile saved successfully.</p>
+                <p class="mb-4 text-success text-sm font-medium">Profile saved successfully.</p>
             {/if}
             {#if saveError}
-                <p class="mb-4 text-red-400 text-sm font-medium">{saveError}</p>
+                <p class="mb-4 text-danger text-sm font-medium">{saveError}</p>
             {/if}
 
             <!-- Save Button -->
             <button
                 onclick={saveChanges}
                 disabled={isSaving}
-                class="px-8 py-4 bg-olive-600 hover:bg-olive-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold text-xl transition-colors cursor-pointer"
+                class="px-8 py-4 bg-zinc-600 hover:bg-zinc-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold text-xl transition-colors cursor-pointer"
             >{isSaving ? 'Saving...' : 'Save Changes'}</button>
         </div>
     </section>

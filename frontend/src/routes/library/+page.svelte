@@ -41,7 +41,7 @@
 </script>
 
 {#if isPageLoaded}
-    <main class={`transition-all duration-300 h-screen overflow-y-auto overflow-x-hidden w-full ${$isSidebarOpen ? 'ml-64' : 'ml-0'} bg-olive-400`}>
+    <main class={`transition-all duration-300 h-screen overflow-y-auto overflow-x-hidden w-full ${$isSidebarOpen ? 'ml-64' : 'ml-0'} bg-zinc-950`}>
         <TopHeader pageName="Your Library" pageIcon="/vinyl.png"></TopHeader>
 
         <UserMenu username={$usernameStore} email={$emailStore} portraitUrl={$portraitUrlStore} />
@@ -49,7 +49,7 @@
         <section class="w-full h-full flex flex-row justify-center pb-24">
             <div class="w-1/2">
                 <h2 class="text-white text-2xl font-bold pl-8 pt-6 pb-2">My Layerrs</h2>
-                <section class="mx-8 bg-olive-500 border border-white">
+                <section class="mx-8 bg-zinc-900 border border-zinc-700">
                     {#if layerrTracks.length === 0}
                         <div class="flex items-center justify-center px-4 py-3 text-zinc-400">
                             You haven't downloaded any tracks yet
@@ -62,7 +62,7 @@
                 </section>
             
                 <h2 class="text-white text-2xl font-bold pl-8 pt-6 pb-2">My Likes</h2>
-                <section class="mx-8 bg-olive-500 border border-white">
+                <section class="mx-8 bg-zinc-900 border border-zinc-700">
                     {#if likedTracks.length === 0}
                         <div class="flex items-center justify-center px-4 py-3 text-zinc-400">
                             You haven't liked any tracks yet

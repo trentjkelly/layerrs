@@ -61,18 +61,18 @@
     const activeSubmission = $derived(submissions.find(s => s.id === approvingId));
 </script>
 
-<main class={`transition-all duration-300 min-h-screen w-full overflow-y-auto ${$isSidebarOpen ? 'ml-64' : 'ml-0'} bg-olive-400`}>
+<main class={`transition-all duration-300 min-h-screen w-full overflow-y-auto ${$isSidebarOpen ? 'ml-64' : 'ml-0'} bg-zinc-950`}>
     <TopHeader pageName="Submissions" pageIcon="" />
 
     <section class="p-8 max-w-3xl mx-auto">
         {#if isLoading}
             <p class="text-center">Loading...</p>
         {:else if errorMessage}
-            <p class="text-center text-red-400">{errorMessage}</p>
+            <p class="text-center text-danger">{errorMessage}</p>
         {:else}
             <div class="flex items-center justify-between mb-6">
                 <h1 class="text-2xl font-bold">Submissions for {pageData?.name}</h1>
-                <a href={`/pages/${pageId}`} class="text-blue-400 hover:underline">Back to Page</a>
+                <a href={`/pages/${pageId}`} class="text-primary-text hover:underline">Back to Page</a>
             </div>
 
             {#if submissions.length === 0}
@@ -80,7 +80,7 @@
             {:else}
                 <div class="flex flex-col gap-4">
                     {#each submissions as submission (submission.id)}
-                        <div class="p-4 bg-zinc-800 rounded flex flex-col gap-2">
+                        <div class="p-4 bg-zinc-900 border border-zinc-700 flex flex-col gap-2">
                             <div class="flex flex-row justify-between items-start">
                                 <div>
                                     {#if submission.track}
@@ -95,7 +95,7 @@
                                 </div>
                                 <button
                                     onclick={() => openApproveModal(submission.id)}
-                                    class="px-3 py-1 bg-green-600 hover:bg-green-700 rounded text-sm"
+                                    class="px-3 py-1 bg-primary hover:bg-primary-hover active:bg-primary-active text-sm"
                                 >
                                     Add to feed
                                 </button>
@@ -112,7 +112,7 @@
 
     {#if approvingId !== null && activeSubmission}
         <div class="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-            <div class="bg-zinc-900 p-6 rounded max-w-md w-full">
+            <div class="bg-zinc-900 border border-zinc-700 p-6 max-w-md w-full">
                 <h2 class="text-xl font-bold mb-4">Add to Page feed?</h2>
                 <p class="mb-2">
                     <span class="font-semibold">{activeSubmission.track?.description || "Untitled track"}</span>
@@ -125,11 +125,11 @@
                     id="approval-note"
                     bind:value={approvalNote}
                     rows="3"
-                    class="w-full p-2 rounded bg-zinc-800 text-white"
+                    class="w-full p-2 bg-zinc-800 border border-zinc-700 text-white focus:border-focus outline-none"
                 ></textarea>
                 <div class="flex gap-3 mt-4 justify-end">
-                    <button onclick={closeApproveModal} class="px-4 py-1 bg-zinc-700 rounded">Cancel</button>
-                    <button onclick={handleApprove} class="px-4 py-1 bg-green-600 hover:bg-green-700 rounded">Confirm</button>
+                    <button onclick={closeApproveModal} class="px-4 py-1 bg-zinc-700">Cancel</button>
+                    <button onclick={handleApprove} class="px-4 py-1 bg-primary hover:bg-primary-hover active:bg-primary-active">Confirm</button>
                 </div>
             </div>
         </div>

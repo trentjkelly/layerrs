@@ -31,7 +31,7 @@
     });
 </script>
 
-<main class={`transition-all duration-300 min-h-screen w-full overflow-y-auto ${$isSidebarOpen ? 'ml-64' : 'ml-0'} bg-olive-400`}>
+<main class={`transition-all duration-300 min-h-screen w-full overflow-y-auto ${$isSidebarOpen ? 'ml-64' : 'ml-0'} bg-zinc-950`}>
     <TopHeader pageName="Pages" pageIcon="/vinyl.png" />
 
     <section class="p-8 max-w-3xl mx-auto">
@@ -40,7 +40,7 @@
             {#if $isLoggedIn}
                 <button
                     onclick={() => goto('/pages/new')}
-                    class="px-6 py-2 bg-blue-600 hover:bg-blue-700 rounded font-semibold"
+                    class="px-6 py-2 bg-primary hover:bg-primary-hover active:bg-primary-active font-semibold"
                 >
                     Create New Page
                 </button>
@@ -58,7 +58,7 @@
                 {#each pages as page (page.id)}
                     <a
                         href={`/pages/${page.id}`}
-                        class="block p-4 bg-olive-500 hover:bg-olive-600 rounded transition-colors"
+                        class="block p-4 bg-zinc-900 border border-zinc-700 hover:bg-zinc-800 transition-colors"
                     >
                         <h2 class="text-xl font-semibold">{page.name}</h2>
                         {#if page.description}

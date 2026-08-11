@@ -37,7 +37,7 @@
         <button
             type="button"
             onclick={playTrack}
-            class="shrink-0 w-7 h-7 flex items-center justify-center text-white hover:text-olive-400 transition-colors cursor-pointer"
+            class="shrink-0 w-7 h-7 flex items-center justify-center text-white hover:text-zinc-400 transition-colors cursor-pointer"
         >
             {#if $currentTrackId === track.id && $isPlaying}
                 <!-- Pause icon -->

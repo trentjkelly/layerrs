@@ -46,13 +46,13 @@
     tabindex="0"
     onclick={() => ontoggle(track.id)}
     onkeydown={(e) => e.key === 'Enter' && ontoggle(track.id)}
-    class="w-full flex items-center justify-between px-4 py-3 text-left text-white border-b border-zinc-600 last:border-b-0 cursor-pointer transition-colors {isSelected ? 'bg-violet-900/30 hover:bg-violet-900/50' : 'hover:bg-zinc-600'}"
+    class="w-full flex items-center justify-between px-4 py-3 text-left text-white border-b border-zinc-600 last:border-b-0 cursor-pointer transition-colors {isSelected ? 'bg-primary-muted hover:bg-primary-muted-hover' : 'hover:bg-zinc-600'}"
 >
     <div class="flex items-center gap-3 min-w-0">
         <button
             type="button"
             onclick={playTrack}
-            class="shrink-0 w-7 h-7 flex items-center justify-center text-white hover:text-olive-400 transition-colors cursor-pointer"
+            class="shrink-0 w-7 h-7 flex items-center justify-center text-white hover:text-zinc-400 transition-colors cursor-pointer"
         >
             {#if $currentTrackId === track.id && $isPlaying}
                 <!-- Pause icon -->
@@ -67,9 +67,9 @@
             {/if}
         </button>
         {#if track.artistPortraitUrl}
-            <img src={track.artistPortraitUrl} alt={track.artistName} class="w-8 h-8 rounded-xl object-cover shrink-0" />
+            <img src={track.artistPortraitUrl} alt={track.artistName} class="w-8 h-8 object-cover shrink-0" />
         {:else}
-            <div class="w-8 h-8 rounded-xl bg-zinc-600 shrink-0"></div>
+            <div class="w-8 h-8 bg-zinc-600 shrink-0"></div>
         {/if}
         <div class="flex items-center gap-2 min-w-0">
             <p class="text-base font-medium text-zinc-400 truncate">{track.artistName}</p>
@@ -78,6 +78,6 @@
         </div>
     </div>
     {#if isSelected}
-        <span class="text-violet-400 font-bold shrink-0">✓</span>
+        <span class="text-primary-text font-bold shrink-0">✓</span>
     {/if}
 </div>

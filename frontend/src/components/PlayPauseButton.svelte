@@ -60,7 +60,7 @@
 </script>
 
 <button
-    class="flex items-center justify-center hover:cursor-pointer shrink-0 p-2 bg-olive-700 hover:bg-olive-800 transition-colors"
+    class="flex items-center justify-center hover:cursor-pointer shrink-0 p-2 bg-zinc-700 hover:bg-zinc-800 transition-colors"
     onclick={playPauseAudio}
     aria-label={isCurrentTrackPlaying ? 'Pause' : 'Play'}
 >

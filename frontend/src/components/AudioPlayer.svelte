@@ -3,7 +3,7 @@
 </script>
 
 <div class="w-screen h-20 bg-zinc-900 fixed bottom-0 flex flex-row items-center justify-center">
-    <button class="h-12 w-12 rounded-full bg-indigo-400">
+    <button class="h-12 w-12 bg-primary hover:bg-primary-hover active:bg-primary-active">
         {#if isPlaying}
             <img class="scale-50 h-12 w-12" alt="Pause button" src="pause.png">
         {:else}

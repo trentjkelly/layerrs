@@ -68,27 +68,27 @@
 
 </script>
 
-<main class={`transition-all duration-300 h-screen overflow-y-auto w-full ${$isSidebarOpen ? 'ml-64' : 'ml-0'} bg-olive-400`}>
+<main class={`transition-all duration-300 h-screen overflow-y-auto w-full ${$isSidebarOpen ? 'ml-64' : 'ml-0'} bg-zinc-950`}>
     <TopHeader pageName="" pageIcon=""></TopHeader>
 
     <section class="w-full flex flex-col items-center pb-32">
         {#if isLoadingTrack}
-            <div class="bg-olive-500 border border-white w-2/3 max-w-4xl flex flex-col items-center p-8 mt-8">
+            <div class="bg-zinc-500 border border-white w-2/3 max-w-4xl flex flex-col items-center p-8 mt-8">
                 <p class="text-white">Loading track info...</p>
             </div>
         {:else if track}
-            <div class="bg-olive-500 border border-white w-2/3 max-w-4xl flex flex-col items-center p-8 mt-8">
+            <div class="bg-zinc-500 border border-white w-2/3 max-w-4xl flex flex-col items-center p-8 mt-8">
                 <UploadTrackCard track={{ id: track.id, description: track.description, artistName: track.artistName, artistPortraitUrl: '' }} />
             </div>
         {/if}
 
         {#if $isLoggedIn}
-            <form class="bg-olive-500 border border-white w-2/3 max-w-4xl flex flex-col items-center p-8 mt-8" onsubmit={handleSubmit}>
+            <form class="bg-zinc-500 border border-white w-2/3 max-w-4xl flex flex-col items-center p-8 mt-8" onsubmit={handleSubmit}>
                 <h2 class="mb-4 text-3xl font-bold text-white">Build on This Track</h2>
 
                 <!-- Note Box -->
                 <div class="w-full mb-6">
-                    <div class="bg-olive-600 border border-white p-4">
+                    <div class="bg-zinc-600 border border-white p-4">
                         <p class="text-white text-sm leading-relaxed">
                             <strong class="text-white">Note:</strong> This track will be added to "Your Layerrs" and should be given proper credit when uploading any track that uses any part of this file.
                         </p>
@@ -99,7 +99,7 @@
                 <div class="w-full mb-6">
                     <h3 class="text-xl font-semibold text-white mb-3">Before proceeding, please read and agree to these terms:</h3>
 
-                    <div class="bg-olive-600 border border-white p-4">
+                    <div class="bg-zinc-600 border border-white p-4">
                         <ul class="list-disc list-outside ml-6 space-y-2 text-white text-base leading-relaxed">
                             <li>
                                 When uploading a track that uses any part of this one, I will <strong class="text-white">give proper credit in the upload track form</strong>.
@@ -117,7 +117,7 @@
                                 type="checkbox"
                                 id="terms-checkbox"
                                 bind:checked={termsAgreement}
-                                class="mt-1 w-5 h-5 bg-olive-600 border border-white hover:cursor-pointer flex-shrink-0"
+                                class="mt-1 w-5 h-5 bg-zinc-600 border border-white hover:cursor-pointer flex-shrink-0"
                             />
                             <label for="terms-checkbox" class="text-white text-base leading-relaxed cursor-pointer">
                                 I have read and agree to the terms above.
@@ -129,7 +129,7 @@
                 <button
                     type="submit"
                     disabled={!termsAgreement || isSubmitting}
-                    class="mt-4 px-8 py-4 bg-olive-600 hover:bg-olive-700 text-white font-semibold text-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-3 cursor-pointer"
+                    class="mt-4 px-8 py-4 bg-zinc-600 hover:bg-zinc-700 text-white font-semibold text-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-3 cursor-pointer"
                 >
                     {#if isSubmitting}
                         <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">

@@ -140,23 +140,28 @@
     });
 
     function changeWaveformWidth() {
-        if (waveformWidth > 0) {
-            const barWidth = 2;
-            const barMargin = 2;
-            const totalBarWidth = barWidth + barMargin;
-            const numBars = Math.floor(waveformWidth / totalBarWidth);
-            const selectedIndices = getSelectedIndices(numBars);
-            visibleBars = selectedIndices.map(index => track.waveformData[index]);
-            timePerBar = track.duration / numBars;
+        const barWidth = 2;
+        const barMargin = 2;
+        const totalBarWidth = barWidth + barMargin;
+        const numBars = Math.floor(waveformWidth / totalBarWidth);
+
+        if (numBars <= 0 || track.waveformData.length === 0) {
+            visibleBars = [];
+            timePerBar = 0;
+            return;
         }
+
+        const selectedIndices = getSelectedIndices(numBars);
+        visibleBars = selectedIndices.map(index => track.waveformData[index]);
+        timePerBar = track.duration / numBars;
     }
 
     function getSelectedIndices(numBars: number) {
-        const selectedIndices = [];
+        const selectedIndices: number[] = [];
         const length = track.waveformData.length;
 
         for (let i = 0; i < numBars; i++) {
-            let index = Math.round(length * i / numBars);
+            const index = Math.min(length - 1, Math.floor(length * i / numBars));
             selectedIndices.push(index);
         }
         return selectedIndices;
@@ -240,7 +245,7 @@
 
 </script>
 
-<div class="w-full bg-olive-500 mb-2 shadow-lg">
+<div class="w-full bg-zinc-900 border-b border-zinc-700">
     <div class="flex flex-row h-16 items-start pt-2">
         <div class="mx-2 w-12 h-12 relative flex flex-row items-center justify-center">
             <img src={track.artistPortraitUrl} alt="Artist Profile" class="w-full h-full object-cover">
@@ -275,14 +280,14 @@
             <div class="relative flex flex-col items-center justify-center">
                 <button 
                     id="share-btn"
-                    class="mr-1 p-2 hover:bg-olive-600 hover:cursor-pointer flex flex-row items-center"
+                    class="mr-1 p-2 hover:bg-zinc-700 hover:cursor-pointer flex flex-row items-center"
                     onclick={toggleSharePopup}
                 >
                     <img src="send.png" alt="Share" class="w-5 h-5">
                 </button>
                 
                 {#if showSharePopup}
-                    <div id="share-popup" class="absolute top-full right-0 mt-1 w-52 bg-olive-500 shadow-xl border border-white z-50">
+                    <div id="share-popup" class="absolute top-full right-0 mt-1 w-52 bg-zinc-800 border border-zinc-700 z-50">
                         {#if copiedToClipboard}
                             <div class="px-4 py-2 flex items-center text-white">
                                 <svg class="w-4 h-4 mr-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -292,7 +297,7 @@
                             </div>
                         {:else}
                             <button 
-                                class="w-full px-4 py-2 text-left text-white hover:bg-olive-600 flex items-center transition-colors duration-150 cursor-pointer"
+                                class="w-full px-4 py-2 text-left text-white hover:bg-zinc-700 flex items-center transition-colors duration-150 cursor-pointer"
                                 onclick={copyLink}
                             >
                                 <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -307,7 +312,7 @@
 
             <AddToPageButton trackId={track.id} {urlBase} />
 
-            <button class="mr-1 px-2 py-1 outline-1 hover:bg-olive-600 hover:cursor-pointer flex flex-row items-center" onclick={navigateLayerr}>
+            <button class="mr-1 px-2 py-1 outline-1 hover:bg-zinc-700 hover:cursor-pointer flex flex-row items-center" onclick={navigateLayerr}>
                 <img src="vinyl.png" alt="Use" class="w-5 h-5">
                 <p class="ml-1">Use</p>
             </button>
@@ -321,7 +326,7 @@
             {#each pages as page}
                 <a
                     href="/pages/{page.id}"
-                    class="bg-olive-600 hover:bg-olive-700 px-2 py-0.5 transition-colors"
+                    class="bg-zinc-800 hover:bg-zinc-700 px-2 py-0.5 transition-colors"
                 >
                     {page.name}
                     {#if (page.followerCount ?? 0) > 1}
@@ -352,7 +357,7 @@
             <PlayPauseButton {track} />
         </div>
         <div
-            class="relative h-16 flex-1 hover:cursor-pointer flex flex-row items-center pt-0 pb-1"
+            class="relative h-16 min-w-0 flex-1 overflow-hidden bg-orange-500 hover:cursor-pointer flex flex-row items-center pt-0 pb-1"
             bind:clientWidth={waveformWidth}
             onmousemove={handleMouseMove}
             onmouseleave={handleMouseLeave}
@@ -379,7 +384,7 @@
 
     <!-- Uses -->
     {#if uses.length > 0}
-        <div class="min-h-6 w-full bg-olive-600 flex flex-row items-center flex-wrap px-2 py-1">
+        <div class="min-h-6 w-full bg-zinc-800 flex flex-row items-center flex-wrap px-2 py-1">
             <p class="mx-2 text-sm">USES:</p>
 
             {#each uses as use}
@@ -394,7 +399,7 @@
                             class="h-5 w-5 rounded-full object-cover mr-1"
                         />
                     {:else}
-                        <div class="h-5 w-5 rounded-full bg-olive-700 mr-1"></div>
+                        <div class="h-5 w-5 rounded-full bg-zinc-700 mr-1"></div>
                     {/if}
                     <span class="text-sm">{use.artistName} - {use.description}</span>
                 </a>

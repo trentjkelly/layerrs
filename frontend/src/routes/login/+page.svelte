@@ -94,18 +94,18 @@
 
 </script>
 
-<main class={`transition-all duration-300 h-screen w-full flex flex-col ${$isSidebarOpen ? 'ml-64' : 'ml-0'} bg-olive-400`}>
+<main class={`transition-all duration-300 h-screen w-full flex flex-col ${$isSidebarOpen ? 'ml-64' : 'ml-0'} bg-zinc-950`}>
     <TopHeader pageName="" pageIcon=""/>
     <section class="w-full flex-1 flex flex-col justify-center items-center">
-        <div class="flex flex-col items-center border-2 p-8 bg-olive-500">
-            <h2 class="mb-8 text-2xl font-bold text-white">Log in to your <span class="text-olive-700">Layerrs</span> Account</h2>
+        <div class="flex flex-col items-center border-2 p-8 bg-zinc-900">
+            <h2 class="mb-8 text-2xl font-bold text-white">Log in to your <span class="text-zinc-700">Layerrs</span> Account</h2>
 
             <!-- Email Input -->
             <div class="w-96 mb-4">
                 <label for="email" class="block text-xl font-semibold text-white mb-3">Email</label>
                 <input 
                     id="email" 
-                    class="w-full px-2 py-2 bg-olive-500 hover:bg-olive-600 focus:bg-olive-60 text-white placeholder-white/60 focus:outline-hidden border {error ? 'border-red-500' : 'border-white'}" 
+                    class="w-full px-2 py-2 bg-zinc-800 hover:bg-zinc-700 focus:bg-zinc-700 text-white placeholder-white/60 focus:outline-hidden border {error ? 'border-danger' : 'border-white'} focus:border-focus"
                     type="email" 
                     bind:value={email}
                     placeholder="Enter your email..."
@@ -118,9 +118,9 @@
                 {#if sendButtonDisabled}
                     <p class="text-sm text-zinc-400 mb-2">You can resend the link in {timeElapsed} seconds</p>
                 {/if}
-                <button class="py-2 px-6 bg-olive-600 hover:bg-olive-700 disabled:opacity-50 disabled:cursor-not-allowed" onclick={handleLogin} disabled={sendButtonDisabled}>Resend Link</button>
+                <button class="py-2 px-6 bg-zinc-800 hover:bg-zinc-700 disabled:opacity-50 disabled:cursor-not-allowed" onclick={handleLogin} disabled={sendButtonDisabled}>Resend Link</button>
             {:else}
-                <button class="py-2 px-6 bg-olive-600 hover:bg-olive-700 hover:cursor-pointer" onclick={handleLogin}>Continue</button>
+                <button class="py-2 px-6 bg-zinc-800 hover:bg-zinc-700 hover:cursor-pointer" onclick={handleLogin}>Continue</button>
             {/if}
         </div>
     </section>
