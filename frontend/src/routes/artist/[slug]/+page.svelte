@@ -1,5 +1,4 @@
 <script>
-    import { isSidebarOpen } from "../../../stores/player";
     import TopHeader from "../../../components/TopHeader.svelte";
     import TrackRow from "../../../components/TrackRow.svelte";
     import { urlBase } from "../../../stores/environment";
@@ -14,7 +13,7 @@
 
 </script>
 
-<main class={`transition-all duration-300 h-full w-full ${$isSidebarOpen ? 'ml-64' : 'ml-0'} bg-zinc-950`}>
+<main class="h-full w-full bg-zinc-950">
 
     <TopHeader pageName="" pageIcon=""></TopHeader>
 

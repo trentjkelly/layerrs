@@ -8,9 +8,6 @@ export const currentTrackId = writable(0);
 // Track IDs that have already recorded a play this page session
 export const playedTracksThisSession = writable<Set<number>>(new Set());
 
-// For the sidebar and bottom audio player to be visible
-export const isSidebarOpen = writable(true);
-// export const isSongSelected = writable(true);
 export const audio = writable<HTMLAudioElement | null>(null);
 
 export const currentTime = writable(0);

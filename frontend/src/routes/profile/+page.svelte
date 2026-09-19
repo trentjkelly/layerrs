@@ -3,7 +3,6 @@
     import { get } from "svelte/store";
     import { page } from "$app/state";
     import TopHeader from "../../components/TopHeader.svelte";
-    import { isSidebarOpen } from "../../stores/player";
     import { urlBase } from "../../stores/environment";
     import { fetchWithAuth } from "../../modules/lib/fetch";
     import { logger } from "../../modules/lib/logger";
@@ -149,7 +148,7 @@
     }
 </script>
 
-<main class={`transition-all duration-300 h-screen overflow-y-auto overflow-x-hidden w-full ${$isSidebarOpen ? 'ml-64' : 'ml-0'} bg-zinc-950`}>
+<main class="h-full w-full overflow-y-auto overflow-x-hidden bg-zinc-950">
     <TopHeader pageName="Profile" pageIcon=""></TopHeader>
 
     <section class="w-full flex flex-row justify-center pb-32">

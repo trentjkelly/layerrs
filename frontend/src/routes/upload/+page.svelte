@@ -1,89 +1,71 @@
 <script lang="ts">
     import { goto } from "$app/navigation";
+    import { onMount } from "svelte";
+    import { fade } from "svelte/transition";
+    import { get } from "svelte/store";
     import TopHeader from "../../components/TopHeader.svelte";
     import LayerrsTrackCard from "../../components/LayerrsTrackCard.svelte";
-    import UserMenu from "../../components/UserMenu.svelte";
     import { isLoggedIn, authInitialized } from "../../stores/auth";
     import { fetchWithAuth } from "../../modules/lib/fetch";
-    import { isSidebarOpen } from "../../stores/player";
     import { urlBase } from "../../stores/environment";
     import { logger } from "../../modules/lib/logger";
-    import { onMount } from "svelte";
-    import { get } from "svelte/store";
-    import { usernameStore, emailStore, portraitUrlStore, loadProfile} from "../../stores/profile";
+    import { usernameStore, loadProfile } from "../../stores/profile";
 
-    type LayerrTrack = {
-        id: number;
-        description: string;
-        artistName: string;
-        artistPortraitUrl: string;
-    };
+    type LayerrTrack = { id: number; description: string; artistName: string; artistPortraitUrl: string };
+    type UploadType = 'original' | 'addon' | null;
+    const acceptedAudioTypes = new Set(['audio/wav', 'audio/x-wav', 'audio/flac', 'audio/x-flac']);
 
-    let audioFiles = $state<FileList | null>(null);
-    let artistLayerrs = $state<Array<LayerrTrack>>([]);
-    let layerrs = $state<Array<number>>([]);
-    let description = $state<string>('');
-    let priceInCents = $state<number>(0);
+    let uploadType = $state<UploadType>(null);
+    let masterFiles = $state<FileList | null>(null);
+    let stemFiles = $state<FileList | null>(null);
+    let artistLayerrs = $state<LayerrTrack[]>([]);
+    let selectedProjectId = $state<number | null>(null);
+	let sourceTrackIds = $state<number[]>([]);
+    let description = $state('');
     let isUploaded = $state(false);
-    let isDragOver = $state(false);
+    let isMasterDragOver = $state(false);
+    let isStemsDragOver = $state(false);
     let isLoading = $state(false);
-    let username = $state('');
-
-    let dollars = $state(0);
     let isPageLoaded = $state(false);
-    
-    $effect(() => {
-        if ($authInitialized && !$isLoggedIn) {
-            goto('/login');
-        }
-    });
+    let masterError = $state('');
+    let stemsError = $state('');
+    let submissionError = $state('');
 
-    function display(d: number) {
-        return d.toLocaleString() + '.00';
+    let isDescriptionValid = $derived(description.length >= 3 && description.length <= 100);
+    let masterFile = $derived(masterFiles?.[0] ?? null);
+    let hasValidStems = $derived((stemFiles?.length ?? 0) + sourceTrackIds.length <= 5 && (!stemFiles || Array.from(stemFiles).every(isSupportedAudio)));
+    let canUpload = $derived(uploadType !== null && (uploadType !== 'addon' || selectedProjectId !== null) && isDescriptionValid && masterFile !== null && isSupportedAudio(masterFile) && hasValidStems && !isLoading);
+
+    $effect(() => { if ($authInitialized && !$isLoggedIn) goto('/login'); });
+    $effect(() => { if ($authInitialized && $isLoggedIn) isPageLoaded = true; });
+
+    function isSupportedAudio(file: File) {
+        return acceptedAudioTypes.has(file.type) || /\.(wav|flac)$/i.test(file.name);
     }
 
-    function onKeydown(e: KeyboardEvent) {
-        if (e.key === 'Backspace') {
-        e.preventDefault();
-        dollars = Math.floor(dollars / 10);
-        }
+    function asFileList(files: File[]) {
+        const dataTransfer = new DataTransfer();
+        files.forEach((file) => dataTransfer.items.add(file));
+        return dataTransfer.files;
     }
 
-    function onInput(e: any) {
-        const digit = (e.data || '').replace(/\D/g, '');
-        if (!digit) return;
-        const next = dollars * 10 + parseInt(digit, 10);
-        if (next <= 9999999) dollars = next;
+    function chooseUploadType(type: Exclude<UploadType, null>) {
+        uploadType = type;
+        selectedProjectId = null;
+		sourceTrackIds = [];
+        description = '';
+        masterFiles = null;
+        stemFiles = null;
+        masterError = '';
+        stemsError = '';
+        submissionError = '';
     }
-
-    function onPaste(e: ClipboardEvent) {
-        e.preventDefault();
-        if (e.clipboardData) {
-            const pasted = e.clipboardData.getData('text');
-            const digits = pasted.replace(/\D/g, '').slice(0, 7);
-            if (digits) dollars = parseInt(digits, 10);
-        } else {
-            console.error("Clipboard data is null");
-            dollars = 0;
-        }
-    }
-
-    onMount(async () => {
-        if ($isLoggedIn) {
-            await getArtistLayerrs();
-            await getArtistUsername();
-        }
-    })
 
     async function getArtistUsername() {
-        username = get(usernameStore);
-        if(username != ''){
-            return;
-        }
+        if (get(usernameStore) !== '') return;
         usernameStore.set('');
         await loadProfile();
-        username = get(usernameStore);
-        if (username == '') {
+        if (get(usernameStore) === '') {
             alert('You must set a username before continuing.');
             goto('/profile');
         }
@@ -91,247 +73,207 @@
 
     async function getArtistLayerrs() {
         const response = await fetchWithAuth(`${$urlBase}/api/layerrs`);
-        if (!response.ok) {
-            throw new Error("Failed to get artist layerrs");
+        if (!response.ok) throw new Error('Failed to get your available projects');
+        artistLayerrs = (await response.json()) ?? [];
+    }
+
+    onMount(async () => {
+        if ($isLoggedIn) await Promise.all([getArtistLayerrs(), getArtistUsername()]);
+    });
+
+    function selectProject(trackId: number) {
+        selectedProjectId = selectedProjectId === trackId ? null : trackId;
+    }
+
+	function toggleSourceTrack(trackId: number) {
+		if (sourceTrackIds.includes(trackId)) {
+			sourceTrackIds = sourceTrackIds.filter((id) => id !== trackId);
+			stemsError = '';
+			return;
+		}
+		if ((stemFiles?.length ?? 0) + sourceTrackIds.length >= 5) {
+			stemsError = 'You can include up to 5 uploaded or referenced stems.';
+			return;
+		}
+		sourceTrackIds = [...sourceTrackIds, trackId];
+		stemsError = '';
+	}
+
+    function setMasterFile(files: File[]) {
+        masterError = '';
+        const audioFiles = files.filter(isSupportedAudio);
+        if (audioFiles.length === 0) {
+            masterFiles = null;
+            masterError = 'Choose one WAV or FLAC master file.';
+            return;
         }
-        const layerrsData: Array<LayerrTrack> = await response.json();
-        artistLayerrs = layerrsData ?? [];
+        if (audioFiles.length > 1) masterError = 'Only one master file can be uploaded.';
+        masterFiles = asFileList([audioFiles[0]]);
     }
 
-    function removeAudioFile() {
-        audioFiles = null;
-    }
-
-    function addlayerr(trackId: number) {
-        if (layerrs.includes(trackId)) {
-            layerrs = layerrs.filter(id => id !== trackId);
+    function setStemFiles(files: File[]) {
+        stemsError = '';
+        if (files.length + sourceTrackIds.length > 5) {
+            stemFiles = null;
+            stemsError = 'You can upload up to 5 stems.';
+        } else if (!files.every(isSupportedAudio)) {
+            stemFiles = null;
+            stemsError = 'Stem files must be WAV or FLAC.';
         } else {
-            layerrs = [...layerrs, trackId];
+            stemFiles = files.length ? asFileList(files) : null;
         }
     }
 
-    function handleDragOver(event: DragEvent) {
+    function handleDrop(event: DragEvent, target: 'master' | 'stems') {
         event.preventDefault();
-        isDragOver = true;
+        isMasterDragOver = false;
+        isStemsDragOver = false;
+        const files = Array.from(event.dataTransfer?.files ?? []);
+        target === 'master' ? setMasterFile(files) : setStemFiles(files);
     }
 
-    function handleDragLeave(event: DragEvent) {
-        event.preventDefault();
-        isDragOver = false;
-    }
-
-    function handleDrop(event: DragEvent) {
-        event.preventDefault();
-        isDragOver = false;
-        
-        const files = Array.from(event.dataTransfer?.files || []);
-        const audioFile = files.find(file => file.type.startsWith('audio/'));
-        const imageFile = files.find(file => file.type.startsWith('image/'));
-        
-        if (audioFile) {
-            audioFiles = new DataTransfer().files;
-            const dt = new DataTransfer();
-            dt.items.add(audioFile);
-            audioFiles = dt.files;
-        }
+    function removeStemFile(index: number) {
+        if (stemFiles) setStemFiles(Array.from(stemFiles).filter((_, fileIndex) => fileIndex !== index));
     }
 
     async function submitFile() {
-        if (!audioFiles) {
-            logger.error("Missing audio file");
-            return;
-        }
+        submissionError = '';
+        if (!canUpload || !masterFile) return;
         isLoading = true;
-        
-        let audioFile = audioFiles[0];
-
-        // Audio file validation: needs to be either wav or flac
-        if (audioFile.type !== 'audio/wav' && audioFile.type !== 'audio/flac') {
-            logger.error("audioFile is not a wav or flac file")
-            return
-        }
-
-        if (description.length < 3 || description.length > 100) {
-            logger.error("Description must be between 3 and 100 characters")
-            return
-        }
-
-        if (audioFile) {
-            logger.debug("audioFile is valid")
+        try {
             const form = new FormData();
-            form.append('audioFile', audioFile)
-            form.append('description', description)
-            form.append('layerrIDs', JSON.stringify(layerrs))
-
-            const res = await fetchWithAuth(`${$urlBase}/api/track/`, {
-                method: "POST",
-                body: form
-            });
-            if (res.status == 201) {
-                const trackData = await res.json();
-                const trackId = trackData.id;
-
-                if (priceInCents >= 0) {
-                    const priceInCentsValue = priceInCents * 100;
-                    await fetchWithAuth(`${$urlBase}/api/track/${trackId}/price`, {
-                        method: "PUT",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ priceInCents: priceInCentsValue })
-                    });
-                }
-
-                isUploaded = true
-            }
-        } else {
-            logger.error("audioFile is not valid")
+            form.append('audioFile', masterFile);
+            form.append('description', description);
+            form.append('layerrIDs', JSON.stringify(selectedProjectId === null ? [] : [selectedProjectId]));
+			form.append('sourceTrackIDs', JSON.stringify(sourceTrackIds));
+            Array.from(stemFiles ?? []).forEach((stem) => form.append('stemFiles', stem));
+            const response = await fetchWithAuth(`${$urlBase}/api/projects/`, { method: 'POST', body: form });
+            if (!response.ok) throw new Error(await response.text() || 'The project could not be uploaded.');
+            isUploaded = true;
+        } catch (error) {
+            logger.error(error);
+            submissionError = error instanceof Error ? error.message : 'The project could not be uploaded.';
+        } finally {
+            isLoading = false;
         }
-        isLoading = false;
     }
-
-    function navigateHome() {
-        goto('/')
-    }
-
-    $effect(() => {
-        if ($authInitialized && $isLoggedIn) {
-            isPageLoaded = true;
-        }
-    });
-
 </script>
 
 {#if isPageLoaded}
-    <main class={`transition-all duration-300 h-screen overflow-y-auto w-full ${$isSidebarOpen ? 'ml-64' : 'ml-0'} bg-zinc-950`}>
-
-        <TopHeader pageName="Upload" pageIcon="/upload.png"></TopHeader>
-
-        <UserMenu username={$usernameStore} email={$emailStore} portraitUrl={$portraitUrlStore} />
-
-        <section class="w-full flex flex-row justify-center pb-32">
+    <main class="min-h-full w-full bg-zinc-950">
+        <TopHeader pageName="Upload" pageIcon="/upload.png" />
+        <section class="w-full flex justify-center pb-32">
             {#if $isLoggedIn}
                 <div class="bg-zinc-900 border border-zinc-700 w-2/3 max-w-4xl flex flex-col items-center p-8">
                     {#if !isUploaded}
-                    <h2 class="mb-4 text-3xl font-bold text-white">Upload a Track</h2>
-
-                    <!-- Audio Upload Box -->
-                    <div class="w-full mb-4">
-                        <h3 class="text-xl font-semibold text-white mb-1">Audio File</h3>
-                        <label for="audio" class="block">
-                            <div 
-                                role="button"
-                                tabindex="0"
-                                class="w-full h-48 border-2 border-dashed border-zinc-700 bg-zinc-800 flex flex-col items-center justify-center transition-all duration-200 cursor-pointer hover:bg-zinc-700 {isDragOver && !audioFiles ? 'border-focus bg-primary-muted' : ''}"
-                                ondragover={handleDragOver}
-                                ondragleave={handleDragLeave}
-                                ondrop={handleDrop}
-                            >
-                                {#if !audioFiles}
-                                    <div class="text-center">
-                                        <p class="text-lg text-white">Drop your audio file here</p>
-                                        <p class="text-sm text-white">or click to browse</p>
-                                        <p class="text-sm text-white mt-6">Only FLAC and WAV files are supported</p>
-                                    </div>
-                                {:else}
-                                    <div class="text-center w-full">
-                                        <div class="flex items-center justify-center space-x-2">
-                                            <span class="text-success">✓</span>
-                                            <span class="text-white">{audioFiles[0].name}</span>
-                                            <button 
-                                                onclick={removeAudioFile}
-                                                class="ml-2 px-2 py-1 text-xs bg-zinc-600 hover:bg-zinc-700 text-white cursor-pointer"
-                                            >
-                                                Remove
-                                            </button>
-                                        </div>
-                                    </div>
-                                {/if}
+                        <h2 class="mb-6 text-3xl font-bold text-white">Upload a Project</h2>
+                        <div class="w-full">
+                            <h3 class="text-xl font-semibold text-white mb-3">What are you uploading?</h3>
+                            <div class="grid gap-3 sm:grid-cols-2">
+                                <button class={`border p-4 text-left transition-colors cursor-pointer ${uploadType === 'original' ? 'border-focus bg-primary-muted' : 'border-zinc-700 bg-zinc-800 hover:bg-zinc-700'}`} onclick={() => chooseUploadType('original')}>
+                                    <span class="block text-lg font-semibold text-white">Original project</span>
+                                    <span class="mt-1 block text-sm text-zinc-300">Start a new project from your own material.</span>
+                                </button>
+                                <button class={`border p-4 text-left transition-colors cursor-pointer ${uploadType === 'addon' ? 'border-focus bg-primary-muted' : 'border-zinc-700 bg-zinc-800 hover:bg-zinc-700'}`} onclick={() => chooseUploadType('addon')}>
+                                    <span class="block text-lg font-semibold text-white">Add-on to another project</span>
+                                    <span class="mt-1 block text-sm text-zinc-300">Build on a project you have downloaded.</span>
+                                </button>
                             </div>
-                        </label>
-                        
-                        <!-- Hidden audio file input -->
-                        <input id="audio" class="hidden" type="file" accept="audio/*" bind:files={audioFiles} />
-                    </div>
-                    
-                    <!-- Description Input -->
-                    <div class="w-full mb-6">
-                        <h3 class="text-xl font-semibold text-white mb-1">Track Name / Description</h3>
-                        <input
-                            class="w-full px-2 py-2 bg-zinc-800 text-white placeholder-white border border-zinc-700 focus:border-focus focus:outline-hidden"
-                            type="text"
-                            bind:value={description}
-                            placeholder="Give your track a short name or description..."
-                            maxlength={100}
-                        />
-                        <p class="text-sm mt-1 {description.length === 0 ? 'text-white' : (description.length < 3 || description.length > 100 ? 'text-danger' : 'text-white')}">
-                            {description.length}/100 characters (minimum 3)
-                        </p>
-                    </div>
+                        </div>
 
-                    <!-- Add layerrs Section -->
-                    <div class="w-full mb-4">
-                        <h3 class="text-xl font-semibold text-white mb-1">Add Layerrs</h3>
-                        <p class="text-sm text-white mt-1 mb-3">Layerrs are any other artist's tracks you've used for samples, vocals, sounds, remixes, covers, in this track.</p>
-                        
-                        <div class="h-48 overflow-y-auto bg-zinc-900 border border-zinc-700">
-                            {#if artistLayerrs.length === 0}
-                                <div class="h-full flex items-center justify-center px-4 py-3 text-white text-center">
-                                    You haven't downloaded any tracks yet
+                        {#if uploadType === 'addon'}
+                            <div class="w-full mt-6" in:fade={{ duration: 180 }}>
+                                <h3 class="text-xl font-semibold text-white mb-1">Select the project you are adding to</h3>
+                                <p class="text-sm text-zinc-300 mt-1 mb-3">Choose one project from your Layerrs.</p>
+                                <div class="h-48 overflow-y-auto bg-zinc-950 border border-zinc-700">
+                                    {#if artistLayerrs.length === 0}
+                                        <div class="h-full flex items-center justify-center px-4 py-3 text-zinc-300 text-center">You have not downloaded any projects yet.</div>
+                                    {:else}
+                                        {#each artistLayerrs as track}
+                                            <LayerrsTrackCard {track} isSelected={selectedProjectId === track.id} ontoggle={selectProject} />
+                                        {/each}
+                                    {/if}
                                 </div>
-                            {:else}
-                                {#each artistLayerrs as track}
-                                    <LayerrsTrackCard
-                                        {track}
-                                        isSelected={layerrs.includes(track.id)}
-                                        ontoggle={addlayerr}
-                                    />
-                                {/each}
-                            {/if}
-                        </div>
-                    </div>
-
-                    <!-- Price Input -->
-                    <div class="w-full mb-4">
-                        <h3 class="text-xl font-semibold text-white mb-1">Price (optional)</h3>
-                        <p class="text-sm text-white mt-1 mb-3">Set a price in USD to sell your track. Leave at $0 for free.</p>
-                        <div class="flex items-center gap-2">
-                            <span class="text-white text-lg">$</span>
-                                <input
-                                class="bg-zinc-800 text-white border border-zinc-700 focus:border-focus focus:outline-hidden px-2 py-2"
-                                type="text"
-                                inputmode="numeric"
-                                value={display(dollars)}
-                                onkeydown={onKeydown}
-                                oninput={onInput}
-                                onpaste={onPaste}
-                                />
-                            <span class="text-white">USD</span>
-                        </div>
-                    </div>
-
-                    <button
-                        class="mt-8 px-8 py-4 bg-zinc-600 hover:bg-zinc-700 text-white font-semibold text-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-3 cursor-pointer"
-                        onclick={submitFile}
-                        disabled={!audioFiles || description.length < 3 || description.length > 100 || isLoading}
-                    >
-                        {#if isLoading}
-                            <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-                            </svg>
-                            Uploading...
-                        {:else}
-                            Upload Track
+                            </div>
                         {/if}
-                    </button>
-                {:else}
-                    <div class="w-full h-full flex flex-col items-center justify-center">
-                        <h2 class="mb-4 text-3xl font-bold text-white">Track successfully uploaded!</h2>
-                        <button class="bg-zinc-600 hover:bg-zinc-700 mb-2 px-8 py-4 text-white font-semibold transition-colors cursor-pointer" onclick={navigateHome}>
-                            Return Home
-                        </button>
-                    </div>
-                {/if}
-            </div>
+
+                        {#if uploadType === 'original' || selectedProjectId !== null}
+                            <div class="w-full mt-6" in:fade={{ duration: 180 }}>
+                                <h3 class="text-xl font-semibold text-white mb-1">{uploadType === 'original' ? 'Name / Description' : 'What did you add on?'}</h3>
+                                <input class="w-full px-2 py-2 bg-zinc-800 text-white placeholder-zinc-400 border border-zinc-700 focus:border-focus focus:outline-hidden" type="text" bind:value={description} placeholder={uploadType === 'original' ? 'Give your project a short name or description...' : 'Describe your contribution in a few words...'} maxlength={100} />
+                                <p class={`text-sm mt-1 ${description.length === 0 || isDescriptionValid ? 'text-zinc-300' : 'text-danger'}`}>{description.length}/100 characters (minimum 3)</p>
+                            </div>
+                        {/if}
+
+                        {#if isDescriptionValid && (uploadType === 'original' || selectedProjectId !== null)}
+                            <div class="w-full mt-6" in:fade={{ duration: 180 }}>
+                                <h3 class="text-xl font-semibold text-white mb-1">{uploadType === 'original' ? 'Master track' : 'Upload your version'}</h3>
+                                <p class="text-sm text-zinc-300 mt-1 mb-3">Upload one WAV or FLAC master file.</p>
+                                <label for="master-audio" class="block">
+                                    <div role="button" tabindex="0" class={`w-full min-h-40 border-2 border-dashed bg-zinc-800 flex flex-col items-center justify-center transition-all duration-200 cursor-pointer hover:bg-zinc-700 ${isMasterDragOver && !masterFile ? 'border-focus bg-primary-muted' : 'border-zinc-700'}`} ondragover={(event) => { event.preventDefault(); isMasterDragOver = true; }} ondragleave={() => isMasterDragOver = false} ondrop={(event) => handleDrop(event, 'master')}>
+                                        {#if !masterFile}
+                                            <div class="text-center"><p class="text-lg text-white">Drop your master file here</p><p class="text-sm text-zinc-300">or click to browse</p></div>
+                                        {:else}
+                                            <div class="flex items-center gap-2 px-4 text-center"><span class="text-success">✓</span><span class="text-white break-all">{masterFile.name}</span><button type="button" onclick={() => { masterFiles = null; masterError = ''; }} class="px-2 py-1 text-xs bg-zinc-600 hover:bg-zinc-700 text-white cursor-pointer">Remove</button></div>
+                                        {/if}
+                                    </div>
+                                </label>
+                                <input id="master-audio" class="hidden" type="file" accept=".wav,.flac,audio/wav,audio/flac" onchange={(event) => setMasterFile(Array.from((event.currentTarget as HTMLInputElement).files ?? []))} />
+                                {#if masterError}<p class="text-danger text-sm mt-2">{masterError}</p>{/if}
+                            </div>
+                        {/if}
+
+                        {#if masterFile && isSupportedAudio(masterFile) && isDescriptionValid}
+                            <div class="w-full mt-6" in:fade={{ duration: 180 }}>
+                                <h3 class="text-xl font-semibold text-white mb-1">{uploadType === 'original' ? 'Stems (optional)' : 'Stems or your part solo’d (optional)'}</h3>
+                                <p class="text-sm text-zinc-300 mt-1 mb-3">Upload up to 5 WAV or FLAC files.</p>
+                                <label for="stem-audio" class="block">
+                                    <div role="button" tabindex="0" class={`w-full min-h-32 border-2 border-dashed bg-zinc-800 flex flex-col items-center justify-center transition-all duration-200 cursor-pointer hover:bg-zinc-700 ${isStemsDragOver ? 'border-focus bg-primary-muted' : 'border-zinc-700'}`} ondragover={(event) => { event.preventDefault(); isStemsDragOver = true; }} ondragleave={() => isStemsDragOver = false} ondrop={(event) => handleDrop(event, 'stems')}>
+                                        <div class="text-center px-4"><p class="text-lg text-white">Drop stem files here</p><p class="text-sm text-zinc-300">or click to browse</p></div>
+                                    </div>
+                                </label>
+                                <input id="stem-audio" class="hidden" type="file" multiple accept=".wav,.flac,audio/wav,audio/flac" onchange={(event) => setStemFiles(Array.from((event.currentTarget as HTMLInputElement).files ?? []))} />
+                                {#if stemFiles}
+                                    <ul class="mt-3 space-y-2">
+                                        {#each Array.from(stemFiles) as stem, index}
+                                            <li class="flex items-center justify-between gap-3 bg-zinc-800 px-3 py-2 text-sm text-white"><span class="break-all">{stem.name}</span><button type="button" onclick={() => removeStemFile(index)} class="shrink-0 px-2 py-1 text-xs bg-zinc-600 hover:bg-zinc-700 cursor-pointer">Remove</button></li>
+                                        {/each}
+                                    </ul>
+                                {/if}
+                                {#if stemsError}<p class="text-danger text-sm mt-2">{stemsError}</p>{/if}
+                            </div>
+                            <div class="w-full mt-6" in:fade={{ duration: 180 }}>
+                                <h3 class="text-xl font-semibold text-white mb-1">Use downloaded tracks as stems (optional)</h3>
+                                <p class="text-sm text-zinc-300 mt-1 mb-3">Select tracks you have downloaded. Uploaded and referenced stems share a 5-stem limit.</p>
+                                <div class="h-48 overflow-y-auto bg-zinc-950 border border-zinc-700">
+                                    {#if artistLayerrs.length === 0}
+                                        <div class="h-full flex items-center justify-center px-4 py-3 text-zinc-300 text-center">You have not downloaded any projects yet.</div>
+                                    {:else}
+                                        {#each artistLayerrs as track}
+                                            <LayerrsTrackCard {track} isSelected={sourceTrackIds.includes(track.id)} ontoggle={toggleSourceTrack} />
+                                        {/each}
+                                    {/if}
+                                </div>
+                            </div>
+                            <div class="w-full mt-8 flex flex-col items-center" in:fade={{ duration: 180 }}>
+                                {#if submissionError}<p class="mb-3 text-danger" role="alert">{submissionError}</p>{/if}
+                                <button class="px-8 py-4 bg-zinc-600 hover:bg-zinc-700 text-white font-semibold text-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-3 cursor-pointer" onclick={submitFile} disabled={!canUpload}>
+                                    {#if isLoading}
+                                        <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+                                        Uploading...
+                                    {:else}
+                                        Upload Project
+                                    {/if}
+                                </button>
+                            </div>
+                        {/if}
+                    {:else}
+                        <div class="w-full min-h-80 flex flex-col items-center justify-center" in:fade={{ duration: 180 }}>
+                            <h2 class="mb-4 text-3xl font-bold text-white">Project successfully uploaded!</h2>
+                            <button class="bg-zinc-600 hover:bg-zinc-700 mb-2 px-8 py-4 text-white font-semibold transition-colors cursor-pointer" onclick={() => goto('/')}>Return Home</button>
+                        </div>
+                    {/if}
+                </div>
             {/if}
         </section>
     </main>

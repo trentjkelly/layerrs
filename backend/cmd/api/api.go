@@ -73,18 +73,39 @@ func (app *application) mount() http.Handler {
 		r.Route("/track", func(r chi.Router) {
 			r.Options("/", app.trackController.TrackHandlerOptions)
 			r.Post("/batch", app.trackController.TrackBatchHandlerPost)
-		r.Route("/{id}", func(r chi.Router) {
-			r.Get("/audio", app.trackController.TrackAudioHandlerGet)
-			r.Group(func(r chi.Router) {
-				r.Use(AuthJWTMiddleware)
-				r.Get("/download", app.trackController.TrackDownloadHandlerGet)
-				r.Put("/price", app.trackController.UpdateTrackPriceHandlerPut)
-				r.Post("/play", app.trackController.TrackPlayHandlerPost)
+			r.Route("/{id}", func(r chi.Router) {
+				r.Get("/audio", app.trackController.TrackAudioHandlerGet)
+				r.Group(func(r chi.Router) {
+					r.Use(AuthJWTMiddleware)
+					r.Get("/download", app.trackController.TrackDownloadHandlerGet)
+					r.Put("/price", app.trackController.UpdateTrackPriceHandlerPut)
+					r.Post("/play", app.trackController.TrackPlayHandlerPost)
+				})
+				r.Get("/data", app.trackController.TrackerDataHandlerGet)
+				r.Get("/recommendation", app.trackController.TrackRecommendationHandlerGet)
+				r.Get("/graph", app.trackController.TrackGraphHandlerGet)
 			})
-			r.Get("/data", app.trackController.TrackerDataHandlerGet)
-			r.Get("/recommendation", app.trackController.TrackRecommendationHandlerGet)
-			r.Get("/graph", app.trackController.TrackGraphHandlerGet)
-		})
+
+			// Project routes are the canonical public API. Track routes above remain
+			// compatibility aliases because a project's ID is its master-track ID.
+			r.Route("/projects", func(r chi.Router) {
+				r.Group(func(r chi.Router) {
+					r.Use(AuthJWTMiddleware)
+					r.Post("/", app.trackController.TrackHandlerPost)
+				})
+				r.Route("/{id}", func(r chi.Router) {
+					r.Get("/audio", app.trackController.TrackAudioHandlerGet)
+					r.Get("/data", app.trackController.TrackerDataHandlerGet)
+					r.Get("/recommendation", app.trackController.TrackRecommendationHandlerGet)
+					r.Get("/graph", app.trackController.TrackGraphHandlerGet)
+					r.Group(func(r chi.Router) {
+						r.Use(AuthJWTMiddleware)
+						r.Get("/download", app.trackController.TrackDownloadHandlerGet)
+						r.Put("/price", app.trackController.UpdateTrackPriceHandlerPut)
+						r.Post("/play", app.trackController.TrackPlayHandlerPost)
+					})
+				})
+			})
 			r.Group(func(r chi.Router) {
 				r.Use(AuthJWTMiddleware)
 				r.Post("/", app.trackController.TrackHandlerPost)
@@ -109,6 +130,8 @@ func (app *application) mount() http.Handler {
 				})
 			})
 		})
+
+		r.With(OptionalAuthJWTMiddleware).Get("/search", app.recommendationsController.SearchHandlerGet)
 
 		r.Route("/likes", func(r chi.Router) {
 			r.Use(AuthJWTMiddleware)
@@ -148,10 +171,10 @@ func (app *application) mount() http.Handler {
 
 		r.Route("/pages", func(r chi.Router) {
 			r.With(AuthJWTMiddleware).Post("/", app.pageController.CreatePageHandler)
-		r.Route("/{pageId}", func(r chi.Router) {
-			r.With(OptionalAuthJWTMiddleware).Get("/", app.pageController.GetPageHandler)
-			r.Group(func(r chi.Router) {
-				r.Use(AuthJWTMiddleware)
+			r.Route("/{pageId}", func(r chi.Router) {
+				r.With(OptionalAuthJWTMiddleware).Get("/", app.pageController.GetPageHandler)
+				r.Group(func(r chi.Router) {
+					r.Use(AuthJWTMiddleware)
 					r.Patch("/", app.pageController.UpdatePageHandler)
 					r.Delete("/", app.pageController.DeletePageHandler)
 					r.Post("/follow", app.pageController.FollowPageHandler)

@@ -4,7 +4,6 @@
     import { onMount } from "svelte";
     import { isLoggedIn } from "../../../stores/auth";
     import { urlBase } from "../../../stores/environment";
-    import { isSidebarOpen } from "../../../stores/player";
     import TopHeader from "../../../components/TopHeader.svelte";
     import PageTrackRow from "../../../components/PageTrackRow.svelte";
     import type { Page as PageModel, PageTrack } from "../../../models/types";
@@ -114,7 +113,7 @@
     }
 </script>
 
-<main class={`transition-all duration-300 min-h-screen w-full overflow-y-auto ${$isSidebarOpen ? 'ml-64' : 'ml-0'} bg-zinc-950`}>
+<main class="min-h-full w-full overflow-y-auto bg-zinc-950">
     <TopHeader pageName="Page" pageIcon="" />
 
     <section class="p-8 max-w-3xl mx-auto">

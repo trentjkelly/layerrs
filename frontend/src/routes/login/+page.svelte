@@ -1,6 +1,5 @@
 <script lang="ts">
     import TopHeader from "../../components/TopHeader.svelte";
-    import { isSidebarOpen } from "../../stores/player";
     import { logger } from "../../modules/lib/logger";
     import { loginServerRequest } from "../../modules/requests/auth-requests";
     import { isLoggedIn } from "../../stores/auth";
@@ -94,7 +93,7 @@
 
 </script>
 
-<main class={`transition-all duration-300 h-screen w-full flex flex-col ${$isSidebarOpen ? 'ml-64' : 'ml-0'} bg-zinc-950`}>
+<main class="flex h-full w-full flex-col bg-zinc-950">
     <TopHeader pageName="" pageIcon=""/>
     <section class="w-full flex-1 flex flex-col justify-center items-center">
         <div class="flex flex-col items-center border-2 p-8 bg-zinc-900">

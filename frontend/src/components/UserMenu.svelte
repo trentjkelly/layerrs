@@ -4,7 +4,7 @@
     import { handleBrowserLogout } from "../modules/lib/session";
     import { logger } from "../modules/lib/logger";
 
-    let { username, email, portraitUrl } = $props();
+    let { username = '', email = '', portraitUrl = '' } = $props();
     let showDropdown = $state(false);
 
     async function handleLogout() {
@@ -17,72 +17,74 @@
     }
 
     function handleProfile() {
+        showDropdown = false;
         goto('/profile');
+    }
+
+    function handleLogin() {
+        goto('/login');
+    }
+
+    function handleFocusOut(event: FocusEvent) {
+        const nextTarget = event.relatedTarget as Node | null;
+        if (!nextTarget || !(event.currentTarget as HTMLElement).contains(nextTarget)) {
+            showDropdown = false;
+        }
     }
 </script>
 
-<!-- Fixed circle in top right - only show when logged in -->
 {#if $isLoggedIn}
-<div class="fixed top-5 right-8 z-50">
+<div class="relative shrink-0" onfocusout={handleFocusOut}>
     <div
         class="relative"
-        onmouseenter={() => showDropdown = true}
-        onmouseleave={() => showDropdown = false}
-        role="button"
-        tabindex="0"
     >
+        <button
+            type="button"
+            onclick={() => showDropdown = !showDropdown}
+            aria-label="Open profile menu"
+            aria-haspopup="menu"
+            aria-expanded={showDropdown}
+            class="flex h-11 w-11 items-center justify-center overflow-hidden rounded-full border border-zinc-700 bg-zinc-700 text-sm font-bold text-white transition-colors hover:border-zinc-500 hover:bg-zinc-600 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-offset-2 focus:ring-offset-zinc-900"
+        >
+            {#if portraitUrl}
+                <img src={portraitUrl} alt="" class="h-full w-full object-cover" />
+            {:else}
+                <span>{(username || email || 'P').slice(0, 1).toUpperCase()}</span>
+            {/if}
+        </button>
+
         {#if showDropdown}
-            <!-- Expanded dropdown with circle integrated -->
-            <div class="absolute top-0 right-0 w-56 bg-zinc-800 border border-zinc-700 z-50">
-                <!-- Profile section with original circle -->
-                <div class="px-4 py-4 border-b border-zinc-700">
-                    <div class="flex items-center space-x-3">
-                        <div class="w-12 h-12 bg-zinc-600 shrink-0 border border-zinc-700 overflow-hidden">
-                            {#if portraitUrl}
-                                <img src={portraitUrl} alt="Profile" class="w-full h-full object-cover" />
-                            {/if}
-                        </div>
-                        <div class="flex-1 min-w-0">
-                            <p class="text-md font-medium text-white truncate">{username || 'Profile'}</p>
-                            <p class="text-sm text-zinc-200 truncate">{email}</p>
-                        </div>
-                    </div>
+            <div class="absolute right-0 top-[calc(100%+0.75rem)] z-50 w-64 border border-zinc-700 bg-zinc-800 shadow-2xl" role="menu">
+                <div class="border-b border-zinc-700 px-4 py-4">
+                    <p class="truncate text-sm font-semibold text-white">{username || 'Your profile'}</p>
+                    <p class="mt-0.5 truncate text-sm text-zinc-400">{email}</p>
                 </div>
 
-                <!-- Settings option -->
                 <button
                     onclick={handleProfile}
-                    class="w-full px-6 py-3 text-left text-white hover:bg-zinc-600 flex items-center transition-colors duration-150 cursor-pointer"
+                    role="menuitem"
+                    class="flex w-full cursor-pointer items-center px-4 py-3 text-left text-sm text-white transition-colors hover:bg-zinc-700"
                 >
-                    <svg class="w-4 h-4 mr-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="mr-3 h-4 w-4 text-zinc-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
                     </svg>
                     Profile
                 </button>
 
-                <!-- Logout option -->
                 <button
                     onclick={handleLogout}
-                    class="w-full px-6 py-3 text-left text-white hover:bg-zinc-600 flex items-center transition-colors duration-150 cursor-pointer"
+                    role="menuitem"
+                    class="flex w-full cursor-pointer items-center px-4 py-3 text-left text-sm text-white transition-colors hover:bg-zinc-700"
                 >
-                    <svg class="w-4 h-4 mr-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="mr-3 h-4 w-4 text-zinc-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
                     </svg>
                     Logout
                 </button>
             </div>
-        {:else}
-            <!-- Default circle when not expanded -->
-            <div class="w-12 h-12 bg-zinc-600 cursor-pointer border border-zinc-700 transition-colors duration-200 hover:bg-zinc-500 overflow-hidden">
-                {#if portraitUrl}
-                    <img src={portraitUrl} alt="Profile" class="w-full h-full object-cover" />
-                {/if}
-            </div>
         {/if}
     </div>
 </div>
 {:else}
-    <div class="fixed top-5 right-8 z-50 outline outline-white">
-        <button class="w-full h-full bg-zinc-500 hover:cursor-pointer hover:bg-zinc-600 px-4 py-2" onclick={handleLogout}>Login / Signup</button>
-    </div>
+    <button class="h-11 shrink-0 border border-zinc-600 px-3 text-sm font-semibold text-white transition-colors hover:border-zinc-400 hover:bg-zinc-800 sm:px-4" onclick={handleLogin}>Log in</button>
 {/if}

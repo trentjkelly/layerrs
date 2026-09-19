@@ -63,6 +63,14 @@
 
 body {
     background-color: oklch(14.1% 0.005 285.823);
+    margin: 0;
+    overflow: hidden;
+}
+
+.app-content > main {
+    height: auto;
+    min-height: 100%;
+    margin-left: 0;
 }
 
 /* Dark mode scrollbar */

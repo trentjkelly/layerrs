@@ -3,7 +3,6 @@
     import { onMount } from "svelte";
     import { goto } from "$app/navigation";
     import { urlBase } from "../../../../stores/environment";
-    import { isSidebarOpen } from "../../../../stores/player";
     import TopHeader from "../../../../components/TopHeader.svelte";
     import type { Page as PageModel, PageSubmission } from "../../../../models/types";
     import { getPage, getSubmissions, approveSubmission } from "../../../../modules/requests/page-requests";
@@ -61,7 +60,7 @@
     const activeSubmission = $derived(submissions.find(s => s.id === approvingId));
 </script>
 
-<main class={`transition-all duration-300 min-h-screen w-full overflow-y-auto ${$isSidebarOpen ? 'ml-64' : 'ml-0'} bg-zinc-950`}>
+<main class="min-h-full w-full overflow-y-auto bg-zinc-950">
     <TopHeader pageName="Submissions" pageIcon="" />
 
     <section class="p-8 max-w-3xl mx-auto">

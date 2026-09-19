@@ -1,7 +1,6 @@
 <script lang="ts">
     import { onMount } from 'svelte';
     import TopHeader from "../../../components/TopHeader.svelte";
-    import { isSidebarOpen } from "../../../stores/player";
     import NewTrackCard from "../../../components/NewTrackCard.svelte";
 
     import { goto } from '$app/navigation';
@@ -68,7 +67,7 @@
 
 </script>
 
-<main class={`transition-all duration-300 h-screen overflow-y-auto w-full ${$isSidebarOpen ? 'ml-64' : 'ml-0'} bg-zinc-950`}>
+<main class="h-full w-full overflow-y-auto bg-zinc-950">
     <TopHeader pageName="" pageIcon=""></TopHeader>
 
     <section class="w-full flex flex-col items-center pb-32">

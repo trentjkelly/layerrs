@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -97,7 +98,12 @@ func (r *TrackDatabaseRepository) DeleteTrack(ctx context.Context, track *entiti
 
 // Updates the price of a track
 func (r *TrackDatabaseRepository) UpdateTrackPrice(ctx context.Context, trackId int, priceInCents int) error {
-	query := `UPDATE track SET updated_at=$2, price_in_cents=$3 WHERE id=$1 RETURNING updated_at;`
+	query := `
+		WITH updated_track AS (
+			UPDATE track SET updated_at=$2, price_in_cents=$3 WHERE id=$1 RETURNING updated_at
+		)
+		UPDATE project SET price_in_cents=$3 WHERE id=$1
+		RETURNING (SELECT updated_at FROM updated_track);`
 	row := r.db.QueryRow(ctx, query, trackId, time.Now(), priceInCents)
 
 	var updatedAt time.Time
@@ -111,7 +117,12 @@ func (r *TrackDatabaseRepository) UpdateTrackPrice(ctx context.Context, trackId 
 
 // Increases the number of plays on a Track when a user plays a song
 func (r *TrackDatabaseRepository) IncrementPlays(ctx context.Context, track *entities.Track) error {
-	query := `UPDATE track SET plays = plays + 1 WHERE id=$1 RETURNING plays;`
+	query := `
+		WITH updated_track AS (
+			UPDATE track SET plays = plays + 1 WHERE id=$1 RETURNING plays
+		)
+		UPDATE project SET plays = (SELECT plays FROM updated_track) WHERE id=$1
+		RETURNING plays;`
 	row := r.db.QueryRow(ctx, query, track.Id)
 
 	err := row.Scan(&track.Plays)
@@ -124,7 +135,12 @@ func (r *TrackDatabaseRepository) IncrementPlays(ctx context.Context, track *ent
 
 // Increases the number of likes on a Track when a user likes it
 func (r *TrackDatabaseRepository) IncrementLikes(ctx context.Context, track *entities.Track) error {
-	query := `UPDATE track SET likes = likes + 1 WHERE id=$1 RETURNING likes;`
+	query := `
+		WITH updated_track AS (
+			UPDATE track SET likes = likes + 1 WHERE id=$1 RETURNING likes
+		)
+		UPDATE project SET likes = (SELECT likes FROM updated_track) WHERE id=$1
+		RETURNING likes;`
 	row := r.db.QueryRow(ctx, query, track.Id)
 
 	err := row.Scan(&track.Likes)
@@ -137,7 +153,12 @@ func (r *TrackDatabaseRepository) IncrementLikes(ctx context.Context, track *ent
 
 // Decreases the number of likes on a Track when a user likes it
 func (r *TrackDatabaseRepository) DecrementLikes(ctx context.Context, track *entities.Track) error {
-	query := `UPDATE track SET likes = likes - 1 WHERE id=$1 RETURNING likes;`
+	query := `
+		WITH updated_track AS (
+			UPDATE track SET likes = likes - 1 WHERE id=$1 RETURNING likes
+		)
+		UPDATE project SET likes = (SELECT likes FROM updated_track) WHERE id=$1
+		RETURNING likes;`
 	row := r.db.QueryRow(ctx, query, track.Id)
 
 	err := row.Scan(&track.Likes)
@@ -223,6 +244,56 @@ func (r *TrackDatabaseRepository) ReadNTracksByDate(ctx context.Context, offset 
 	}
 
 	return recs, nil
+}
+
+// SearchTracks returns recent valid tracks whose description or artist username contains query.
+func (r *TrackDatabaseRepository) SearchTracks(ctx context.Context, query string, artistId int, limit int) ([]entities.TrackInfo, error) {
+	query = strings.ReplaceAll(query, "\\", "\\\\")
+	query = strings.ReplaceAll(query, "%", "\\%")
+	query = strings.ReplaceAll(query, "_", "\\_")
+
+	const searchQuery = `
+		SELECT t.id, t.description, t.artist_id, a.username, a.r2_image_key, t.likes, t.plays, t.layerrs, t.duration, w.waveform_data, t.price_in_cents,
+		CASE WHEN alt.artist_id IS NOT NULL THEN true ELSE false END AS is_liked
+		FROM track t
+		JOIN artist a ON t.artist_id = a.id
+		LEFT JOIN waveform w ON w.track_id = t.id
+		LEFT JOIN artist_likes_track alt ON alt.track_id = t.id AND alt.artist_id = $2
+		WHERE t.is_valid = true
+		  AND (LOWER(t.description) LIKE '%' || LOWER($1) || '%' ESCAPE '\'
+		       OR LOWER(a.username) LIKE '%' || LOWER($1) || '%' ESCAPE '\')
+		ORDER BY t.created_at DESC
+		LIMIT $3;`
+
+	rows, err := r.db.Query(ctx, searchQuery, query, artistId, limit)
+	if err != nil {
+		return nil, fmt.Errorf("failed to search tracks: %w", err)
+	}
+	defer rows.Close()
+
+	results := make([]entities.TrackInfo, 0)
+	for rows.Next() {
+		var track entities.TrackInfo
+		var waveformData []int
+		var r2ImageKey sql.NullString
+		if err := rows.Scan(&track.Id, &track.Description, &track.ArtistId, &track.ArtistName, &r2ImageKey, &track.Likes, &track.Plays, &track.Layerrs, &track.Duration, &waveformData, &track.PriceInCents, &track.IsLiked); err != nil {
+			return nil, fmt.Errorf("failed to scan searched track: %w", err)
+		}
+		if r2ImageKey.Valid {
+			track.R2ImageKey = r2ImageKey.String
+		}
+		if waveformData != nil {
+			track.WaveformData = waveformData
+		} else {
+			track.WaveformData = []int{}
+		}
+		results = append(results, track)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("failed while searching tracks: %w", err)
+	}
+
+	return results, nil
 }
 
 // Gets full track info for a list of track IDs

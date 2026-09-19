@@ -49,6 +49,8 @@ func (c *TrackController) TrackHandlerPost(w http.ResponseWriter, r *http.Reques
 	trackDescription := r.FormValue("description")
 	artistIdFloat := r.Context().Value(entities.ArtistIdKey).(float64)
 	layerrsIdStr := r.FormValue("layerrIDs") // Optional - could have no layerrs to credit
+	sourceTrackIDsStr := r.FormValue("sourceTrackIDs")
+	stemHeaders := r.MultipartForm.File["stemFiles"]
 
 	if trackDescription == "" {
 		log.Println("[ERROR] TrackHandlerPost: track description is required")
@@ -72,6 +74,30 @@ func (c *TrackController) TrackHandlerPost(w http.ResponseWriter, r *http.Reques
 			return
 		}
 	}
+	var sourceTrackIDs []int
+	if sourceTrackIDsStr != "" {
+		if err := json.Unmarshal([]byte(sourceTrackIDsStr), &sourceTrackIDs); err != nil {
+			http.Error(w, "Invalid source track ID array", http.StatusBadRequest)
+			return
+		}
+	}
+	if len(layerrsIdArr) > 1 {
+		http.Error(w, "An add-on can target only one project", http.StatusBadRequest)
+		return
+	}
+	if len(stemHeaders)+len(sourceTrackIDs) > 5 {
+		http.Error(w, "A project can include at most 5 stems", http.StatusBadRequest)
+		return
+	}
+
+	for _, stemHeader := range stemHeaders {
+		stemType := stemHeader.Header.Get("Content-Type")
+		if stemType != "audio/wav" && stemType != "audio/x-wav" && stemType != "audio/flac" && stemType != "audio/x-flac" {
+			log.Printf("[ERROR] TrackHandlerPost: invalid stem type: %s", stemType)
+			http.Error(w, "Stem files must be WAV or FLAC", http.StatusBadRequest)
+			return
+		}
+	}
 
 	// Converting artistIdFloat to integer
 	artistIdInt := int(artistIdFloat)
@@ -92,14 +118,14 @@ func (c *TrackController) TrackHandlerPost(w http.ResponseWriter, r *http.Reques
 
 	// Validate that the audio file is in WAV or FLAC format
 	audioType := audioHeader.Header.Get("Content-Type")
-	if audioType != "audio/wav" && audioType != "audio/flac" {
+	if audioType != "audio/wav" && audioType != "audio/x-wav" && audioType != "audio/flac" && audioType != "audio/x-flac" {
 		log.Printf("[ERROR] TrackHandlerPost: invalid audio type: %s", audioType)
 		http.Error(w, "Audio file must be in WAV or FLAC format", http.StatusBadRequest)
 		return
 	}
 
 	// Passing to Service layer
-	err = c.trackService.AddAndUploadTrack(r.Context(), audioFile, audioHeader, trackDescription, artistIdInt, layerrsIdArr)
+	err = c.trackService.AddAndUploadTrack(r.Context(), audioFile, audioHeader, stemHeaders, sourceTrackIDs, trackDescription, artistIdInt, layerrsIdArr)
 	if err != nil {
 		log.Printf("[ERROR] TrackHandlerPost: %s", err)
 		http.Error(w, "Failed to create track", http.StatusInternalServerError)

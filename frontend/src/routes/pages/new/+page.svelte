@@ -4,7 +4,6 @@
     import { urlBase } from "../../../stores/environment";
     import { createPage } from "../../../modules/requests/page-requests";
     import TopHeader from "../../../components/TopHeader.svelte";
-    import { isSidebarOpen } from "../../../stores/player";
 
     let name = $state("");
     let description = $state("");
@@ -37,7 +36,7 @@
     }
 </script>
 
-<main class={`transition-all duration-300 h-screen w-full overflow-y-auto ${$isSidebarOpen ? 'ml-64' : 'ml-0'} bg-zinc-950`}>
+<main class="h-full w-full overflow-y-auto bg-zinc-950">
     <TopHeader pageName="New Page" pageIcon="" />
 
     <section class="p-8 max-w-2xl mx-auto">

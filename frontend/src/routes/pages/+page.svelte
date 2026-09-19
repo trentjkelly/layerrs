@@ -1,7 +1,6 @@
 <script lang="ts">
     import { goto } from "$app/navigation";
     import { onMount } from "svelte";
-    import { isSidebarOpen } from "../../stores/player";
     import { isLoggedIn } from "../../stores/auth";
     import { urlBase } from "../../stores/environment";
     import { artistIdStore } from "../../stores/profile";
@@ -31,7 +30,7 @@
     });
 </script>
 
-<main class={`transition-all duration-300 min-h-screen w-full overflow-y-auto ${$isSidebarOpen ? 'ml-64' : 'ml-0'} bg-zinc-950`}>
+<main class="min-h-full w-full overflow-y-auto bg-zinc-950">
     <TopHeader pageName="Pages" pageIcon="/vinyl.png" />
 
     <section class="p-8 max-w-3xl mx-auto">

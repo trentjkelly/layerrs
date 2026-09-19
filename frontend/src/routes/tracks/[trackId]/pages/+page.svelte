@@ -1,7 +1,6 @@
 <script lang="ts">
     import { page } from "$app/stores";
     import { onMount } from "svelte";
-    import { isSidebarOpen } from "../../../../stores/player";
     import { urlBase } from "../../../../stores/environment";
     import TopHeader from "../../../../components/TopHeader.svelte";
     import type { PageWithFollowerCount } from "../../../../models/types";
@@ -34,7 +33,7 @@
     onMount(loadData);
 </script>
 
-<main class={`transition-all duration-300 min-h-screen w-full overflow-y-auto ${$isSidebarOpen ? 'ml-64' : 'ml-0'} bg-zinc-950`}>
+<main class="min-h-full w-full overflow-y-auto bg-zinc-950">
     <TopHeader pageName="Track Pages" pageIcon="" />
 
     <section class="p-8 max-w-3xl mx-auto">
