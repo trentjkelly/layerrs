@@ -66,6 +66,15 @@ func (r *TrackStorageRepository) CreateAllTracks(ctx context.Context, wavPath st
 	return nil
 }
 
+// CreateStem uploads an unconverted source stem to the WAV audio bucket.
+func (r *TrackStorageRepository) CreateStem(ctx context.Context, file multipart.File, key string) error {
+	if err := r.CreateTrack(ctx, file, key, *r.trackWavBucketName); err != nil {
+		return fmt.Errorf("failed to upload stem to R2: %w", err)
+	}
+
+	return nil
+}
+
 // Uploads a single track to R2
 func (r *TrackStorageRepository) CreateTrack(ctx context.Context, file multipart.File, filename string, bucketName string) error {
 	input := &s3.PutObjectInput{

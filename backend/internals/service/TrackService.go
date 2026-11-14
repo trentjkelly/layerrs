@@ -26,6 +26,7 @@ type TrackService struct {
 	trackDatabaseRepo     *databaseRepository.TrackDatabaseRepository
 	trackPlayDatabaseRepo *databaseRepository.TrackPlayDatabaseRepository
 	treeDatabaseRepo      *databaseRepository.TrackTreeDatabaseRepository
+	projectDatabaseRepo   *databaseRepository.ProjectDatabaseRepository
 	trackConversionRepo   *computingRepository.TrackConversionRepository
 	waveformHeightsRepo   *computingRepository.WaveformHeightsRepository
 	waveformDatabaseRepo  *databaseRepository.WaveformDatabaseRepository
@@ -40,6 +41,7 @@ func NewTrackService(
 	trackDatabaseRepo *databaseRepository.TrackDatabaseRepository,
 	trackPlayDatabaseRepo *databaseRepository.TrackPlayDatabaseRepository,
 	treeDatabaseRepo *databaseRepository.TrackTreeDatabaseRepository,
+	projectDatabaseRepo *databaseRepository.ProjectDatabaseRepository,
 	trackConversionRepo *computingRepository.TrackConversionRepository,
 	waveformHeightsRepo *computingRepository.WaveformHeightsRepository,
 	waveformDatabaseRepo *databaseRepository.WaveformDatabaseRepository,
@@ -52,6 +54,7 @@ func NewTrackService(
 	trackService.trackDatabaseRepo = trackDatabaseRepo
 	trackService.trackPlayDatabaseRepo = trackPlayDatabaseRepo
 	trackService.treeDatabaseRepo = treeDatabaseRepo
+	trackService.projectDatabaseRepo = projectDatabaseRepo
 	trackService.trackConversionRepo = trackConversionRepo
 	trackService.waveformHeightsRepo = waveformHeightsRepo
 	trackService.waveformDatabaseRepo = waveformDatabaseRepo
@@ -61,10 +64,24 @@ func NewTrackService(
 }
 
 // Adds all files and data for a new track -- called by TrackController for a POST request
-func (s *TrackService) AddAndUploadTrack(ctx context.Context, audio multipart.File, audioHeader *multipart.FileHeader, trackDescription string, artistId int, parentIDs []int) error {
+func (s *TrackService) AddAndUploadTrack(ctx context.Context, audio multipart.File, audioHeader *multipart.FileHeader, stemHeaders []*multipart.FileHeader, sourceTrackIDs []int, trackDescription string, artistId int, parentIDs []int) error {
+	if len(parentIDs) > 1 {
+		return fmt.Errorf("an add-on can have only one parent project")
+	}
+	if len(stemHeaders)+len(sourceTrackIDs) > 5 {
+		return fmt.Errorf("a project can include at most 5 stems")
+	}
+	allowed, err := s.projectDatabaseRepo.CanUseSourceTracks(ctx, artistId, sourceTrackIDs)
+	if err != nil {
+		return err
+	}
+	if !allowed {
+		return fmt.Errorf("source tracks must belong to projects you have downloaded")
+	}
+
 	// Add track metadata to track table (get back ID)
 	track := entities.NewTrack(trackDescription, artistId)
-	err := s.trackDatabaseRepo.CreateTrack(ctx, track)
+	err = s.trackDatabaseRepo.CreateTrack(ctx, track)
 	if err != nil {
 		return err
 	}
@@ -118,6 +135,47 @@ func (s *TrackService) AddAndUploadTrack(ctx context.Context, audio multipart.Fi
 		return fmt.Errorf("failed to create the waveform in the db: %w", err)
 	}
 
+	// The public project shares its stable ID with its master track. This keeps
+	// legacy track URLs and foreign keys compatible while tracks become audio assets.
+	project := &entities.Project{Id: track.Id, ArtistId: artistId, Description: trackDescription}
+	if err := s.projectDatabaseRepo.CreateProject(ctx, project); err != nil {
+		return err
+	}
+	if err := s.projectDatabaseRepo.AddTrack(ctx, project.Id, track.Id, entities.ProjectMasterTrack, 0); err != nil {
+		return err
+	}
+
+	for index, stemHeader := range stemHeaders {
+		stemFile, err := stemHeader.Open()
+		if err != nil {
+			return fmt.Errorf("failed to open stem %q: %w", stemHeader.Filename, err)
+		}
+		stemTrack := entities.NewTrack(stemHeader.Filename, artistId)
+		if err := s.trackDatabaseRepo.CreateTrack(ctx, stemTrack); err != nil {
+			stemFile.Close()
+			return err
+		}
+		stemKey := filepath.Join("stems", trackIdStr, fmt.Sprintf("%d%s", index+1, filepath.Ext(stemHeader.Filename)))
+		if err := s.trackStorageRepo.CreateStem(ctx, stemFile, stemKey); err != nil {
+			stemFile.Close()
+			return fmt.Errorf("failed to upload stem %q: %w", stemHeader.Filename, err)
+		}
+		stemFile.Close()
+		stemTrack.WavR2TrackKey = stemKey
+		stemTrack.IsValid = true
+		if err := s.trackDatabaseRepo.UpdateTrack(ctx, stemTrack); err != nil {
+			return err
+		}
+		if err := s.projectDatabaseRepo.AddTrack(ctx, project.Id, stemTrack.Id, entities.ProjectStemTrack, index); err != nil {
+			return err
+		}
+	}
+	for index, sourceTrackId := range sourceTrackIDs {
+		if err := s.projectDatabaseRepo.AddTrack(ctx, project.Id, sourceTrackId, entities.ProjectStemTrack, len(stemHeaders)+index); err != nil {
+			return err
+		}
+	}
+
 	// Create a new graph for the track
 	graph := new(entities.Graph)
 	graph.TotalTracks = 1
@@ -150,6 +208,9 @@ func (s *TrackService) AddAndUploadTrack(ctx context.Context, audio multipart.Fi
 		if err != nil {
 			return fmt.Errorf("failed to create the track tree in the db: %w", err)
 		}
+		if err := s.projectDatabaseRepo.CreateDerivation(ctx, parentIDs[0], project.Id); err != nil {
+			return err
+		}
 	}
 
 	// Set is valid flag to true, meaning the track can be served
@@ -157,6 +218,9 @@ func (s *TrackService) AddAndUploadTrack(ctx context.Context, audio multipart.Fi
 	err = s.trackDatabaseRepo.UpdateTrack(ctx, track)
 	if err != nil {
 		return fmt.Errorf("failed to update the track in the db: %w", err)
+	}
+	if err := s.projectDatabaseRepo.UpdateProjectValidity(ctx, project.Id, true); err != nil {
+		return err
 	}
 
 	return nil

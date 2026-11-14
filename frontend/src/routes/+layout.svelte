@@ -4,7 +4,7 @@
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
 	import AudioPlayer from '../components/AudioPlayer.svelte';
-	import SideBar from '../components/SideBar.svelte';
+	import AppHeader from '../components/AppHeader.svelte';
 	import { initializeAudio, audio } from '../stores/player';
 	import { jwt, refreshToken, isLoggedIn, authInitialized } from '../stores/auth';
 	import { urlBase, stripePublishableKey } from '../stores/environment';
@@ -13,6 +13,7 @@
 	import { loadStripe } from '../modules/lib/stripe';
 
 	let { data, children } = $props();
+	let searchActive = $state(false);
 
 	// Initialize audio component across the entire session
 	onMount(async () => {
@@ -33,10 +34,14 @@
 	});
 
 	$effect(() => {
-		if ($authInitialized && !$isLoggedIn && $page.url.pathname !== '/' && !$page.url.pathname.startsWith('/login')) {
-			goto('/login');
+		if ($authInitialized && !$isLoggedIn && !isPublicRoute($page.url.pathname)) {
+			goto('/login', { replaceState: true });
 		}
 	});
+
+	function isPublicRoute(pathname: string) {
+		return pathname === '/' || pathname === '/login' || pathname.startsWith('/login/');
+	}
 
 	async function loadCookies() {
 		if (data.newJWT) {
@@ -122,9 +127,11 @@
 
 </script>
 
-<div class="h-screen w-screen flex flex-row bg-olive-400 text-white font-body">
-	<SideBar></SideBar>
-	{#if $authInitialized}
-		{@render children()}
+<div class="flex h-dvh w-screen flex-col overflow-hidden bg-zinc-950 font-body text-white">
+	<AppHeader bind:searchActive />
+	{#if $authInitialized && (isPublicRoute($page.url.pathname) || $isLoggedIn)}
+		<div class={`app-content min-h-0 flex-1 overflow-y-auto overflow-x-hidden transition-[filter] duration-150 ${searchActive ? 'blur-[1.5px]' : ''}`}>
+			{@render children()}
+		</div>
 	{/if}
 </div>

@@ -12,12 +12,12 @@
 
 {#if shouldHighlight}
     <div
-        class="w-[2px] mr-[2px] rounded-sm rounded-xl {isCursorActive ? 'bg-olive-700' : 'bg-olive-600'}"
+        class="w-[2px] shrink-0 mr-[2px] bg-black"
         style="height: {height}%"
     ></div>
 {:else}
     <div
-        class="w-[2px] bg-white mr-[2px] rounded-sm rounded-xl"
+        class="w-[2px] shrink-0 bg-black mr-[2px]"
         style="height: {height}%"
     ></div>
 {/if}

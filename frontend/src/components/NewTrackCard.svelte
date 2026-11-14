@@ -241,11 +241,11 @@
 
     <div class="w-full h-12 mb-1 flex flex-row items-center">
             {#if track.artistPortraitUrl}
-                <img src={track.artistPortraitUrl} alt={track.artistName} class="w-10 h-10 rounded-lg object-cover ml-2" />
+                <img src={track.artistPortraitUrl} alt={track.artistName} class="w-10 h-10 object-cover ml-2" />
             {/if}
-            <a class="ml-2 px-1 rounded-md hover:bg-white text-lg transition-all duration-300" href={`/artist/${track.artistId}`}>{track.artistName}</a>
+            <a class="ml-2 px-1 hover:bg-white text-lg transition-all duration-300" href={`/artist/${track.artistId}`}>{track.artistName}</a>
             <p class="ml-2">•</p>
-            <a class="ml-2 px-1 rounded-md text-zinc-100 hover:bg-white text-lg transition-all duration-300" href={`/track/${track.id}`}>{track.description}</a>
+            <a class="ml-2 px-1 text-zinc-100 hover:bg-white text-lg transition-all duration-300" href={`/track/${track.id}`}>{track.description}</a>
     </div>
 
     
@@ -277,7 +277,7 @@
     <!-- Track Information -->
     <div class="w-full h-12 flex flex-row items-center">
         <LikeButton trackId={track.id} bind:numLikes={numLikes} isLiked={track.isLiked}></LikeButton>
-        <button class="py-1 px-3 ml-4 rounded-md flex flex-row items-center justify-center transition-all duration-200 text-white font-semibold tracking-wider text-sm hover:scale-105 active:scale-95 hover:shadow-md" onclick={navigateLayerr}>
+        <button class="py-1 px-3 ml-4 flex flex-row items-center justify-center transition-all duration-200 text-white font-semibold tracking-wider text-sm hover:scale-105 active:scale-95" onclick={navigateLayerr}>
             <p class="text-md">BUILD ON THIS</p>
         </button>
     </div>

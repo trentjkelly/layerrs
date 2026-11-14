@@ -65,6 +65,28 @@ func (s *RecommendationsService) MostRecentAlgorithm(ctx context.Context, artist
 	return recs, nil
 }
 
+// SearchTracks finds valid tracks by title or artist name and enriches their portraits.
+func (s *RecommendationsService) SearchTracks(ctx context.Context, query string, artistId int) ([]entities.TrackInfo, error) {
+	tracks, err := s.trackDbRepo.SearchTracks(ctx, query, artistId, 50)
+	if err != nil {
+		return nil, err
+	}
+
+	for i := range tracks {
+		if tracks[i].R2ImageKey == "" {
+			continue
+		}
+		url, err := s.portraitStorageRepo.GetSignedPortraitURL(ctx, tracks[i].R2ImageKey, 15*time.Minute)
+		if err != nil {
+			log.Printf("[WARN] SearchTracks: could not get signed portrait url: %s", err)
+			continue
+		}
+		tracks[i].ArtistPortraitUrl = url
+	}
+
+	return tracks, nil
+}
+
 // Gets the most recent liked tracks for an artist with full track info
 func (s *RecommendationsService) ArtistLikesAlgorithm(ctx context.Context, artistId int) ([]entities.TrackInfo, error) {
 	tracks, err := s.likesDbRepo.ReadLikedTracksFullByArtistId(ctx, artistId)

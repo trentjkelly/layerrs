@@ -2,10 +2,10 @@ package controller
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"os"
 	"strings"
-	"log"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/trentjkelly/layerrs/internals/entities"
@@ -54,6 +54,35 @@ func (c *RecommendationsController) RecommendationsHandlerHomeGet(w http.Respons
 		log.Printf("[ERROR] RecommendationsHandlerHomeGet: %s", err)
 		http.Error(w, "Unable to encode recommendations to json", http.StatusInternalServerError)
 		return
+	}
+}
+
+// SearchHandlerGet returns public tracks whose title or artist name contains the query.
+func (c *RecommendationsController) SearchHandlerGet(w http.ResponseWriter, r *http.Request) {
+	query := strings.TrimSpace(r.URL.Query().Get("query"))
+	if query == "" {
+		http.Error(w, "Query parameter is required", http.StatusBadRequest)
+		return
+	}
+
+	artistId := 0
+	if artistIdValue := r.Context().Value(entities.ArtistIdKey); artistIdValue != nil {
+		if artistIdFloat, ok := artistIdValue.(float64); ok {
+			artistId = int(artistIdFloat)
+		}
+	}
+
+	tracks, err := c.recService.SearchTracks(r.Context(), query, artistId)
+	if err != nil {
+		log.Printf("[ERROR] SearchHandlerGet: %s", err)
+		http.Error(w, "Unable to search tracks", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(tracks); err != nil {
+		log.Printf("[ERROR] SearchHandlerGet: %s", err)
+		http.Error(w, "Unable to encode search results", http.StatusInternalServerError)
 	}
 }
 

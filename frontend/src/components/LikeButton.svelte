@@ -70,7 +70,7 @@
 </script>
 
 <button
-    class="mx-1 {borderless ? 'p-2' : 'px-3 py-2 outline-1'} bg-olive-500 hover:bg-olive-600 hover:cursor-pointer flex flex-row items-center"
+    class="mx-1 {borderless ? 'p-2' : 'px-3 py-2 outline-1'} bg-transparent hover:bg-zinc-700 hover:cursor-pointer flex flex-row items-center"
     onclick={toggleLikedTrack}
 >
     {#if isTrackLiked}
