@@ -86,29 +86,32 @@ func (app *application) mount() http.Handler {
 				r.Get("/graph", app.trackController.TrackGraphHandlerGet)
 			})
 
-			// Project routes are the canonical public API. Track routes above remain
-			// compatibility aliases because a project's ID is its master-track ID.
-			r.Route("/projects", func(r chi.Router) {
-				r.Group(func(r chi.Router) {
-					r.Use(AuthJWTMiddleware)
-					r.Post("/", app.trackController.TrackHandlerPost)
-				})
-				r.Route("/{id}", func(r chi.Router) {
-					r.Get("/audio", app.trackController.TrackAudioHandlerGet)
-					r.Get("/data", app.trackController.TrackerDataHandlerGet)
-					r.Get("/recommendation", app.trackController.TrackRecommendationHandlerGet)
-					r.Get("/graph", app.trackController.TrackGraphHandlerGet)
-					r.Group(func(r chi.Router) {
-						r.Use(AuthJWTMiddleware)
-						r.Get("/download", app.trackController.TrackDownloadHandlerGet)
-						r.Put("/price", app.trackController.UpdateTrackPriceHandlerPut)
-						r.Post("/play", app.trackController.TrackPlayHandlerPost)
-					})
-				})
-			})
 			r.Group(func(r chi.Router) {
 				r.Use(AuthJWTMiddleware)
 				r.Post("/", app.trackController.TrackHandlerPost)
+			})
+		})
+
+		// Project routes are the canonical public API. Track routes above remain
+		// compatibility aliases because a project's ID is its master-track ID.
+		r.Route("/projects", func(r chi.Router) {
+			r.Group(func(r chi.Router) {
+				r.Use(AuthJWTMiddleware)
+				r.Post("/", app.trackController.TrackHandlerPost)
+			})
+			r.Route("/{id}", func(r chi.Router) {
+				r.Get("/", app.trackController.ProjectDetailHandlerGet)
+				r.Get("/stems/{trackId}/audio", app.trackController.LegacyStemAudioHandlerGet)
+				r.Get("/audio", app.trackController.TrackAudioHandlerGet)
+				r.Get("/data", app.trackController.TrackerDataHandlerGet)
+				r.Get("/recommendation", app.trackController.TrackRecommendationHandlerGet)
+				r.Get("/graph", app.trackController.TrackGraphHandlerGet)
+				r.Group(func(r chi.Router) {
+					r.Use(AuthJWTMiddleware)
+					r.Get("/download", app.trackController.TrackDownloadHandlerGet)
+					r.Put("/price", app.trackController.UpdateTrackPriceHandlerPut)
+					r.Post("/play", app.trackController.TrackPlayHandlerPost)
+				})
 			})
 		})
 

@@ -4,11 +4,15 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"os"
+	"os/exec"
+	"path/filepath"
 	"strconv"
 	"strings"
+	"unicode/utf8"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/golang-jwt/jwt/v5"
@@ -46,7 +50,15 @@ func (c *TrackController) TrackHandlerPost(w http.ResponseWriter, r *http.Reques
 	}
 
 	// Getting metadata
-	trackDescription := r.FormValue("description")
+	trackDescription := strings.TrimSpace(r.FormValue("name"))
+	projectDescription := strings.TrimSpace(r.FormValue("projectDescription"))
+	if trackDescription == "" {
+		trackDescription = strings.TrimSpace(r.FormValue("description"))
+	}
+	if utf8.RuneCountInString(projectDescription) > 2000 {
+		http.Error(w, "Description must be at most 2000 characters", http.StatusBadRequest)
+		return
+	}
 	artistIdFloat := r.Context().Value(entities.ArtistIdKey).(float64)
 	layerrsIdStr := r.FormValue("layerrIDs") // Optional - could have no layerrs to credit
 	sourceTrackIDsStr := r.FormValue("sourceTrackIDs")
@@ -58,7 +70,7 @@ func (c *TrackController) TrackHandlerPost(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	if len(trackDescription) > 100 || len(trackDescription) < 3 {
+	if utf8.RuneCountInString(trackDescription) > 100 || utf8.RuneCountInString(trackDescription) < 3 {
 		log.Println("[ERROR] TrackHandlerPost: track description must be between 3 and 100 characters")
 		http.Error(w, "Track description must be between 3 and 100 characters", http.StatusBadRequest)
 		return
@@ -90,10 +102,29 @@ func (c *TrackController) TrackHandlerPost(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
+	var stemNames []string
+	if raw := r.FormValue("stemNames"); raw != "" {
+		if err := json.Unmarshal([]byte(raw), &stemNames); err != nil || len(stemNames) != len(stemHeaders)+len(sourceTrackIDs) {
+			http.Error(w, "Invalid stem names", http.StatusBadRequest)
+			return
+		}
+	} else {
+		for _, h := range stemHeaders {
+			stemNames = append(stemNames, h.Filename)
+		}
+		for range sourceTrackIDs {
+			stemNames = append(stemNames, "")
+		}
+	}
+	for i, name := range stemNames {
+		stemNames[i] = strings.TrimSpace(name)
+		if utf8.RuneCountInString(stemNames[i]) > 255 || (r.FormValue("stemNames") != "" && stemNames[i] == "") {
+			http.Error(w, "Stem names must be 1–255 characters", http.StatusBadRequest)
+			return
+		}
+	}
 	for _, stemHeader := range stemHeaders {
-		stemType := stemHeader.Header.Get("Content-Type")
-		if stemType != "audio/wav" && stemType != "audio/x-wav" && stemType != "audio/flac" && stemType != "audio/x-flac" {
-			log.Printf("[ERROR] TrackHandlerPost: invalid stem type: %s", stemType)
+		if !supportedAudio(stemHeader.Filename) {
 			http.Error(w, "Stem files must be WAV or FLAC", http.StatusBadRequest)
 			return
 		}
@@ -117,22 +148,23 @@ func (c *TrackController) TrackHandlerPost(w http.ResponseWriter, r *http.Reques
 	defer audioFile.Close()
 
 	// Validate that the audio file is in WAV or FLAC format
-	audioType := audioHeader.Header.Get("Content-Type")
-	if audioType != "audio/wav" && audioType != "audio/x-wav" && audioType != "audio/flac" && audioType != "audio/x-flac" {
-		log.Printf("[ERROR] TrackHandlerPost: invalid audio type: %s", audioType)
-		http.Error(w, "Audio file must be in WAV or FLAC format", http.StatusBadRequest)
+	if !supportedAudio(audioHeader.Filename) {
+		http.Error(w, "Audio file must be WAV or FLAC", http.StatusBadRequest)
 		return
 	}
 
 	// Passing to Service layer
-	err = c.trackService.AddAndUploadTrack(r.Context(), audioFile, audioHeader, stemHeaders, sourceTrackIDs, trackDescription, artistIdInt, layerrsIdArr)
+	var createdID int
+	err = c.trackService.AddAndUploadTrack(r.Context(), audioFile, audioHeader, stemHeaders, sourceTrackIDs, trackDescription, projectDescription, stemNames, artistIdInt, layerrsIdArr, &createdID)
 	if err != nil {
 		log.Printf("[ERROR] TrackHandlerPost: %s", err)
 		http.Error(w, "Failed to create track", http.StatusInternalServerError)
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(map[string]int{"id": createdID})
 }
 
 // GET request -- streams the audio for a given track id (GET /track/{id}/audio)
@@ -476,4 +508,55 @@ func (c *TrackController) UpdateTrackPriceHandlerPut(w http.ResponseWriter, r *h
 	}
 
 	w.WriteHeader(http.StatusOK)
+}
+
+func supportedAudio(name string) bool {
+	ext := strings.ToLower(filepath.Ext(name))
+	return ext == ".wav" || ext == ".flac"
+}
+
+func (c *TrackController) ProjectDetailHandlerGet(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.Atoi(chi.URLParam(r, "id"))
+	if err != nil || id <= 0 {
+		http.Error(w, "Invalid project ID", http.StatusBadRequest)
+		return
+	}
+	project, err := c.trackService.GetProjectDetail(r.Context(), id)
+	if err != nil {
+		http.Error(w, "Project not found", http.StatusNotFound)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(project)
+}
+
+func (c *TrackController) LegacyStemAudioHandlerGet(w http.ResponseWriter, r *http.Request) {
+	projectID, err := strconv.Atoi(chi.URLParam(r, "id"))
+	if err != nil || projectID <= 0 {
+		http.Error(w, "Invalid project", http.StatusBadRequest)
+		return
+	}
+	trackID, err := strconv.Atoi(chi.URLParam(r, "trackId"))
+	if err != nil || trackID <= 0 {
+		http.Error(w, "Invalid stem", http.StatusBadRequest)
+		return
+	}
+	url, err := c.trackService.LegacyStemURL(r.Context(), projectID, trackID)
+	if err != nil {
+		http.Error(w, "Stem not found", http.StatusNotFound)
+		return
+	}
+	cmd := exec.CommandContext(r.Context(), "ffmpeg", "-v", "error", "-i", url, "-codec:a", "aac", "-b:a", "256k", "-f", "adts", "pipe:1")
+	output, err := cmd.StdoutPipe()
+	if err != nil {
+		http.Error(w, "Audio unavailable", http.StatusInternalServerError)
+		return
+	}
+	if err := cmd.Start(); err != nil {
+		http.Error(w, "Audio unavailable", http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "audio/aac")
+	_, _ = io.Copy(w, output)
+	_ = cmd.Wait()
 }

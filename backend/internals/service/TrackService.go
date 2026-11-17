@@ -64,7 +64,7 @@ func NewTrackService(
 }
 
 // Adds all files and data for a new track -- called by TrackController for a POST request
-func (s *TrackService) AddAndUploadTrack(ctx context.Context, audio multipart.File, audioHeader *multipart.FileHeader, stemHeaders []*multipart.FileHeader, sourceTrackIDs []int, trackDescription string, artistId int, parentIDs []int) error {
+func (s *TrackService) AddAndUploadTrack(ctx context.Context, audio multipart.File, audioHeader *multipart.FileHeader, stemHeaders []*multipart.FileHeader, sourceTrackIDs []int, trackDescription, projectDescription string, stemNames []string, artistId int, parentIDs []int, createdID *int) error {
 	if len(parentIDs) > 1 {
 		return fmt.Errorf("an add-on can have only one parent project")
 	}
@@ -77,6 +77,14 @@ func (s *TrackService) AddAndUploadTrack(ctx context.Context, audio multipart.Fi
 	}
 	if !allowed {
 		return fmt.Errorf("source tracks must belong to projects you have downloaded")
+	}
+
+	parentAllowed, err := s.projectDatabaseRepo.CanUseSourceTracks(ctx, artistId, parentIDs)
+	if err != nil {
+		return err
+	}
+	if !parentAllowed {
+		return fmt.Errorf("parent project must be downloaded")
 	}
 
 	// Add track metadata to track table (get back ID)
@@ -137,11 +145,11 @@ func (s *TrackService) AddAndUploadTrack(ctx context.Context, audio multipart.Fi
 
 	// The public project shares its stable ID with its master track. This keeps
 	// legacy track URLs and foreign keys compatible while tracks become audio assets.
-	project := &entities.Project{Id: track.Id, ArtistId: artistId, Description: trackDescription}
+	project := &entities.Project{Id: track.Id, ArtistId: artistId, Name: trackDescription, Description: projectDescription}
 	if err := s.projectDatabaseRepo.CreateProject(ctx, project); err != nil {
 		return err
 	}
-	if err := s.projectDatabaseRepo.AddTrack(ctx, project.Id, track.Id, entities.ProjectMasterTrack, 0); err != nil {
+	if err := s.projectDatabaseRepo.AddTrack(ctx, project.Id, track.Id, entities.ProjectMasterTrack, 0, trackDescription); err != nil {
 		return err
 	}
 
@@ -155,23 +163,30 @@ func (s *TrackService) AddAndUploadTrack(ctx context.Context, audio multipart.Fi
 			stemFile.Close()
 			return err
 		}
-		stemKey := filepath.Join("stems", trackIdStr, fmt.Sprintf("%d%s", index+1, filepath.Ext(stemHeader.Filename)))
-		if err := s.trackStorageRepo.CreateStem(ctx, stemFile, stemKey); err != nil {
-			stemFile.Close()
+		stemID := strconv.Itoa(stemTrack.Id)
+		stemWavPath, stemAacPath, stemWavKey, stemAacKey, err := s.trackConversionRepo.ConvertAllTracks(stemFile, stemID, filepath.Ext(stemHeader.Filename))
+		stemFile.Close()
+		if err != nil {
+			return fmt.Errorf("failed to convert stem %q: %w", stemHeader.Filename, err)
+		}
+		err = s.trackStorageRepo.CreateAllTracks(ctx, stemWavPath, stemAacPath, stemWavKey, stemAacKey)
+		os.Remove(stemWavPath)
+		os.Remove(stemAacPath)
+		if err != nil {
 			return fmt.Errorf("failed to upload stem %q: %w", stemHeader.Filename, err)
 		}
-		stemFile.Close()
-		stemTrack.WavR2TrackKey = stemKey
+		stemTrack.WavR2TrackKey = stemWavKey
+		stemTrack.AacR2TrackKey = stemAacKey
 		stemTrack.IsValid = true
 		if err := s.trackDatabaseRepo.UpdateTrack(ctx, stemTrack); err != nil {
 			return err
 		}
-		if err := s.projectDatabaseRepo.AddTrack(ctx, project.Id, stemTrack.Id, entities.ProjectStemTrack, index); err != nil {
+		if err := s.projectDatabaseRepo.AddTrack(ctx, project.Id, stemTrack.Id, entities.ProjectStemTrack, index, stemNames[index]); err != nil {
 			return err
 		}
 	}
 	for index, sourceTrackId := range sourceTrackIDs {
-		if err := s.projectDatabaseRepo.AddTrack(ctx, project.Id, sourceTrackId, entities.ProjectStemTrack, len(stemHeaders)+index); err != nil {
+		if err := s.projectDatabaseRepo.AddTrack(ctx, project.Id, sourceTrackId, entities.ProjectStemTrack, len(stemHeaders)+index, stemNames[len(stemHeaders)+index]); err != nil {
 			return err
 		}
 	}
@@ -223,7 +238,29 @@ func (s *TrackService) AddAndUploadTrack(ctx context.Context, audio multipart.Fi
 		return err
 	}
 
+	*createdID = project.Id
 	return nil
+}
+
+func (s *TrackService) GetProjectDetail(ctx context.Context, id int) (*entities.ProjectDetail, error) {
+	p, err := s.projectDatabaseRepo.GetDetail(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	for i := range p.Tracks {
+		if p.Tracks[i].Key == "" {
+			continue
+		}
+		if p.Tracks[i].Legacy {
+			p.Tracks[i].URL = fmt.Sprintf("/api/projects/%d/stems/%d/audio", id, p.Tracks[i].Id)
+			continue
+		}
+		p.Tracks[i].URL, _, err = s.trackStorageRepo.GetSignedAacURL(ctx, p.Tracks[i].Key, 10*time.Minute)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return p, nil
 }
 
 // Gets all of the track's info from the database
@@ -431,4 +468,19 @@ func (s *TrackService) RecordPlay(ctx context.Context, trackId int, artistId int
 	}
 
 	return nil
+}
+
+// LegacyStemURL authorizes playback through a transcoding proxy without exposing the source file.
+func (s *TrackService) LegacyStemURL(ctx context.Context, projectID, trackID int) (string, error) {
+	p, err := s.projectDatabaseRepo.GetDetail(ctx, projectID)
+	if err != nil {
+		return "", err
+	}
+	for _, track := range p.Tracks {
+		if track.Id == trackID && track.Role == "stem" && track.Legacy && track.Key != "" {
+			url, _, err := s.trackStorageRepo.GetSignedWavURL(ctx, track.Key, 10*time.Minute)
+			return url, err
+		}
+	}
+	return "", fmt.Errorf("legacy stem not found")
 }
